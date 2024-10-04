@@ -7,4 +7,6 @@ module com.app.librarymanager {
 
   opens com.app.librarymanager to javafx.fxml;
   exports com.app.librarymanager;
+  exports com.app.librarymanager.controllers;
+  opens com.app.librarymanager.controllers to javafx.fxml;
 }
