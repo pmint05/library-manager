@@ -16,6 +16,7 @@ module com.app.librarymanager {
   requires google.cloud.core;
   requires google.cloud.storage;
   requires com.google.api.apicommon;
+  requires static lombok;
 
   opens com.app.librarymanager to javafx.fxml;
   exports com.app.librarymanager;
