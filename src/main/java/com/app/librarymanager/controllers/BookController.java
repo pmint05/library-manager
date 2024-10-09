@@ -19,7 +19,6 @@ public class BookController {
 
   private static final Dotenv dotenv = Dotenv.load();
   private static final String SEARCH_URL = "https://www.googleapis.com/books/v1/volumes?q=";
-//  private static final int SUCCESS_CODE = 200;
 
   /**
    * Get all string contains in an entity of a json object.
@@ -50,20 +49,8 @@ public class BookController {
       String searchUrl =
           SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY");
 
-//      HttpClient client = HttpClient.newHttpClient();
-//      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(searchUrl)).build();
-//      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-//
-//      if (response.statusCode() != SUCCESS_CODE) {
-//        throw new Exception("Fail when trying to search \"" + keyword + "\", status code: "
-//            + response.statusCode());
-//      }
-
       JSONObject jsonObject = Fetcher.get(searchUrl);
-
-//      System.err.println(searchUrl);
-//      System.err.println(jsonObject);
-
+      assert jsonObject != null;
       JSONArray jsonArray = jsonObject.getJSONArray("items");
 
       for (int indexBook = 0; indexBook < jsonArray.length(); indexBook++) {
@@ -79,14 +66,19 @@ public class BookController {
         int pageCount = volumeInfo.optInt("pageCount", -1);
 
         ArrayList<String> categories = getAllString("categories", volumeInfo);
-//        System.out.println(categories);
 
         JSONArray industryIdentifiers = volumeInfo.optJSONArray("industryIdentifiers");
         String iSBN = "N/A";
         if (industryIdentifiers != null) {
+          // this practice is bad when moving to multi-thread?
+          // consider moving to gson to parse this
           for (int j = 0; j < industryIdentifiers.length(); j++) {
             JSONObject currentIdentifier = industryIdentifiers.getJSONObject(j);
             if (currentIdentifier.getString("type").equals("ISBN_13")) {
+              iSBN = currentIdentifier.getString("identifier");
+              break;
+            }
+            if (currentIdentifier.getString("type").equals("ISBN_10")) {
               iSBN = currentIdentifier.getString("identifier");
               break;
             }
@@ -112,30 +104,10 @@ public class BookController {
         int price = retailPrice.getInt("amount");
         String currencyCode = retailPrice.getString("currencyCode");
 
-//        String epubLink = "N/A";
-//        String pdfLink = "N/A";
-//        JSONObject accessInfo = curBook.getJSONObject("accessInfo");
-//        JSONObject epubInfo = accessInfo.getJSONObject("epub");
-//        if (epubInfo.getBoolean("isAvailable")) {
-//          epubLink = epubInfo.getString("acsTokenLink");
-//        }
-//        JSONObject pdfInfo = accessInfo.getJSONObject("pdf");
-//        if (pdfInfo.getBoolean("isAvailable")) {
-//          pdfLink = pdfInfo.getString("acsTokenLink");
-//        }
-
-//        description = "";
-
         bookList.add(
             new Book(id, title, publisher, publishedDate, description, pageCount, categories, iSBN,
                 thumbnail, language, authors, price, currencyCode, "N/A"));
       }
-
-//      for (Book obj : bookList) {
-//        System.out.println(obj);
-//      }
-
-//      System.out.println(bookList);
 
       return bookList;
     } catch (Exception e) {
@@ -150,44 +122,55 @@ public class BookController {
     }.getType());
   }
 
-  private static Book firebaseObjectToBook(String id) {
-    FirebaseFirestore database = FirebaseFirestore.getInstance();
+  private static Book mapToBook(Map<String, Object> data) {
     Gson gson = new Gson();
-    JsonElement jsonElement = gson.toJsonTree(database.getDocumentObject("books", id));
+    JsonElement jsonElement = gson.toJsonTree(data);
     return gson.fromJson(jsonElement, Book.class);
   }
 
-  public static boolean isAvailable(Book book) {
-    // available this object, or available book's ISBN ...
-//    if (FirebaseFirestore.getInstance().haveDocument("books", book.getId())) {
-//      return true;
-//    }
+  private static Book idToBook(String id) {
+    return mapToBook(FirebaseFirestore.getInstance().getDocumentObject("books", id));
+  }
 
-    return FirebaseFirestore.getInstance().haveDocument("books", book.getId());
+  // available this object, or available book's ISBN ...
+  public static boolean isAvailable(Book book) {
+    FirebaseFirestore database = FirebaseFirestore.getInstance();
+
+    if (database.haveDocument("books", book.getId())) {
+      return true;
+    }
+
+    if (book.getISBN().equals("N/A")) {
+      return false;
+    }
+    return !database.getDataWithFilter("books", "iSBN", book.getISBN()).isEmpty();
   }
 
   // isbn13
   // isbn should be distinct for all books!
   // how should we handle it ...
-//  public static Book findBookByISBN(String iSBN) {
-//    if (iSBN.length() != 13) {
-//      return null;
-//    }
-//    for (int i = 0; i < iSBN.length(); i++) {
-//      if ('0' <= iSBN.charAt(i) && iSBN.charAt(i) <= '9') {
-//        continue;
-//      }
-//      return null;
-//    }
-//
-//  }
+  public static Book findBookByISBN(String iSBN) {
+    try {
+      FirebaseFirestore database = FirebaseFirestore.getInstance();
+      JSONArray relevantBooks = database.getDataWithFilter("books", "iSBN", iSBN);
+      if (relevantBooks.length() > 1) {
+        throw new Exception("Database contains more than one books which have ISBN = " + iSBN);
+      }
+      if (relevantBooks.isEmpty()) {
+        return null;
+      }
+      return mapToBook(relevantBooks.getJSONObject(0).toMap());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   public static Book findBookByID(String id) {
     FirebaseFirestore database = FirebaseFirestore.getInstance();
     if (!database.haveDocument("books", id)) {
       return null;
     }
-    return firebaseObjectToBook(id);
+    return idToBook(id);
   }
 
   // find all books which title contains `keyword`
@@ -197,15 +180,23 @@ public class BookController {
     ArrayList<Map<String, Object>> allBooks = database.getCollection("books");
     for (Map<String, Object> book : allBooks) {
       if (((String) book.get("title")).contains(keyword)) {
-        listRelatedBooks.add(firebaseObjectToBook((String) book.get("id")));
+        listRelatedBooks.add(idToBook((String) book.get("id")));
       }
     }
     return listRelatedBooks;
   }
 
-  public static void addBook(Book book) {
+  public static void refreshDatabase() {
+//    FirebaseFirestore database = FirebaseFirestore.getInstance();
+//    ArrayList<Map<String, Object>> listBooks = database.getCollection("books");
+//    for (Map<String, Object> curBook : listBooks) {
+//
+//    }
+  }
+
+  public static boolean addBook(Book book) {
     if (isAvailable(book)) {
-      return;
+      return false;
     }
 
     FirebaseFirestore database = FirebaseFirestore.getInstance();
@@ -223,11 +214,13 @@ public class BookController {
 
       database.appendToArray("categories", slugCategory, "booksId", book.getId());
     }
+
+    return true;
   }
 
-  public static void deleteBook(Book book) {
+  public static boolean deleteBook(Book book) {
     if (!isAvailable(book)) {
-      return;
+      return false;
     }
     FirebaseFirestore database = FirebaseFirestore.getInstance();
     database.deleteData("books", book.getId());
@@ -236,28 +229,11 @@ public class BookController {
       String slugCategory = category.toLowerCase();
       database.removeFromArray("categories", slugCategory, "booksId", book.getId());
     }
+
+    return true;
   }
 
-//  public static void editBook()
-
   public static void main(String[] args) {
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    ArrayList<Book> siu = searchByKeyword("lập trình");
-//    for (int i = 0; i < 10; i++) {
-//      siu.get(i).setDescription("book " + i);
-//      addBook(siu.get(i));
-//    }
-//    ArrayList<String> category = new ArrayList<>();
-//    category.add("Education");
-//    System.out.println(db.getDataWithFilter("books", "categories", category));
-
-//    System.out.println(findBookByID("sqg5EAAAQBAJ"));
-//    System.out.println(findBookByID("NotAvailable"));
-
-//    System.out.println(db.getCollection("books"));
-//    for (Book obj : findBookByKeyword("Scratch")) {
-//      System.out.println(obj);
-//    }
-//    System.out.println(findBookByKeyword("Scratch"));
+    refreshDatabase();
   }
 }
