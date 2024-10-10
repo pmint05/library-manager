@@ -13,9 +13,11 @@ module com.app.librarymanager {
   requires com.google.auth.oauth2;
   requires com.google.auth;
   requires google.cloud.firestore;
-  requires google.cloud.core;
   requires google.cloud.storage;
   requires com.google.api.apicommon;
+  requires java.prefs;
+//  requires proto.google.common.protos;
+  requires google.cloud.core;
 
   opens com.app.librarymanager to javafx.fxml;
   exports com.app.librarymanager;
