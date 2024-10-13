@@ -101,9 +101,36 @@ public class AuthController {
     notifyAuthStateListeners();
   }
 
+  public static void sendPasswordResetEmail(String email) {
+    boolean success = FirebaseAuthentication.sendPasswordResetEmail(email);
+    if (success) {
+      instance.onResetPasswordEmailSent();
+    } else {
+      AlertDialog.showAlert("error", "Error", "Failed to send password reset email. Please try again later.");
+    }
+  }
+
   public void onRegisterSuccess() {
     System.out.println("User registered successfully.");
     notifyAuthStateListeners();
+  }
+
+  public void onResetPasswordEmailSent() {
+    System.out.println("Password reset email sent.");
+    AlertDialog.showAlert("info", "Email Sent", "Password reset email sent. If the email exists, you will receive a link to reset the password, please check your inbox (or spam folder).");
+  }
+  public static void onSendPasswordEmailFailure(String errorMessage) {
+    switch (errorMessage) {
+      case "EMAIL_NOT_FOUND":
+        AlertDialog.showAlert("error", "Email Not Found", "Email not found. Please register first.");
+        break;
+      case "INVALID_EMAIL":
+        AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.");
+        break;
+      default:
+        AlertDialog.showAlert("error", "Error", "Failed to send password reset email. Please try again later.");
+        break;
+    }
   }
 
   public void addAuthStateListener(AuthStateListener listener) {

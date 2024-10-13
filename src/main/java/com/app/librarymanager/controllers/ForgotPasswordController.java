@@ -10,7 +10,7 @@ public class ForgotPasswordController {
   @FXML
   private void handleSendEmail() {
     String email = emailField.getText();
-    System.out.println("Email sent to: " + email);
+    AuthController.sendPasswordResetEmail(email);
   }
   @FXML
   private void handleOpenLogin() {
