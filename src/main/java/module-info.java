@@ -17,7 +17,7 @@ module com.app.librarymanager {
   requires google.cloud.storage;
   requires com.google.api.apicommon;
   requires static lombok;
-  requires org.apache.commons.validator;
+//  requires org.apache.commons.validator;
 
   opens com.app.librarymanager to javafx.fxml, com.google.gson;
   exports com.app.librarymanager;

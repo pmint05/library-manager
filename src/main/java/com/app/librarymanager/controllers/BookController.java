@@ -97,7 +97,6 @@ public class BookController {
 
         JSONObject saleInfo = curBook.getJSONObject("saleInfo");
         if (saleInfo.getString("saleability").equals("NOT_FOR_SALE")) {
-          // TBD
           continue;
         }
         JSONObject retailPrice = saleInfo.getJSONObject("retailPrice");
@@ -132,7 +131,6 @@ public class BookController {
     return mapToBook(FirebaseFirestore.getInstance().getDocumentObject("books", id));
   }
 
-  // available this object, or available book's ISBN ...
   public static boolean isAvailable(Book book) {
     FirebaseFirestore database = FirebaseFirestore.getInstance();
 
@@ -146,9 +144,6 @@ public class BookController {
     return !database.getDataWithFilter("books", "iSBN", book.getISBN()).isEmpty();
   }
 
-  // isbn13
-  // isbn should be distinct for all books!
-  // how should we handle it ...
   public static Book findBookByISBN(String iSBN) {
     try {
       FirebaseFirestore database = FirebaseFirestore.getInstance();
