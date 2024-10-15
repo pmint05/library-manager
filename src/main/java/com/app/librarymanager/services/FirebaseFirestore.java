@@ -28,7 +28,7 @@ public class FirebaseFirestore {
 
   }
 
-  public static FirebaseFirestore getInstance() {
+  public static synchronized FirebaseFirestore getInstance() {
     if (instance == null) {
       instance = new FirebaseFirestore();
     }
@@ -62,6 +62,7 @@ public class FirebaseFirestore {
       throw new RuntimeException(e);
     }
   }
+
 
   public ArrayList<Map<String, Object>> getCollection(String collection) {
     ApiFuture<QuerySnapshot> future = db.collection(collection).get();

@@ -29,51 +29,8 @@ Hyperlink:focused {
   -fx-text-fill: -fx-primary;
 }
 
-TextField, PasswordField, DatePicker {
-  -fx-background-color: -fx-forground;
-  -fx-border-radius: 5;
-  -fx-font-size: 14px;
-  -fx-text-fill: -fx-text;
-}
-DatePicker {
-  -fx-background-color: black;
-}
-.calendar-grid {
-  -fx-background-color: rgb(20, 156, 255);
-}
-
-.date-picker > .text-field {
-  -fx-text-fill: white;
-}
-.date-picker {
-  -fx-background-color: black;
-}
-.date-picker-popup > .month-year-pane {
-  -fx-base: #1d1d1d ;
-  -fx-mark-highlight-color: -fx-light-text-color ;
-}
-Button {
-  -fx-background-color: -fx-primary;
-  -fx-text-fill: -fx-text;
-  -fx-border-radius: 5;
-  -fx-padding: 5 20 5 20;
-  -fx-cursor: Hand;
-  -fx-font-size: 14px;
-}
-
-Button:hover {
-  -fx-background-color: -fx-primary-hover;
-}
-
 .anchor-pane {
   -fx-padding: 0;
-}
-
-.title-text {
-  -fx-font-size: 24px;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-  -fx-fill: white;
 }
 
 .full-width-button {
