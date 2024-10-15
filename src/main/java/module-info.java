@@ -16,11 +16,12 @@ module com.app.librarymanager {
   requires google.cloud.storage;
   requires com.google.api.apicommon;
   requires java.prefs;
-//  requires proto.google.common.protos;
   requires google.cloud.core;
+  requires static lombok;
 
-  opens com.app.librarymanager to javafx.fxml;
+  opens com.app.librarymanager to javafx.fxml, com.google.gson;
   exports com.app.librarymanager;
   exports com.app.librarymanager.controllers;
-  opens com.app.librarymanager.controllers to javafx.fxml;
+  opens com.app.librarymanager.controllers to javafx.fxml, com.google.gson;
+  opens com.app.librarymanager.models to com.google.gson;
 }
