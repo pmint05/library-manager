@@ -3,9 +3,7 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.models.Book;
 import com.app.librarymanager.services.FirebaseFirestore;
 import com.app.librarymanager.utils.Fetcher;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
+import com.google.cloud.Timestamp;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,23 +19,28 @@ public class BookController {
   private static final String SEARCH_URL = "https://www.googleapis.com/books/v1/volumes?q=";
 
   /**
-   * Get all string contains in an entity of a json object.
+   * Get all string contains in an entity of a json object. For example: jsonObject = { "string":
+   * ["string1", "string2"] }, it would return {"string1", "string2" }.
    *
    * @param key        name of the entity needed to get
    * @param jsonObject object to fetch from
    * @return an ArrayList contains all string in `key`
    */
   private static ArrayList<String> getAllString(String key, JSONObject jsonObject) {
-    JSONArray jsonArray = jsonObject.getJSONArray(key);
-    ArrayList<String> listString = new ArrayList<>();
-    for (int i = 0; i < jsonArray.length(); i++) {
-      listString.add(jsonArray.optString(i, "N/A"));
+    try {
+      JSONArray jsonArray = jsonObject.getJSONArray(key);
+      ArrayList<String> listString = new ArrayList<>();
+      for (int i = 0; i < jsonArray.length(); i++) {
+        listString.add(jsonArray.optString(i, "N/A"));
+      }
+      return listString;
+    } catch (Exception e) {
+      return new ArrayList<>();
     }
-    return listString;
   }
 
   /**
-   * Search related books which title contains the given keyword.
+   * Search related books which title contains the given keyword in Google Books' database.
    *
    * @param keyword to be contained in the book's title
    * @return an ArrayList of related books
@@ -46,8 +49,9 @@ public class BookController {
     try {
       ArrayList<Book> bookList = new ArrayList<>();
       String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-      String searchUrl =
-          SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY");
+      String searchUrl = SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY");
+
+//      System.err.println(searchUrl);
 
       JSONObject jsonObject = Fetcher.get(searchUrl);
       assert jsonObject != null;
@@ -93,6 +97,8 @@ public class BookController {
 
         String language = volumeInfo.optString("language", "N/A");
 
+//        System.err.println("check book " + indexBook + " " + id);
+
         ArrayList<String> authors = getAllString("authors", volumeInfo);
 
         JSONObject saleInfo = curBook.getJSONObject("saleInfo");
@@ -115,22 +121,23 @@ public class BookController {
     }
   }
 
-  private static Map<String, Object> bookToFirebaseObject(Book book) {
-    Gson gson = new Gson();
-    return gson.fromJson(gson.toJson(book), new TypeToken<Map<String, Object>>() {
-    }.getType());
-  }
-
-  private static Book mapToBook(Map<String, Object> data) {
-    Gson gson = new Gson();
-    JsonElement jsonElement = gson.toJsonTree(data);
-    return gson.fromJson(jsonElement, Book.class);
-  }
-
+  /**
+   * Get books' information with given id in our database.
+   *
+   * @param id of book need to search
+   * @return a Book which id equals to given id
+   */
   private static Book idToBook(String id) {
-    return mapToBook(FirebaseFirestore.getInstance().getDocumentObject("books", id));
+    return FirebaseFirestore.mapToObject(
+        FirebaseFirestore.getInstance().getDocumentObject("books", id), Book.class);
   }
 
+  /**
+   * Check if a book exists in our database.
+   *
+   * @param book need to search
+   * @return book exists or not
+   */
   public static boolean isAvailable(Book book) {
     FirebaseFirestore database = FirebaseFirestore.getInstance();
 
@@ -144,6 +151,13 @@ public class BookController {
     return !database.getDataWithFilter("books", "iSBN", book.getISBN()).isEmpty();
   }
 
+
+  /**
+   * Find an book with given ISBN-13 or ISBN-10.
+   *
+   * @param iSBN to find
+   * @return book
+   */
   public static Book findBookByISBN(String iSBN) {
     try {
       FirebaseFirestore database = FirebaseFirestore.getInstance();
@@ -154,7 +168,7 @@ public class BookController {
       if (relevantBooks.isEmpty()) {
         return null;
       }
-      return mapToBook(relevantBooks.getJSONObject(0).toMap());
+      return FirebaseFirestore.mapToObject(relevantBooks.getJSONObject(0).toMap(), Book.class);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -181,12 +195,8 @@ public class BookController {
     return listRelatedBooks;
   }
 
+  // TBD
   public static void refreshDatabase() {
-//    FirebaseFirestore database = FirebaseFirestore.getInstance();
-//    ArrayList<Map<String, Object>> listBooks = database.getCollection("books");
-//    for (Map<String, Object> curBook : listBooks) {
-//
-//    }
   }
 
   public static boolean addBook(Book book) {
@@ -195,7 +205,9 @@ public class BookController {
     }
 
     FirebaseFirestore database = FirebaseFirestore.getInstance();
-    database.addData("books", book.getId(), bookToFirebaseObject(book));
+    book.setUpdatedTime(Timestamp.now());
+    book.setCreatedTime(Timestamp.now());
+    database.addData("books", book.getId(), FirebaseFirestore.objectToMap(book));
 
     for (String category : book.getCategories()) {
       String slugCategory = category.toLowerCase();
@@ -203,11 +215,12 @@ public class BookController {
       if (!database.haveDocument("categories", slugCategory)) {
         Map<String, Object> emptyData = new HashMap<>();
         emptyData.put("booksId", new ArrayList<String>());
-
+        emptyData.put("createdTime", Timestamp.now());
         database.addData("categories", slugCategory, emptyData);
       }
 
       database.appendToArray("categories", slugCategory, "booksId", book.getId());
+      database.updateField("categories", slugCategory, "updatedTime", Timestamp.now());
     }
 
     return true;
@@ -228,7 +241,23 @@ public class BookController {
     return true;
   }
 
+  /**
+   * Update information of given book, specified by id.
+   *
+   * @param book
+   * @return true iff
+   */
+  public static boolean editBook(Book book) {
+    FirebaseFirestore database = FirebaseFirestore.getInstance();
+    if (database.getData("books", book.getId()) == null) {
+      return false;
+    }
+    database.updateData("books", book.getId(), FirebaseFirestore.objectToMap(book));
+    database.updateField("books", book.getId(), "updatedTime", Timestamp.now());
+    return true;
+  }
+
   public static void main(String[] args) {
-    refreshDatabase();
+
   }
 }

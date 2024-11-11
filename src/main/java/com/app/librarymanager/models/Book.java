@@ -1,6 +1,7 @@
 package com.app.librarymanager.models;
 
 import java.util.ArrayList;
+import com.google.cloud.Timestamp;
 import lombok.*;
 
 @Data
@@ -15,19 +16,13 @@ public class Book {
   private ArrayList<String> categories;
   private String iSBN;
   private String thumbnail;
-  //  private ArrayList<String> lang = null;
   private String language;
   private ArrayList<String> authors = null;
   private int price;
   private String currencyCode;
-//  private String epubLink;
   private String pdfLink;
-
-//  private void normalizeCategories() {
-//    for (String category : categories) {
-//
-//    }
-//  }
+  private Timestamp createdTime;
+  private Timestamp updatedTime;
 
   public Book() {
     id = "N/A";
@@ -44,6 +39,8 @@ public class Book {
     price = -1;
     currencyCode = "N/A";
     pdfLink = "N/A";
+    createdTime = null;
+    updatedTime = null;
   }
 
   public Book(String id, String title, String publisher, String publishedDate, String description,

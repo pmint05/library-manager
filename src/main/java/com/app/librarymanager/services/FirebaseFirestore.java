@@ -1,6 +1,7 @@
 package com.app.librarymanager.services;
 
 
+import com.app.librarymanager.models.Book;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.CollectionReference;
@@ -12,7 +13,11 @@ import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -35,12 +40,24 @@ public class FirebaseFirestore {
     return instance;
   }
 
+  public static <T> Map<String, Object> objectToMap(T object) {
+    Gson gson = new Gson();
+    return gson.fromJson(gson.toJson(object), new TypeToken<Map<String, Object>>() {
+    }.getType());
+  }
 
-  public void addData(String collection, String document, Map<String, Object> data) {
+  public static <T> T mapToObject(Map<String, Object> data, Class<T> myClass) {
+    Gson gson = new Gson();
+    JsonElement jsonElement = gson.toJsonTree(data);
+    return gson.fromJson(jsonElement, myClass);
+  }
+
+  public Timestamp addData(String collection, String document, Map<String, Object> data) {
     DocumentReference docRef = db.collection(collection).document(document);
     ApiFuture<WriteResult> result = docRef.set(data);
     try {
       System.out.println("Update time : " + result.get().getUpdateTime());
+      return result.get().getUpdateTime();
     } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
     }
@@ -147,6 +164,18 @@ public class FirebaseFirestore {
       ApiFuture<WriteResult> arrayUnion = docRef.update(nameArray,
           FieldValue.arrayUnion(newElement));
       System.out.println("Update time : " + arrayUnion.get());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public <T> void updateField(String collection, String document, String nameField,
+      T newContent) {
+    try {
+      DocumentReference docRef = db.collection(collection).document(document);
+      Map<String, Object> updates = new HashMap<>();
+      updates.put(nameField, newContent);
+      docRef.update(updates);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
