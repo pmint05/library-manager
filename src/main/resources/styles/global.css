@@ -1,15 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 * {
-  -fx-muted: #d1d5db;
+  -fx-muted: #3f3f46;
   -fx-text: #d4d4d8;
   -fx-label: #71717a;
+
   -fx-primary: #3b82f6;
   -fx-primary-light: #93c5fd;
+  -fx-primary-dark: #1e40af;
   -fx-primary-hover: #60a5fa;
+
+  -fx-secondary: #f59e0b;
+  -fx-secondary-light: #fcd34d;
+  -fx-secondary-dark: #92400e;
+  -fx-secondary-hover: #fbbf24;
+
   -fx-bg: #18181b;
-  -fx-forground: #27272a;
-  -fx-prompt-text-fill: #44403c !important;
+  -fx-fg: #27272a;
+  -fx-prompt-text-fill: #3f3f46 !important;
+
+  -fx-error: #ef4444;
+  -fx-warning: #f59e0b;
+  -fx-success: #10b981;
+  -fx-info: #3b82f6;
+  -fx-disabled: #4b4b4b;
+
 }
 
 .root{
@@ -17,6 +32,33 @@
   -fx-font-family: "Poppins", sans-serif;
   -fx-font-smoothing-type: gray;
 
+}
+
+Button {
+  -fx-cursor: hand;
+}
+
+.btn {
+  -fx-border-radius: 5;
+  -fx-padding: 5 20 5 20;
+  -fx-font-size: 14px;
+}
+.btn-primary {
+  -fx-background-color: -fx-primary;
+  -fx-text-fill: -fx-text;
+}
+.btn-secondary {
+
+}
+.btn.btn-primary:hover {
+  -fx-background-color: -fx-primary-hover;
+}
+
+.input {
+  -fx-background-color: -fx-fg;
+  -fx-border-radius: 5;
+  -fx-font-size: 14px;
+  -fx-text-fill: -fx-text;
 }
 .or-separator {
   -fx-background-color: #000;
@@ -32,4 +74,73 @@
 .or-label {
   -fx-font-size: 14px;
   -fx-text-fill: gray;
+}
+.title-text {
+  -fx-font-size: 24px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -fx-text;
+  -fx-fill: -fx-text;
+}
+
+
+.date-picker {
+  -fx-background-color: -fx-fg;
+  -fx-border-width: 0;
+  -fx-font-size: 14px;
+  -fx-text-fill: -fx-text;
+}
+
+
+.date-picker .text-field {
+  -fx-background-color: -fx-fg;
+  -fx-font-size: 14px;
+  -fx-text-fill: -fx-text;
+}
+
+.date-picker .arrow-button {
+  -fx-background-color: -fx-fg;
+  -fx-border-radius: 5;
+  -fx-padding: 5px 10px;
+  -fx-cursor: hand;
+}
+
+.date-picker-popup {
+  -fx-background-color: -fx-bg;
+  -fx-border-color: -fx-fg;
+  -fx-border-radius: 5;
+}
+
+.custom-alert {
+  -fx-background-color: -fx-bg;
+}
+
+.header-pane {
+  -fx-font-weight: bold;
+  -fx-background-color: -fx-bg;
+}
+
+.custom-alert-content {
+  -fx-font-size: 14px;
+  -fx-text-fill: -fx-text;
+}
+
+.custom-alert-button {
+  -fx-background-color: -fx-primary;
+  -fx-text-fill: -fx-text;
+  -fx-padding: 5 10 !important;
+  -fx-font-size: 14px;
+}
+
+.custom-alert-button:hover {
+  -fx-background-color: -fx-primary-hover;
+}
+
+.loading-wrapper {
+  -fx-background-color: rgba(0, 0, 0, 0.75);
+  -fx-padding: 20;
+  -fx-spacing: 20;
+}
+.loading-wrapper Text {
+  -fx-font-size: 20px;
+  -fx-fill: -fx-text;
 }

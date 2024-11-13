@@ -15,7 +15,7 @@ public class Fetcher {
 
   }
 
-  public static Fetcher getInstance() {
+  public static synchronized Fetcher getInstance() {
     if (instance == null) {
       instance = new Fetcher();
     }
