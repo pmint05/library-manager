@@ -2,6 +2,7 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.StageManager;
+import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.DatePicker;
@@ -42,15 +43,18 @@ public class RegisterController {
     String fullName = fullNameField.getText();
     String phoneNumber = phoneNumberField.getText();
     String birthday = birthdayField.getEditor().getText();
-    System.out.println(email);
-    System.out.println(password);
-    System.out.println(confirmPassword);
-    System.out.println(fullName);
-    System.out.println(phoneNumber);
-    System.out.println(birthday);
-    AlertDialog.showAlert("Registration", "Registration Successful", "You have successfully registered");
-
-//    AuthController.register(email, password, confirmPassword);
+    Map<String, String> user = Map.of(
+      "email", email,
+      "password", password,
+      "confirmPassword", confirmPassword,
+      "fullName", fullName,
+      "phoneNumber", phoneNumber,
+      "birthday", birthday
+    );
+    boolean success = AuthController.register(user);
+    if (success) {
+      AlertDialog.showAlert("Registration", "Registration Successful", "You have successfully registered");
+    }
   }
 
   @FXML
