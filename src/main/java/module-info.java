@@ -17,6 +17,10 @@ module com.app.librarymanager {
   requires google.cloud.storage;
   requires com.google.api.apicommon;
   requires static lombok;
+  requires java.sql;
+  requires org.mongodb.driver.core;
+  requires org.mongodb.driver.sync.client;
+  requires org.mongodb.bson;
 //  requires org.apache.commons.validator;
 
   opens com.app.librarymanager to javafx.fxml, com.google.gson;

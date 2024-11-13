@@ -21,8 +21,6 @@ public class Book {
   private int price;
   private String currencyCode;
   private String pdfLink;
-  private Timestamp createdTime;
-  private Timestamp updatedTime;
 
   public Book() {
     id = "N/A";
@@ -39,8 +37,6 @@ public class Book {
     price = -1;
     currencyCode = "N/A";
     pdfLink = "N/A";
-    createdTime = null;
-    updatedTime = null;
   }
 
   public Book(String id, String title, String publisher, String publishedDate, String description,
