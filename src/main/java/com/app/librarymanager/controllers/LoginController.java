@@ -2,6 +2,7 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.StageManager;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
@@ -10,6 +11,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import org.json.JSONObject;
 
 public class LoginController {
 
@@ -37,11 +39,24 @@ public class LoginController {
       AlertDialog.showAlert("error", "Validation Error", "Please enter your email and password.");
       return;
     }
-    boolean success = AuthController.login(email, password);
-    if (success) {
-      StageManager.closeActiveChildWindow();
-    }
-    showLoading(false);
+    Task<JSONObject> loginTask = new Task<JSONObject>() {
+      @Override
+      protected JSONObject call() throws Exception {
+        return AuthController.login(email, password);
+      }
+    };
+    loginTask.setOnSucceeded(e -> {
+      showLoading(false);
+      System.out.println(loginTask.getValue());
+      JSONObject response = loginTask.getValue();
+      if (response.getBoolean("success")) {
+        AuthController.getInstance().onLoginSuccess(response.getJSONObject("data"));
+        StageManager.closeActiveChildWindow();
+      } else {
+        AuthController.getInstance().onLoginFailure(response.getString("message"));
+      }
+    });
+    new Thread(loginTask).start();
   }
 
   @FXML

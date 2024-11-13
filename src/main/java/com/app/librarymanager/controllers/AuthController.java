@@ -6,6 +6,7 @@ import com.app.librarymanager.interfaces.AuthStateListener;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.prefs.Preferences;
 import javafx.stage.Stage;
 import org.json.JSONObject;
@@ -43,12 +44,12 @@ public class AuthController {
     this.userClaims = new JSONObject(authPrefs.get("userClaims", "{}"));
   }
 
-  public static boolean login(String email, String password) {
+  public static JSONObject login(String email, String password) {
     return FirebaseAuthentication.loginWithEmailAndPassword(email, password);
   }
 
-  public static void register(String email, String password, String confirmPassword) {
-    System.out.println("Registering with email: " + email);
+  public static boolean register(Map user) {
+    return FirebaseAuthentication.createAccountWithEmailAndPassword(user);
   }
 
   public void loginWithGoogle() {
@@ -65,11 +66,12 @@ public class AuthController {
     authPrefs.put("refreshToken", refreshToken);
     authPrefs.putLong("lastAuthTime", lastAuthTime.getTime());
     authPrefs.put("userClaims", user.getJSONObject("userClaims").toString());
-    System.out.println("User logged in: " + user.getString("email"));
+    System.out.println(user.getJSONObject("userClaims").toString());
     notifyAuthStateListeners();
   }
 
   public void onLoginFailure(String errorMessage) {
+    System.out.println(errorMessage);
     this.isAuthenticated = false;
     switch (errorMessage) {
       case "EMAIL_NOT_FOUND":
@@ -86,6 +88,36 @@ public class AuthController {
         break;
     }
       notifyAuthStateListeners();
+  }
+
+  public void onRegisterSuccess(JSONObject user) {
+    this.isAuthenticated = true;
+    this.idToken = user.getString("idToken");
+    this.refreshToken = user.getString("refreshToken");
+    this.lastAuthTime = new Date();
+    this.userClaims = user.getJSONObject("userClaims");
+    authPrefs.put("idToken", idToken);
+    authPrefs.put("refreshToken", refreshToken);
+    authPrefs.putLong("lastAuthTime", lastAuthTime.getTime());
+    authPrefs.put("userClaims", user.getJSONObject("userClaims").toString());
+    System.out.println("User registered: " + user.getString("email"));
+    notifyAuthStateListeners();
+  }
+
+  public void onRegisterFailure(String errorMessage){
+    this.isAuthenticated = false;
+    switch (errorMessage) {
+      case "EMAIL_EXISTS":
+        AlertDialog.showAlert("error", "Email Exists", "Email already exists. Please login.");
+        break;
+      case "INVALID_EMAIL":
+        AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.");
+        break;
+      default:
+        AlertDialog.showAlert("error", "Registration Error", "An error occurred while registering. Please try again later.");
+        break;
+    }
+    notifyAuthStateListeners();
   }
 
   public void logout() {
