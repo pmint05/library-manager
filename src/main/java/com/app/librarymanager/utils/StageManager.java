@@ -61,7 +61,7 @@ public class StageManager {
   public static void showHomeWindow() {
     primaryStage.setHeight(600);
     primaryStage.setWidth(800);
-    showStage(Objects.requireNonNull(loadScene("/views/home.fxml")), primaryStage, "Library Manager", true);
+    showStage(Objects.requireNonNull(loadScene("/views/search-interface.fxml")), primaryStage, "Library Manager", true);
   }
   public static void showForgotPasswordWindow() {
     showChildWindow("/views/forgot-password.fxml", "Forgot Password | Library Manager", false);
