@@ -54,6 +54,8 @@ public class BookController {
       String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
       String searchUrl = SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY");
 
+//      System.out.println(searchUrl);
+
       JSONObject jsonObject = Fetcher.get(searchUrl);
       assert jsonObject != null;
       JSONArray jsonArray = jsonObject.getJSONArray("items");
@@ -62,6 +64,8 @@ public class BookController {
         JSONObject curBook = jsonArray.getJSONObject(indexBook);
 
         String id = curBook.getString("id");
+
+        System.err.println(id);
 
         JSONObject volumeInfo = curBook.getJSONObject("volumeInfo");
         String title = volumeInfo.optString("title", "N/A");
@@ -102,9 +106,16 @@ public class BookController {
         if (saleInfo.getString("saleability").equals("NOT_FOR_SALE")) {
           continue;
         }
-        JSONObject retailPrice = saleInfo.getJSONObject("retailPrice");
-        int price = retailPrice.getInt("amount");
-        String currencyCode = retailPrice.getString("currencyCode");
+        JSONObject retailPrice = saleInfo.optJSONObject("retailPrice");
+        int price;
+        String currencyCode;
+        if (retailPrice == null) {
+          price = -1;
+          currencyCode = "N/A";
+        } else {
+          price = retailPrice.getInt("amount");
+          currencyCode = retailPrice.getString("currencyCode");
+        }
 
         bookList.add(
             new Book(id, title, publisher, publishedDate, description, pageCount, categories, iSBN,
@@ -180,5 +191,9 @@ public class BookController {
   }
 
   public static void main(String[] args) {
+    List<Book> bk = searchByKeyword("math");
+    bk.get(0).setDescription("let him cook1");
+    editBook(bk.get(0));
+//    System.out.println(bk.get(0));
   }
 }

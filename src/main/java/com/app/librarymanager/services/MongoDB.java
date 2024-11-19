@@ -19,6 +19,7 @@ import com.mongodb.client.result.InsertOneResult;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.bson.Document;
@@ -159,11 +160,12 @@ public class MongoDB {
     updateList.add(Updates.currentTimestamp("lastUpdated"));
     Bson updates = Updates.combine(updateList);
     MongoCollection<Document> collection = database.getCollection(collectionName);
+    System.err.println(idCriteria + " " + valueCriteria);
     try {
       collection.updateOne(eq(idCriteria, valueCriteria), updates);
       return true;
     } catch (Exception e) {
-      System.err.println("Fail when trying to update at " + collectionName);
+      System.err.println("Fail when trying to update at " + collectionName + " " + e.getMessage());
       return false;
     }
   }

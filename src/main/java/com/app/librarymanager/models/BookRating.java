@@ -6,26 +6,29 @@ import lombok.Data;
 @Data
 public class BookRating {
 
-  private String id;
+  private String _id;
   private String bookId;
   private String userId;
   private double rate;
-  private Timestamp createdTime;
-  private Timestamp updatedTime;
 
   BookRating() {
-    id = null;
+    _id = null;
     bookId = null;
     userId = null;
     rate = -1;
-    createdTime = null;
-    updatedTime = null;
   }
 
-  BookRating(String id, String bookId, String userId, double rate) {
-    this.id = id;
+  BookRating(String _id, String bookId, String userId, double rate) {
+    this._id = _id;
     this.bookId = bookId;
     this.userId = userId;
+    this.rate = rate;
+  }
+
+  BookRating(Book book, User user, double rate) {
+    this._id = null;
+    this.bookId = book.getId();
+    this.userId = user.getId();
     this.rate = rate;
   }
 }
