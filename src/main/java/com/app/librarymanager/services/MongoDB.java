@@ -3,6 +3,7 @@ package com.app.librarymanager.services;
 import static com.mongodb.client.model.Filters.eq;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import com.mongodb.ConnectionString;
@@ -85,7 +86,7 @@ public class MongoDB {
   }
 
   public static <T> T jsonToObject(String json, Class<T> myClass) {
-    Gson gson = new Gson();
+    Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
     return gson.fromJson(json, myClass);
   }
 

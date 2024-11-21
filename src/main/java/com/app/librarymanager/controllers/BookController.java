@@ -130,17 +130,19 @@ public class BookController {
     return database.findAnObject("books", "iSBN", book.getISBN()) != null;
   }
 
-  // to be fixed
+  public static Book getBookFromDocument(Document document) {
+    Book curBook = MongoDB.jsonToObject(document.toJson(), Book.class);
+    curBook.set_id(document.getObjectId("_id"));
+    curBook.setLastUpdated(document.getDate("lastUpdated"));
+    return curBook;
+  }
+
   public static Book findBookByISBN(String iSBN) {
-    MongoDB database = MongoDB.getInstance();
-    String jsonBook = database.findAnObject("books", "iSBN", iSBN).toJson();
-    return MongoDB.jsonToObject(jsonBook, Book.class);
+    return getBookFromDocument(MongoDB.getInstance().findAnObject("books", "iSBN", iSBN));
   }
 
   public static Book findBookByID(String id) {
-    MongoDB database = MongoDB.getInstance();
-    String jsonBook = database.findAnObject("books", "id", id).toJson();
-    return MongoDB.jsonToObject(jsonBook, Book.class);
+    return getBookFromDocument(MongoDB.getInstance().findAnObject("books", "id", id));
   }
 
   // find all books which title contains `keyword`
@@ -149,7 +151,7 @@ public class BookController {
     List<Document> jsonBook = database.findAllObject("books", "title", keyword);
     List<Book> result = new ArrayList<>();
     jsonBook.forEach(curBook -> {
-      result.add(MongoDB.jsonToObject(curBook.toJson(), Book.class));
+      result.add(getBookFromDocument(curBook));
     });
     return result;
   }
@@ -182,9 +184,6 @@ public class BookController {
   }
 
   public static void main(String[] args) {
-    List<Book> bk = searchByKeyword("math");
-    bk.get(0).setDescription("let him cook1");
-    System.err.println(addBook(bk.get(0)));
-//    System.out.println(bk.get(0));
+    System.out.println(findBookByKeyword("algebra"));
   }
 }
