@@ -31,6 +31,12 @@ module com.app.librarymanager {
   requires com.google.api.client.json.gson;
   requires jdk.httpserver;
 
+  requires java.sql;
+  requires org.mongodb.driver.core;
+  requires org.mongodb.driver.sync.client;
+  requires org.mongodb.bson;
+
+
   opens com.app.librarymanager to javafx.fxml, com.google.gson;
   exports com.app.librarymanager;
   exports com.app.librarymanager.controllers;

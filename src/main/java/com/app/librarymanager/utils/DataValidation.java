@@ -2,76 +2,85 @@ package com.app.librarymanager.utils;
 
 //import org.apache.commons.validator.routines.*;
 
+import java.io.Closeable;
+import java.util.Arrays;
+import java.util.Scanner;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.TreeSet;
+
 public class DataValidation {
 
+  private static final String SEP = "(?:\\-|\\s)";
+  private static final String GROUP = "(\\d{1,5})";
+  private static final String PUBLISHER = "(\\d{1,7})";
+  private static final String TITLE = "(\\d{1,6})";
+
+  /**
+   * ISBN-10 consists of 4 groups of numbers separated by either dashes (-) or spaces.  The first
+   * group is 1-5 characters, second 1-7, third 1-6, and fourth is 1 digit or an X.
+   */
+  private static final String ISBN10_REGEX =
+      "^(?:(\\d{9}[0-9X])|(?:" + GROUP + SEP + PUBLISHER + SEP + TITLE + SEP + "([0-9X])))$";
+
+  /**
+   * ISBN-13 consists of 5 groups of numbers separated by either dashes (-) or spaces.  The first
+   * group is 978 or 979, the second group is 1-5 characters, third 1-7, fourth 1-6, and fifth is 1
+   * digit.
+   */
+  private static final String ISBN13_REGEX =
+      "^(978|979)(?:(\\d{10})|(?:" + SEP + GROUP + SEP + PUBLISHER + SEP + TITLE + SEP
+          + "([0-9])))$";
+
   public static boolean validISBN(String iSBN) {
-    return true;
+    if (!iSBN.matches(ISBN10_REGEX) && !iSBN.matches(ISBN13_REGEX)) {
+      return false;
+    }
+    /*
+      Remove all hyphen and space ([- ]);
+      OR (|) `ISBN` in the first position of the string (^ISBN),
+      following with -10 or -13 (optional but matched at most one: ?:-1[0, 3],
+      The group (-10, -13) is optional, so we need ? in the end of group (?:-1[03])?;
+      ending with deleting :, which is also optional and matched at most one (:?).
+     */
+    String trimmedISBN = iSBN.replaceAll("[- ]|^ISBN(?:-1[03])?:?", "");
+
+    char expectedLastDigit = getExpectedLastDigit(trimmedISBN);
+
+    return expectedLastDigit == trimmedISBN.charAt(trimmedISBN.length() - 1);
+  }
+
+  private static char getExpectedLastDigit(String trimmedISBN) {
+    char expectedLastDigit;
+    if (trimmedISBN.length() == 13) {
+      int valueOfLastDigit = 0;
+      for (int i = 0; i + 1 < trimmedISBN.length(); i++) {
+        valueOfLastDigit += (i % 2 * 2 + 1) * (trimmedISBN.charAt(i) - '0');
+      }
+      valueOfLastDigit = (10 - valueOfLastDigit % 10) % 10;
+      expectedLastDigit = (char) (valueOfLastDigit + '0');
+    } else { // trimmedISBN.length() == 10
+      int valueOfLastDigit = 0;
+      for (int i = 0; i + 1 < trimmedISBN.length(); i++) {
+        valueOfLastDigit += (trimmedISBN.length() - i) * (trimmedISBN.charAt(i) - '0');
+      }
+      valueOfLastDigit = (11 - valueOfLastDigit % 11) % 11;
+      if (valueOfLastDigit == 10) {
+        expectedLastDigit = 'X';
+      } else {
+        expectedLastDigit = (char) (valueOfLastDigit + '0');
+      }
+    }
+    return expectedLastDigit;
   }
 
   public static boolean validEmail(String email) {
-    return true;
+    JSONObject js = Fetcher.get("https://verifyemail.vercel.app/api/" + email);
+    assert js != null;
+    return !js.optString("message", "").equals("not valid email id.");
+  }
+
+  public static void main(String[] args) {
+
   }
 }
-
-//  public static void validEmail(String email) {
-////    Pattern pattern = Pattern.compile("foo");
-////    Matcher matcher = pattern.matcher("foofoo");
-//
-//    System.out.println(email.matches("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.-]+(.[a-zA-Z]{2,})+$"));
-//
-//  }
-//
-//  public static boolean validISBN(String iSBN) {
-////    iSBN = iSBN.trim(); // should be handled by input controller
-//
-//    if (iSBN.matches("N/A")) {
-//      return true;
-//    }
-//
-//    /*
-//      Explain
-//     */
-//    if (!iSBN.matches(
-//        "^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$")) {
-//      return false;
-//    }
-//
-//    /*
-//      Remove all hyphen and space ([- ]);
-//      OR (|) `ISBN` in the first position of the string (^ISBN),
-//      following with -10 or -13 (optional but matched at most one: ?:-1[0, 3],
-//      The group (-10, -13) is optional, so we need ? in the end of group (?:-1[03])?;
-//      ending with deleting :, which is also optional and matched at most one (:?).
-//     */
-//    String trimmedISBN = iSBN.replaceAll("[- ]|^ISBN(?:-1[03])?:?", "");
-//
-////    System.out.println(trimmedISBN);
-//
-//    char expectedLastDigit;
-//    if (trimmedISBN.length() == 13) {
-//      int valueOfLastDigit = 0;
-//      for (int i = 0; i + 1 < trimmedISBN.length(); i++) {
-//        valueOfLastDigit += (i % 2 * 2 + 1) * (trimmedISBN.charAt(i) - '0');
-//      }
-//      valueOfLastDigit = (10 - valueOfLastDigit % 10) % 10;
-//      expectedLastDigit = (char) (valueOfLastDigit + '0');
-//    } else { // trimmedISBN.length() == 10
-//      int valueOfLastDigit = 0;
-//      for (int i = 0; i + 1 < trimmedISBN.length(); i++) {
-////        System.out.printf("%d ", (trimmedISBN.length() - i));
-//        valueOfLastDigit += (trimmedISBN.length() - i) * (trimmedISBN.charAt(i) - '0');
-//      }
-////      System.out.println();
-//      valueOfLastDigit = (11 - valueOfLastDigit % 11) % 11;
-////      System.out.println(valueOfLastDigit);
-//      if (valueOfLastDigit == 10) {
-//        expectedLastDigit = 'X';
-//      } else {
-//        expectedLastDigit = (char) (valueOfLastDigit + '0');
-//      }
-//    }
-//
-//    return expectedLastDigit == trimmedISBN.charAt(trimmedISBN.length() - 1);
-//  }
-//
-
