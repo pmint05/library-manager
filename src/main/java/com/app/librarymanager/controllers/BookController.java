@@ -1,22 +1,12 @@
 package com.app.librarymanager.controllers;
 
-import static com.mongodb.client.model.Filters.lt;
-
 import com.app.librarymanager.models.Book;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.Fetcher;
-import com.google.cloud.Timestamp;
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import io.github.cdimascio.dotenv.Dotenv;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -124,7 +114,7 @@ public class BookController {
 
       return bookList;
     } catch (Exception e) {
-      e.printStackTrace();
+      System.err.println(e.getMessage());
       return new ArrayList<>();
     }
   }
@@ -140,25 +130,26 @@ public class BookController {
     return database.findAnObject("books", "iSBN", book.getISBN()) != null;
   }
 
+  // to be fixed
   public static Book findBookByISBN(String iSBN) {
     MongoDB database = MongoDB.getInstance();
-    String jsonBook = database.findAnObject("books", "iSBN", iSBN);
+    String jsonBook = database.findAnObject("books", "iSBN", iSBN).toJson();
     return MongoDB.jsonToObject(jsonBook, Book.class);
   }
 
   public static Book findBookByID(String id) {
     MongoDB database = MongoDB.getInstance();
-    String jsonBook = database.findAnObject("books", "id", id);
+    String jsonBook = database.findAnObject("books", "id", id).toJson();
     return MongoDB.jsonToObject(jsonBook, Book.class);
   }
 
   // find all books which title contains `keyword`
   public static List<Book> findBookByKeyword(String keyword) {
     MongoDB database = MongoDB.getInstance();
-    List<String> jsonBook = database.findAllObject("books", "title", keyword);
+    List<Document> jsonBook = database.findAllObject("books", "title", keyword);
     List<Book> result = new ArrayList<>();
     jsonBook.forEach(curBook -> {
-      result.add(MongoDB.jsonToObject(curBook, Book.class));
+      result.add(MongoDB.jsonToObject(curBook.toJson(), Book.class));
     });
     return result;
   }
@@ -193,7 +184,7 @@ public class BookController {
   public static void main(String[] args) {
     List<Book> bk = searchByKeyword("math");
     bk.get(0).setDescription("let him cook1");
-    editBook(bk.get(0));
+    System.err.println(addBook(bk.get(0)));
 //    System.out.println(bk.get(0));
   }
 }

@@ -6,50 +6,40 @@ import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.MongoDB;
 import java.util.HashMap;
 import java.util.Map;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
 
 public class BookRatingController {
 
-  public static String findRating(User user, Book book) {
-    Map<String, Object> criteria = new HashMap<>();
-    criteria.put("userId", user.getId());
-    criteria.put("bookId", book.getId());
-    String jsonString = MongoDB.getInstance().findAnObject("bookRating", criteria);
-    if (jsonString == null) {
+  public static ObjectId findIdRating(BookRating rating) {
+    Document document = MongoDB.getInstance().findAnObject("bookRating",
+        Map.of("userId", rating.getUserId(), "bookId", rating.getBookId()));
+    if (document == null) {
       return null;
     }
-    JSONObject jsonObject = new JSONObject(jsonString);
-    JSONObject idObject = jsonObject.getJSONObject("_id");
-    return idObject.getString("$oid");
+    return document.getObjectId("_id");
   }
 
-  public static boolean addRating(User user, Book book, double rate) {
-    String idInDatabase = findRating(user, book);
+  public static Document addRating(BookRating rating) {
+    ObjectId idInDatabase = findIdRating(rating);
     MongoDB database = MongoDB.getInstance();
-    Map<String, Object> data = new HashMap<>();
-    data.put("userId", user.getId());
-    data.put("bookId", book.getId());
-    data.put("rate", rate);
     if (idInDatabase != null) {
-      return database.updateData("bookRating", "_id", new ObjectId(idInDatabase), data);
+      return database.updateData("bookRating", "_id", idInDatabase, MongoDB.objectToMap(rating));
     }
-    return database.addToCollection("bookRating", data);
+    return database.addToCollection("bookRating", MongoDB.objectToMap(rating));
   }
 
-  public static boolean removeRating(User user, Book book) {
-    String idInDatabase = findRating(user, book);
+  public static boolean removeRating(BookRating rating) {
+    ObjectId idInDatabase = findIdRating(rating);
     if (idInDatabase == null) {
       return false;
     }
-    return MongoDB.getInstance().deleteFromCollection("bookRating", "_id", new ObjectId(idInDatabase));
+    return MongoDB.getInstance()
+        .deleteFromCollection("bookRating", "_id", idInDatabase);
   }
 
   public static void main(String[] args) {
-    User sus = new User();
-    sus.setId("aaaa");
-    Book book = new Book();
-    book.setId("bbbb");
-    addRating(sus,book,69.420);
+
   }
 }

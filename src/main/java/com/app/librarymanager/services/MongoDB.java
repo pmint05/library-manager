@@ -15,11 +15,15 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.InsertOneResult;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.lang.reflect.Array;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.bson.Document;
@@ -91,27 +95,26 @@ public class MongoDB {
     return gson.fromJson(jsonElement, myClass);
   }
 
-  public boolean addToCollection(String collectionName, Map<String, Object> data) {
+  public Document addToCollection(String collectionName, Map<String, Object> data) {
     try {
       MongoCollection<Document> collection = database.getCollection(collectionName);
-      Document toInsert = new Document(data).append("_id", new ObjectId());
+      Document toInsert = new Document(data).append("_id", new ObjectId())
+          .append("lastUpdated", new Timestamp(System.currentTimeMillis()));
       InsertOneResult result = collection.insertOne(toInsert);
       System.out.println("Success! Inserted document id: " + result.getInsertedId());
-      return true;
+      return toInsert;
     } catch (Exception e) {
       System.err.println("Error when trying to add " + collectionName + e.getMessage());
-      return false;
+      return null;
     }
   }
 
-  public List<String> findAllObject(String collectionName, String criteriaName, String regex) {
+  public List<Document> findAllObject(String collectionName, String criteriaName, String regex) {
     try {
-      List<String> result = new ArrayList<>();
+      List<Document> result = new ArrayList<>();
       MongoCollection<Document> collection = database.getCollection(collectionName);
       // i: intensive, which doesn't separate from lower and uppercase
-      collection.find(Filters.regex(criteriaName, regex, "i")).forEach(document -> {
-        result.add(document.toJson());
-      });
+      collection.find(Filters.regex(criteriaName, regex, "i")).forEach(result::add);
       return result;
     } catch (Exception e) {
       System.err.println("Error when trying to find " + criteriaName + " match " + regex + " at "
@@ -120,21 +123,21 @@ public class MongoDB {
     }
   }
 
-  public String findAnObject(String collectionName, String criteriaName, Object valueCriteria) {
+  public Document findAnObject(String collectionName, String criteriaName, Object valueCriteria) {
     try {
       MongoCollection<Document> collection = database.getCollection(collectionName);
       Document result = collection.find(eq(criteriaName, valueCriteria)).first();
       if (result == null) {
         return null;
       }
-      return result.toJson();
+      return result;
     } catch (Exception e) {
       System.err.println("Fail when finding: " + e.getMessage());
       return null;
     }
   }
 
-  public String findAnObject(String collectionName, Map<String, Object> criteria) {
+  public Document findAnObject(String collectionName, Map<String, Object> criteria) {
     try {
       MongoCollection<Document> collection = database.getCollection(collectionName);
       Bson filter = Filters.and(
@@ -142,7 +145,7 @@ public class MongoDB {
               .toArray(Bson[]::new));
       Document result = collection.find(filter).first();
       if (result != null) {
-        return result.toJson();
+        return result;
       } else {
         return null;
       }
@@ -152,27 +155,35 @@ public class MongoDB {
     }
   }
 
-  public boolean updateData(String collectionName, String idCriteria, Object valueCriteria,
+  public Document updateData(String collectionName, String idCriteria, Object valueCriteria,
       Map<String, Object> newObject) {
+    newObject.remove("_id");
+    newObject.remove("lastUpdated");
     List<Bson> updateList = new ArrayList<>(
         newObject.entrySet().stream().map(entry -> Updates.set(entry.getKey(), entry.getValue()))
             .toList());
-    updateList.add(Updates.currentTimestamp("lastUpdated"));
+    updateList.add(Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis())));
     Bson updates = Updates.combine(updateList);
     MongoCollection<Document> collection = database.getCollection(collectionName);
     System.err.println(idCriteria + " " + valueCriteria);
     try {
-      collection.updateOne(eq(idCriteria, valueCriteria), updates);
-      return true;
+      return collection.findOneAndUpdate(
+          eq(idCriteria, valueCriteria),
+          updates,
+          new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+      );
     } catch (Exception e) {
       System.err.println("Fail when trying to update at " + collectionName + " " + e.getMessage());
-      return false;
+      return null;
     }
   }
 
   public boolean deleteFromCollection(String collectionName, String criteriaName,
       Object valueCriteria) {
     try {
+      if (findAnObject(collectionName, criteriaName, valueCriteria) == null) {
+        return false;
+      }
       MongoCollection<Document> collection = database.getCollection(collectionName);
       Bson query = eq(criteriaName, valueCriteria);
       collection.deleteOne(query);

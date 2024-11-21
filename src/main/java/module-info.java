@@ -19,15 +19,17 @@ module com.app.librarymanager {
   requires google.cloud.core;
   requires static lombok;
 
-  requires java.sql;
   requires org.mongodb.driver.core;
   requires org.mongodb.driver.sync.client;
   requires org.mongodb.bson;
-
+  requires com.fasterxml.jackson.databind;
+  requires bson4jackson;
+  requires java.sql;
 
   opens com.app.librarymanager to javafx.fxml, com.google.gson;
   exports com.app.librarymanager;
   exports com.app.librarymanager.controllers;
+  exports com.app.librarymanager.models;
   opens com.app.librarymanager.controllers to javafx.fxml, com.google.gson;
   opens com.app.librarymanager.models to com.google.gson;
 }
