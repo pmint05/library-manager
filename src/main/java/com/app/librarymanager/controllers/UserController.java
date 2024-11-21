@@ -5,6 +5,8 @@ import com.app.librarymanager.services.FirebaseAuthentication;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.auth.UserRecord.UpdateRequest;
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class UserController {
@@ -29,20 +31,40 @@ public class UserController {
   public static JSONObject updateUser(User user) {
     try {
       checkPermission();
-      UpdateRequest userUpdate = new UpdateRequest(user.getUid()).setEmail(user.getEmail())
-          .setEmailVerified(user.isEmailVerified()).setPhoneNumber(user.getPhoneNumber())
-          .setDisplayName(user.getDisplayName()).setPhotoUrl(user.getPhotoUrl())
-          .setDisabled(user.isDisabled());
+      UpdateRequest userUpdate = getUpdateRequest(user);
       UserRecord updatedUser = FirebaseAuth.getInstance().updateUser(userUpdate);
-      return new JSONObject().put("success", true).put("data", updatedUser);
+      return new JSONObject().put("success", true).put("data", new JSONObject(updatedUser))
+          .put("message", "User updated successfully.");
     } catch (Exception e) {
-      return new JSONObject().put("success", false).put("message", e.getMessage());
+      JSONObject errorResponse = new JSONObject();
+      try {
+        String responseBody = e.getMessage().substring(e.getMessage().indexOf("{"));
+        JSONObject responseJson = new JSONObject(responseBody);
+        String errorMessage = responseJson.getJSONObject("error").getString("message");
+        errorResponse.put("message", errorMessage);
+      } catch (Exception parseException) {
+        errorResponse.put("message", e.getMessage());
+      }
+      return new JSONObject().put("success", false).put("message", errorResponse.getString("message"));
     }
-
-
   }
 
-  public JSONObject deleteUser(User user) {
+  @NotNull
+  private static UpdateRequest getUpdateRequest(User user) {
+    UpdateRequest userUpdate = new UpdateRequest(user.getUid());
+    userUpdate.setEmailVerified(user.isEmailVerified());
+    userUpdate.setPhoneNumber(user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty() ? user.getPhoneNumber() : null);
+    if (user.getDisplayName() != null && !user.getDisplayName().isEmpty()) {
+      userUpdate.setDisplayName(user.getDisplayName());
+    }
+    if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
+      userUpdate.setPhotoUrl(user.getPhotoUrl());
+    }
+    userUpdate.setDisabled(user.isDisabled());
+    return userUpdate;
+  }
+
+  public static JSONObject deleteUser(User user) {
     try {
       checkPermission();
       FirebaseAuth.getInstance().deleteUser(user.getUid());
@@ -61,11 +83,11 @@ public class UserController {
     }
   }
 
-  public JSONObject listUsers() {
+  public static JSONObject listUsers() {
     try {
       checkPermission();
       return new JSONObject().put("success", true)
-          .put("data", FirebaseAuth.getInstance().listUsers(null));
+          .put("data", new JSONArray(FirebaseAuth.getInstance().listUsers(null).getValues()));
     } catch (Exception e) {
       return new JSONObject().put("success", false).put("message", e.getMessage());
     }

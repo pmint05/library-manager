@@ -231,12 +231,17 @@ public class AuthController {
         }
         System.out.println(response.toString());
         String idToken;
+        String refreshToken = "";
         if (response.has("id_token")) {
           idToken = response.getString("id_token");
         } else {
           idToken = response.getString("idToken");
         }
-        this.refreshToken = response.getString("refreshToken");
+        if (response.has("refresh_token")) {
+          refreshToken = response.getString("refresh_token");
+        } else {
+          refreshToken = response.getString("refreshToken");
+        }
         authPrefs.put("idToken", idToken);
         authPrefs.put("refreshToken", refreshToken);
         System.out.println("Token refreshed successfully.");
