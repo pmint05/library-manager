@@ -20,7 +20,9 @@
 
 <!--<?import org.kordamp.ikonli.javafx.FontIcon?>-->
 
-<AnchorPane fx:id="authWrapper" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.StackPane?>
+<StackPane fx:id="authWrapper" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
   minWidth="-Infinity" styleClass="anchor-pane" stylesheets="@../styles/auth.css"
   xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="com.app.librarymanager.controllers.RegisterController">
@@ -128,8 +130,10 @@
           </HBox>
         </graphic>
       </Button>
-
     </VBox>
-
   </HBox>
-</AnchorPane>
+  <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false" StackPane.alignment="CENTER">
+    <Text text="Logging in..." />
+    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100" />
+  </VBox>
+</StackPane>

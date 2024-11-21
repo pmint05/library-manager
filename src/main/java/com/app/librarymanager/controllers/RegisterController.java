@@ -1,5 +1,6 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.models.User;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.StageManager;
 import java.util.Map;
@@ -43,17 +44,21 @@ public class RegisterController {
     String fullName = fullNameField.getText();
     String phoneNumber = phoneNumberField.getText();
     String birthday = birthdayField.getEditor().getText();
-    Map<String, String> user = Map.of(
-      "email", email,
-      "password", password,
-      "confirmPassword", confirmPassword,
-      "fullName", fullName,
-      "phoneNumber", phoneNumber,
-      "birthday", birthday
+
+    User newUser = new User(
+        email,
+        password,
+        fullName,
+        birthday,
+        phoneNumber,
+        null,
+        null,
+        null,
+        false
     );
-    boolean success = AuthController.register(user);
+    boolean success = AuthController.register(newUser);
     if (success) {
-      AlertDialog.showAlert("Registration", "Registration Successful", "You have successfully registered");
+      AlertDialog.showAlert("Registration", "Registration Successful", "You have successfully registered", null);
     }
   }
 

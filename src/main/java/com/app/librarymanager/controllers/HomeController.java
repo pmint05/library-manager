@@ -48,37 +48,34 @@ public class HomeController implements AuthStateListener {
   @FXML
   private void initialize() {
     AuthController.getInstance().addAuthStateListener(this);
-    boolean isAuthenticated = AuthController.getInstance().isAuthenticated();
-    JSONObject claims = AuthController.getInstance().getUserClaims();
-    updateUI(isAuthenticated, claims);
+    if (AuthController.getInstance().validateIdToken()) {
+      JSONObject claims = AuthController.getInstance().getUserClaims();
+      updateUI(true, claims);
+    } else {
+      AuthController.getInstance().logout();
+      updateUI(false, new JSONObject());
+    }
   }
 
   private void updateUI(boolean isAuthenticated, JSONObject userClaims) {
     mainTabPane.getTabs().clear();
+    System.out.println("User claims: " + userClaims);
     if (isAuthenticated) {
       if (!userClaims.isEmpty()) {
         String email = userClaims.getString("email");
         welcomeLabel.setText("Welcome, " + email);
-        if (userClaims.has("role")) {
-          String role = userClaims.getString("role");
-          if (role.equals("admin")) {
-            mainTabPane.getTabs().add(adminTab);
-          } else {
-            authUserTab.setDisable(false);
-            mainTabPane.getTabs().add(authUserTab);
-          }
-        } else {
-          authUserTab.setDisable(false);
-          mainTabPane.getTabs().add(authUserTab);
+        mainTabPane.getTabs().add(authUserTab);
+        authUserTab.setDisable(false);
+        if (userClaims.getBoolean("admin")) {
+          mainTabPane.getTabs().add(adminTab);
         }
-      }  else {
+      } else {
         AuthController.getInstance().logout();
       }
     } else {
-      mainTabPane.getTabs().add(unauthUserTab);
+        mainTabPane.getTabs().add(unauthUserTab);
     }
   }
-
 
 
   @FXML
@@ -133,8 +130,8 @@ public class HomeController implements AuthStateListener {
   }
 
   @Override
-  public void onAuthStateChanged(boolean isAuthenticated, JSONObject userClaims) {
-    updateUI(isAuthenticated, userClaims);
+  public void onAuthStateChanged(boolean isAuthenticated) {
+    updateUI(isAuthenticated, AuthController.getInstance().getUserClaims());
   }
 }
 
