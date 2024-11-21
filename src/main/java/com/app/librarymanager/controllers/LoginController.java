@@ -2,6 +2,8 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.StageManager;
+import java.io.IOException;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -31,14 +33,16 @@ public class LoginController {
 
   @FXML
   private void handleLoginAction() {
-    showLoading(true);
     String email = emailField.getText();
     String password = passwordField.getText();
 
     if (email.isEmpty() || password.isEmpty()) {
-      AlertDialog.showAlert("error", "Validation Error", "Please enter your email and password.");
+      AlertDialog.showAlert("error", "Validation Error", "Please enter your email and password.",
+          null);
+      showLoading(false);
       return;
     }
+    showLoading(true);
     Task<JSONObject> loginTask = new Task<JSONObject>() {
       @Override
       protected JSONObject call() throws Exception {
@@ -47,7 +51,6 @@ public class LoginController {
     };
     loginTask.setOnSucceeded(e -> {
       showLoading(false);
-      System.out.println(loginTask.getValue());
       JSONObject response = loginTask.getValue();
       if (response.getBoolean("success")) {
         AuthController.getInstance().onLoginSuccess(response.getJSONObject("data"));
@@ -65,8 +68,26 @@ public class LoginController {
   }
 
   @FXML
-  private void handleGoogleLogin() {
-    System.out.println("Login with Google Clicked");
+  private void handleGoogleLogin() throws IOException {
+    showLoading(true);
+    Task<JSONObject> googleLoginTask = new Task<JSONObject>() {
+      @Override
+      protected JSONObject call() throws Exception {
+        return AuthController.getInstance().googleLogin();
+      }
+    };
+
+    googleLoginTask.setOnSucceeded(e -> {
+      showLoading(false);
+      JSONObject response = googleLoginTask.getValue();
+      if (response.getBoolean("success")) {
+        AuthController.getInstance().onLoginSuccess(response.getJSONObject("data"));
+        StageManager.closeActiveChildWindow();
+      } else {
+        AuthController.getInstance().onLoginFailure(response.getString("code"));
+      }
+    });
+    new Thread(googleLoginTask).start();
   }
 
   @FXML

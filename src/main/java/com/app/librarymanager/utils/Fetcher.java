@@ -80,5 +80,4 @@ public class Fetcher {
       return null;
     }
   }
-
 }

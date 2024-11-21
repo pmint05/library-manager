@@ -1,16 +1,21 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.FirebaseAuthentication;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.interfaces.AuthStateListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseToken;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
 import javafx.stage.Stage;
+import lombok.Data;
 import org.json.JSONObject;
 
+@Data
 public class AuthController {
 
   private static Stage loginStage;
@@ -20,9 +25,8 @@ public class AuthController {
 
   private String idToken;
   private String refreshToken;
-  private Date lastAuthTime;
+  private String userClaims;
   private Boolean isAuthenticated;
-  private JSONObject userClaims;
   private final Preferences authPrefs;
 
 
@@ -30,43 +34,63 @@ public class AuthController {
     authPrefs = Preferences.userNodeForPackage(AuthController.class);
     loadSession();
   }
+
   public static synchronized AuthController getInstance() {
     if (instance == null) {
       instance = new AuthController();
     }
     return instance;
   }
+
   private void loadSession() {
+    System.out.println("Loading session...");
+    System.out.println("ID Token: " + authPrefs.get("idToken", null));
     this.idToken = authPrefs.get("idToken", null);
     this.refreshToken = authPrefs.get("refreshToken", null);
+    this.userClaims = authPrefs.get("userClaims", null);
     this.isAuthenticated = (idToken != null);
-    this.lastAuthTime = new Date(authPrefs.getLong("lastAuthTime", 0));
-    this.userClaims = new JSONObject(authPrefs.get("userClaims", "{}"));
   }
 
   public static JSONObject login(String email, String password) {
     return FirebaseAuthentication.loginWithEmailAndPassword(email, password);
   }
 
-  public static boolean register(Map user) {
+  public static boolean register(User user) {
     return FirebaseAuthentication.createAccountWithEmailAndPassword(user);
   }
 
-  public void loginWithGoogle() {
-    System.out.println("Logging in with Google");
+  public JSONObject googleLogin() {
+    try {
+      JSONObject resp = FirebaseAuthentication.getIdTokenFromGAccount();
+      JSONObject res = new JSONObject();
+      if (resp.has("error")) {
+        JSONObject error = resp.getJSONObject("error");
+        String code = error.getString("code");
+        if (error.has("message")) {
+          System.err.println("Error logging in with Google: " + error.getString("message"));
+        }
+        res.put("success", false);
+        res.put("code", code);
+        return res;
+      }
+      JSONObject user = resp.getJSONObject("data");
+      this.idToken = user.getString("idToken");
+      if (!validateIdToken()) {
+        res.put("success", false);
+        res.put("code", "");
+        return res;
+      }
+      res.put("success", true);
+      res.put("data", user);
+      return res;
+    } catch (Exception e) {
+      System.err.println("Error logging in with Google: " + e.getMessage());
+      return new JSONObject(Map.of("success", false, "code", ""));
+    }
   }
 
   public void onLoginSuccess(JSONObject user) {
-    this.isAuthenticated = true;
-    this.idToken = user.getString("idToken");
-    this.refreshToken = user.getString("refreshToken");
-    this.lastAuthTime = new Date();
-    this.userClaims = user.getJSONObject("userClaims");
-    authPrefs.put("idToken", idToken);
-    authPrefs.put("refreshToken", refreshToken);
-    authPrefs.putLong("lastAuthTime", lastAuthTime.getTime());
-    authPrefs.put("userClaims", user.getJSONObject("userClaims").toString());
-    System.out.println(user.getJSONObject("userClaims").toString());
+    onAuthSuccess(user);
     notifyAuthStateListeners();
   }
 
@@ -75,46 +99,58 @@ public class AuthController {
     this.isAuthenticated = false;
     switch (errorMessage) {
       case "EMAIL_NOT_FOUND":
-        AlertDialog.showAlert("error", "Email Not Found", "Email not found. Please register first.");
+        AlertDialog.showAlert("error", "Email Not Found", "Email not found. Please register first.",
+            null);
         break;
-        case "INVALID_EMAIL":
-        AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.");
+      case "INVALID_EMAIL":
+        AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.",
+            null);
         break;
       case "INVALID_LOGIN_CREDENTIALS":
-        AlertDialog.showAlert("error", "Invalid Credentials", "Wrong email or password. Please try again.");
+        AlertDialog.showAlert("error", "Invalid Credentials",
+            "Wrong email or password. Please try again.", null);
+        break;
+      case "AUTH_CODE_NOT_FOUND":
+        AlertDialog.showAlert("error", "Login failed",
+            "Login cancelled or something went wrong, please try again.", null);
         break;
       default:
-        AlertDialog.showAlert("error", "Login Error", "An error occurred while logging in. Please try again later.");
+        AlertDialog.showAlert("error", "Login Error",
+            "An error occurred while logging in. Please try again later.", null);
         break;
     }
-      notifyAuthStateListeners();
+    notifyAuthStateListeners();
   }
 
   public void onRegisterSuccess(JSONObject user) {
-    this.isAuthenticated = true;
-    this.idToken = user.getString("idToken");
-    this.refreshToken = user.getString("refreshToken");
-    this.lastAuthTime = new Date();
-    this.userClaims = user.getJSONObject("userClaims");
-    authPrefs.put("idToken", idToken);
-    authPrefs.put("refreshToken", refreshToken);
-    authPrefs.putLong("lastAuthTime", lastAuthTime.getTime());
-    authPrefs.put("userClaims", user.getJSONObject("userClaims").toString());
+    onAuthSuccess(user);
     System.out.println("User registered: " + user.getString("email"));
     notifyAuthStateListeners();
   }
 
-  public void onRegisterFailure(String errorMessage){
+  private void onAuthSuccess(JSONObject user) {
+//    JSONObject resp = FirebaseAuthentication.getUserData(user.getString("idToken"));
+//    System.out.println("User data: " + resp);
+    this.isAuthenticated = true;
+    this.idToken = user.getString("idToken");
+    this.refreshToken = user.getString("refreshToken");
+    authPrefs.put("idToken", idToken);
+    authPrefs.put("refreshToken", refreshToken);
+  }
+
+  public void onRegisterFailure(String errorMessage) {
     this.isAuthenticated = false;
     switch (errorMessage) {
       case "EMAIL_EXISTS":
-        AlertDialog.showAlert("error", "Email Exists", "Email already exists. Please login.");
+        AlertDialog.showAlert("error", "Email Exists", "Email already exists. Please login.", null);
         break;
       case "INVALID_EMAIL":
-        AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.");
+        AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.",
+            null);
         break;
       default:
-        AlertDialog.showAlert("error", "Registration Error", "An error occurred while registering. Please try again later.");
+        AlertDialog.showAlert("error", "Registration Error",
+            "An error occurred while registering. Please try again later.", null);
         break;
     }
     notifyAuthStateListeners();
@@ -123,44 +159,32 @@ public class AuthController {
   public void logout() {
     authPrefs.remove("idToken");
     authPrefs.remove("refreshToken");
-    authPrefs.remove("lastAuthTime");
     authPrefs.remove("userClaims");
     this.idToken = null;
     this.refreshToken = null;
     this.isAuthenticated = false;
-    this.userClaims = new JSONObject();
+    this.userClaims = null;
     System.out.println("User logged out.");
     notifyAuthStateListeners();
   }
 
-  public static void sendPasswordResetEmail(String email) {
-    boolean success = FirebaseAuthentication.sendPasswordResetEmail(email);
-    if (success) {
-      instance.onResetPasswordEmailSent();
-    } else {
-      AlertDialog.showAlert("error", "Error", "Failed to send password reset email. Please try again later.");
-    }
+  public static JSONObject sendPasswordResetEmail(String email) {
+    return FirebaseAuthentication.sendPasswordResetEmail(email);
   }
 
-  public void onRegisterSuccess() {
-    System.out.println("User registered successfully.");
-    notifyAuthStateListeners();
-  }
-
-  public void onResetPasswordEmailSent() {
-    System.out.println("Password reset email sent.");
-    AlertDialog.showAlert("info", "Email Sent", "Password reset email sent. If the email exists, you will receive a link to reset the password, please check your inbox (or spam folder).");
-  }
   public static void onSendPasswordEmailFailure(String errorMessage) {
     switch (errorMessage) {
       case "EMAIL_NOT_FOUND":
-        AlertDialog.showAlert("error", "Email Not Found", "Email not found. Please register first.");
+        AlertDialog.showAlert("error", "Email Not Found", "Email not found. Please register first.",
+            null);
         break;
       case "INVALID_EMAIL":
-        AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.");
+        AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.",
+            null);
         break;
       default:
-        AlertDialog.showAlert("error", "Error", "Failed to send password reset email. Please try again later.");
+        AlertDialog.showAlert("error", "Error",
+            "Failed to send password reset email. Please try again later.", null);
         break;
     }
   }
@@ -173,10 +197,9 @@ public class AuthController {
     authStateListeners.remove(listener);
   }
 
-
   private void notifyAuthStateListeners() {
     for (AuthStateListener listener : authStateListeners) {
-      listener.onAuthStateChanged(isAuthenticated, userClaims);
+      listener.onAuthStateChanged(isAuthenticated);
     }
   }
 
@@ -184,9 +207,96 @@ public class AuthController {
     return isAuthenticated;
   }
 
-  public JSONObject getUserClaims() {
-    return userClaims;
+  public boolean validateIdToken() {
+    try {
+      if (this.idToken == null) {
+        return false;
+      }
+      FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(this.idToken);
+      return true;
+    } catch (Exception e) {
+      System.err.println("Invalid or expired ID token: " + e.getMessage());
+      if (this.refreshToken == null) {
+        return false;
+      }
+      System.out.println("Trying to refresh token...");
+      try {
+        JSONObject response = FirebaseAuthentication.refreshAccessToken(this.refreshToken);
+        if (response.has("error")) {
+          JSONObject error = response.getJSONObject("error");
+          if (error.has("message")) {
+            System.err.println("Error refreshing token: " + error.getString("message"));
+            return false;
+          }
+        }
+        System.out.println(response.toString());
+        String idToken;
+        if (response.has("id_token")) {
+          idToken = response.getString("id_token");
+        } else {
+          idToken = response.getString("idToken");
+        }
+        this.refreshToken = response.getString("refreshToken");
+        authPrefs.put("idToken", idToken);
+        authPrefs.put("refreshToken", refreshToken);
+        System.out.println("Token refreshed successfully.");
+        return true;
+      } catch (Exception ex) {
+        System.err.println("Error refreshing token: " + ex.getMessage());
+        return false;
+      }
+    }
   }
 
+
+  public JSONObject getUserClaims() {
+    try {
+      if (this.idToken == null) {
+        return new JSONObject();
+      }
+      if (this.userClaims != null) {
+        return new JSONObject(this.userClaims);
+      }
+      JSONObject userData = FirebaseAuthentication.getUserData(this.idToken);
+      JSONObject claims = new JSONObject();
+      if (userData.has("error")) {
+        JSONObject error = userData.getJSONObject("error");
+        if (error.has("message")) {
+          System.err.println("Error getting user data: " + error.getString("message"));
+          return new JSONObject();
+        }
+      }
+      if (userData.has("users")) {
+        JSONObject user = userData.getJSONArray("users").getJSONObject(0);
+        claims.put("email", user.getString("email"));
+        claims.put("localId", user.getString("localId"));
+        claims.put("phoneNumber", user.optString("phoneNumber", ""));
+        claims.put("emailVerified", user.optBoolean("emailVerified", false));
+        claims.put("createdAt", new Date(user.getLong("createdAt")));
+        claims.put("lastLoginAt", new Date(user.getLong("lastLoginAt")));
+        if (user.has("customAttributes")) {
+          JSONObject customAttributes = new JSONObject(user.getString("customAttributes"));
+          claims.put("admin", customAttributes.optBoolean("admin", false));
+          claims.put("birthday", customAttributes.optString("birthday", ""));
+        } else {
+          claims.put("admin", false);
+          claims.put("birthday", "");
+        }
+        claims.put("photoUrl",
+            user.getJSONArray("providerUserInfo").getJSONObject(0).optString("photoUrl", ""));
+        claims.put("displayName",
+            user.getJSONArray("providerUserInfo").getJSONObject(0).optString("displayName", ""));
+        claims.put("providerId",
+            user.getJSONArray("providerUserInfo").getJSONObject(0).optString("providerId", ""));
+      }
+      this.userClaims = claims.toString();
+      authPrefs.put("userClaims", this.userClaims);
+      return claims;
+    } catch (Exception e) {
+      System.err.println("Error in getting user claims: " + e.getMessage());
+      this.userClaims = null;
+      return new JSONObject();
+    }
+  }
 
 }

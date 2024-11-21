@@ -15,13 +15,27 @@ module com.app.librarymanager {
   requires google.cloud.firestore;
   requires google.cloud.storage;
   requires com.google.api.apicommon;
-  requires java.prefs;
   requires google.cloud.core;
   requires static lombok;
+  requires java.sql;
+  requires org.mongodb.driver.core;
+  requires org.mongodb.driver.sync.client;
+  requires org.mongodb.bson;
+  requires com.google.api.client;
+  requires google.api.client;
+  requires com.google.api.client.auth;
+  requires com.google.api.client.json.jackson2;
+  requires java.desktop;
+  requires com.google.api.client.extensions.jetty.auth;
+  requires java.prefs;
+  requires com.google.api.client.json.gson;
+  requires jdk.httpserver;
 
   opens com.app.librarymanager to javafx.fxml, com.google.gson;
   exports com.app.librarymanager;
   exports com.app.librarymanager.controllers;
+  exports com.app.librarymanager.interfaces;
+  exports com.app.librarymanager.models;
   opens com.app.librarymanager.controllers to javafx.fxml, com.google.gson;
   opens com.app.librarymanager.models to com.google.gson;
 }
