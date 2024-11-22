@@ -5,6 +5,7 @@ import com.app.librarymanager.models.BookRating;
 import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.MongoDB;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -39,7 +40,14 @@ public class BookRatingController {
         .deleteFromCollection("bookRating", "_id", idInDatabase);
   }
 
-  public static void main(String[] args) {
+  public static double calculateRating(String bookId) {
+    return MongoDB.getInstance()
+        .findAllObject("bookRating", "bookId", bookId)
+        .stream().mapToDouble(doc -> doc.getDouble("rate"))
+        .average().orElse(0.0);
+  }
 
+  public static void main(String[] args) {
+    System.out.println(calculateRating("\' or 1=1"));
   }
 }
