@@ -55,7 +55,7 @@ public class AuthController {
     return FirebaseAuthentication.loginWithEmailAndPassword(email, password);
   }
 
-  public static boolean register(User user) {
+  public static JSONObject register(User user) {
     return FirebaseAuthentication.createAccountWithEmailAndPassword(user);
   }
 
@@ -114,6 +114,10 @@ public class AuthController {
         AlertDialog.showAlert("error", "Login failed",
             "Login cancelled or something went wrong, please try again.", null);
         break;
+      case "USER_DISABLED":
+        AlertDialog.showAlert("error", "Login failed",
+            "Your account has been disabled. Please contact support.", null);
+        break;
       default:
         AlertDialog.showAlert("error", "Login Error",
             "An error occurred while logging in. Please try again later.", null);
@@ -142,7 +146,9 @@ public class AuthController {
     this.isAuthenticated = false;
     switch (errorMessage) {
       case "EMAIL_EXISTS":
-        AlertDialog.showAlert("error", "Email Exists", "Email already exists. Please login.", null);
+        AlertDialog.showAlert("error", "Email Exists",
+            "The email address that you entered is already in use. Please try logging in instead.",
+            null);
         break;
       case "INVALID_EMAIL":
         AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.",
@@ -231,12 +237,17 @@ public class AuthController {
         }
         System.out.println(response.toString());
         String idToken;
+        String refreshToken = "";
         if (response.has("id_token")) {
           idToken = response.getString("id_token");
         } else {
           idToken = response.getString("idToken");
         }
-        this.refreshToken = response.getString("refreshToken");
+        if (response.has("refresh_token")) {
+          refreshToken = response.getString("refresh_token");
+        } else {
+          refreshToken = response.getString("refreshToken");
+        }
         authPrefs.put("idToken", idToken);
         authPrefs.put("refreshToken", refreshToken);
         System.out.println("Token refreshed successfully.");
@@ -258,6 +269,7 @@ public class AuthController {
         return new JSONObject(this.userClaims);
       }
       JSONObject userData = FirebaseAuthentication.getUserData(this.idToken);
+      System.out.println("User data: " + userData);
       JSONObject claims = new JSONObject();
       if (userData.has("error")) {
         JSONObject error = userData.getJSONObject("error");

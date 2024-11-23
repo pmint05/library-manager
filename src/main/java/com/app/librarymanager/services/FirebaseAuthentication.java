@@ -4,7 +4,6 @@ import com.app.librarymanager.controllers.AuthController;
 import com.app.librarymanager.models.User;
 import com.app.librarymanager.utils.Fetcher;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
-import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
@@ -15,21 +14,17 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.sun.net.httpserver.HttpServer;
+import com.google.firebase.auth.UserRecord;
+import com.google.firebase.auth.UserRecord.CreateRequest;
 import io.github.cdimascio.dotenv.Dotenv;
-import java.awt.Desktop;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 public class FirebaseAuthentication {
@@ -65,36 +60,65 @@ public class FirebaseAuthentication {
     return new JSONObject(Map.of("success", false, "message", "Login Failed"));
   }
 
-  public static boolean createAccountWithEmailAndPassword(User user) {
+  public static JSONObject createAccountWithEmailAndPassword(User user) {
     String url = REGISTER_URL + Firebase.getApiKey();
     String body = String.format(
-        "{\n  \"email\": \"%s\",\n  \"password\": \"%s\",\n  \"displayName\": \"%s\",\n  \"phoneNumber\": \"%s\",\n  \"returnSecureToken\": true\n}",
-        user.getEmail(), user.getPassword(), user.getDisplayName(), user.getPhoneNumber());
+        "{\n  \"email\": \"%s\",\n  \"password\": \"%s\",\n  \"returnSecureToken\": true,\n  \"displayName\": \"%s\"}",
+        user.getEmail(), user.getPassword(), user.getDisplayName());
     JSONObject response = Fetcher.post(url, body);
+    System.out.println(response);
     if (response == null) {
       AuthController.getInstance().onRegisterFailure("Registration Failed");
-      return false;
+      return new JSONObject().put("success", false).put("message", "Registration Failed");
     }
     if (response.has("error")) {
       JSONObject error = response.getJSONObject("error");
       if (error.has("message")) {
-        AuthController.getInstance().onRegisterFailure(error.getString("message"));
-        return false;
+//        AuthController.getInstance().onRegisterFailure(error.getString("message"));
+        return new JSONObject().put("success", false).put("message", error.getString("message"));
       }
     } else {
       try {
         String localId = response.getString("localId");
         Map<String, Object> claims = new HashMap<>();
-        claims.put("admin", false);
+        claims.put("admin", user.isAdmin());
         claims.put("birthday", user.getBirthday());
         FirebaseAuth.getInstance().setCustomUserClaims(localId, claims);
+        response.put("claims", claims);
       } catch (FirebaseAuthException e) {
         throw new RuntimeException(e);
       }
-      AuthController.getInstance().onRegisterSuccess(response);
-      return true;
+//      AuthController.getInstance().onRegisterSuccess(response);
+      return new JSONObject().put("success", true).put("data", response)
+          .put("message", "Registration Successful");
     }
-    return false;
+    return new JSONObject().put("success", false).put("message", "Registration Failed");
+  }
+
+  public static JSONObject createAccountWithEmailAndPasswordUsingFirebaseAuth(@NotNull User user) {
+    System.out.println("Creating user: " + user.toString());
+    CreateRequest request = new CreateRequest()
+        .setEmail(user.getEmail())
+        .setEmailVerified(false)
+        .setPassword(user.getPassword())
+        .setDisplayName(user.getDisplayName())
+        .setPhoneNumber(user.getPhoneNumber())
+        .setDisabled(false);
+    try {
+      UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+      JSONObject response = new JSONObject(userRecord);
+      Map<String, Object> claims = new HashMap<>();
+      claims.put("admin", user.isAdmin());
+      claims.put("birthday", user.getBirthday());
+      FirebaseAuth.getInstance().setCustomUserClaims(userRecord.getUid(), claims);
+      response.put("claims", claims);
+      System.out.println("User created successfully: " + response.toString());
+      return new JSONObject().put("success", true).put("data", response)
+          .put("message", "User created successfully.");
+    } catch (FirebaseAuthException e) {
+      System.err.println("Error creating user: " + e.getMessage());
+      return new JSONObject().put("success", false).put("message", e.getMessage());
+    }
   }
 
   public static JSONObject sendPasswordResetEmail(String email) {

@@ -7,20 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
 public class Fetcher {
-  private static Fetcher instance;
   private static final HttpClient client = HttpClient.newHttpClient();
-
-
-  private Fetcher() {
-
-  }
-
-  public static synchronized Fetcher getInstance() {
-    if (instance == null) {
-      instance = new Fetcher();
-    }
-    return instance;
-  }
 
   @Nullable
   public static JSONObject get(String url) {
