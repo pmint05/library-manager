@@ -22,7 +22,8 @@ public class UserController {
     try {
       checkPermission();
       return new JSONObject().put("success",
-          FirebaseAuthentication.createAccountWithEmailAndPassword(user));
+              FirebaseAuthentication.createAccountWithEmailAndPassword(user))
+          .put("message", "User created successfully.");
     } catch (Exception e) {
       return new JSONObject().put("success", false).put("message", e.getMessage());
     }
@@ -45,7 +46,8 @@ public class UserController {
       } catch (Exception parseException) {
         errorResponse.put("message", e.getMessage());
       }
-      return new JSONObject().put("success", false).put("message", errorResponse.getString("message"));
+      return new JSONObject().put("success", false)
+          .put("message", errorResponse.getString("message"));
     }
   }
 
@@ -53,7 +55,9 @@ public class UserController {
   private static UpdateRequest getUpdateRequest(User user) {
     UpdateRequest userUpdate = new UpdateRequest(user.getUid());
     userUpdate.setEmailVerified(user.isEmailVerified());
-    userUpdate.setPhoneNumber(user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty() ? user.getPhoneNumber() : null);
+    userUpdate.setPhoneNumber(
+        user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty() ? user.getPhoneNumber()
+            : null);
     if (user.getDisplayName() != null && !user.getDisplayName().isEmpty()) {
       userUpdate.setDisplayName(user.getDisplayName());
     }

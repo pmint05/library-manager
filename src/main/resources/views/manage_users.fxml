@@ -7,24 +7,25 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.librarymanager.controllers.ManageUsersController">
   <VBox spacing="10" AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.bottomAnchor="10.0">
-    <Text fx:id="titleLabel" styleClass="content-title" text="Manage Users" />
+    <Text styleClass="content-title" text="Manage Users" />
     <HBox alignment="BOTTOM_LEFT" spacing="10">
-      <TextField fx:id="searchField" onKeyReleased="#onSearch" promptText="Search..." />
+      <TextField fx:id="searchField" onKeyReleased="#onSearch" promptText="Search..." styleClass="input" />
       <VBox alignment="BOTTOM_LEFT" spacing="5">
         <Label text="Admin:" />
-        <ComboBox fx:id="adminFilter" promptText="Admin">
+        <ComboBox fx:id="adminFilter" promptText="Admin" styleClass="combo-box">
         </ComboBox>
       </VBox>
       <VBox alignment="BOTTOM_LEFT" spacing="5">
         <Label text="Email Verified:" />
-        <ComboBox fx:id="emailVerifiedFilter" promptText="Email Verified">
+        <ComboBox fx:id="emailVerifiedFilter" promptText="Email Verified" styleClass="combo-box">
         </ComboBox>
       </VBox>
       <VBox alignment="BOTTOM_LEFT" spacing="5">
         <Label text="Disabled:" />
-        <ComboBox fx:id="disabledFilter" promptText="Disabled">
+        <ComboBox fx:id="disabledFilter" promptText="Disabled" styleClass="combo-box">
         </ComboBox>
       </VBox>
+      <Button text="Create User" onAction="#onCreateUser" styleClass="btn,btn-primary" />
     </HBox>
     <TableView fx:id="usersTable" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
       <columns>
@@ -45,6 +46,6 @@
   </VBox>
   <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
     <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100" />
-    <Text text="Loading..." />
+    <Text text="Loading..." fx:id="loadingText" />
   </VBox>
 </AnchorPane>

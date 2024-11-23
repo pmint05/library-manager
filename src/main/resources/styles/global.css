@@ -1,9 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 * {
-  -fx-muted: #3f3f46;
-  -fx-text: #d4d4d8;
-  -fx-label: #71717a;
+  /*-fx-muted: #3f3f46;*/
+  /*-fx-text: #d4d4d8;*/
+  /*-fx-label: #71717a;*/
+  -fx-muted: #52525b;
+  -fx-text: #111111;
+  -fx-label: #232323;
 
   -fx-primary: #3b82f6;
   -fx-primary-light: #93c5fd;
@@ -15,19 +18,21 @@
   -fx-secondary-dark: #92400e;
   -fx-secondary-hover: #fbbf24;
 
-  -fx-bg: #18181b;
-  -fx-fg: #27272a;
-  -fx-prompt-text-fill: #3f3f46 !important;
+  /*-fx-bg: #18181b;*/
+  /*-fx-fg: #27272a;*/
+  -fx-bg: #e5e5e5;
+  -fx-fg: #d4d4d4;
+  /*-fx-prompt-text-fill: #3f3f46 !important;*/
+  -fx-prompt-text-fill: #71717a !important;
 
   -fx-error: #ef4444;
   -fx-warning: #f59e0b;
   -fx-success: #10b981;
   -fx-info: #3b82f6;
   -fx-disabled: #4b4b4b;
-
 }
 
-.root{
+.root {
   -fx-font-size: 12pt;
   -fx-font-family: "Poppins", sans-serif;
   -fx-font-smoothing-type: gray;
@@ -43,13 +48,17 @@ Button {
   -fx-padding: 5 20 5 20;
   -fx-font-size: 14px;
 }
+
 .btn-primary {
   -fx-background-color: -fx-primary;
-  -fx-text-fill: -fx-text;
+  -fx-text-fill: -fx-bg;
 }
-.btn-secondary {
 
+.btn-secondary {
+  -fx-background-color: -fx-secondary;
+  -fx-text-fill: -fx-bg;
 }
+
 .btn.btn-primary:hover {
   -fx-background-color: -fx-primary-hover;
 }
@@ -60,6 +69,33 @@ Button {
   -fx-font-size: 14px;
   -fx-text-fill: -fx-text;
 }
+.input:disabled {
+  -fx-background-color: -fx-disabled;
+  -fx-cursor: not-allowed;
+}
+
+.combo-box {
+  -fx-background-color: -fx-fg;
+  -fx-text-fill: -fx-text;
+  -fx-border-radius: 5;
+  -fx-padding: 0;
+  -fx-font-size: 14px;
+  -fx-cursor: hand;
+}
+
+/*.combo-box .arrow-button {*/
+/*  -fx-background-color: -fx-primary;*/
+/*  -fx-text-fill: -fx-bg;*/
+/*}*/
+
+/*.combo-box .arrow-button .arrow {*/
+/*  -fx-background-color: -fx-bg;*/
+/*}*/
+
+/*.combo-box:hover {*/
+/*  -fx-background-color: -fx-primary-hover;*/
+/*}*/
+
 .or-separator {
   -fx-background-color: #000;
   -fx-max-width: Infinity;
@@ -75,6 +111,7 @@ Button {
   -fx-font-size: 14px;
   -fx-text-fill: gray;
 }
+
 .title-text {
   -fx-font-size: 24px;
   -fx-font-weight: bold;
@@ -140,9 +177,10 @@ Button {
   -fx-padding: 20;
   -fx-spacing: 20;
 }
+
 .loading-wrapper Text {
   -fx-font-size: 20px;
-  -fx-fill: -fx-text;
+  -fx-fill: -fx-bg;
 }
 
 .footer-label {

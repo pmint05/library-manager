@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import org.json.JSONObject;
 
@@ -66,6 +67,12 @@ public class HomeController implements AuthStateListener {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public void handleImageClick(MouseEvent mouseEvent) {
+  }
+
+  public void handleSearch(MouseEvent mouseEvent) {
   }
 }
 

@@ -2,6 +2,8 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.interfaces.AuthStateListener;
 import com.app.librarymanager.utils.StageManager;
+import java.util.Arrays;
+import java.util.Objects;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -42,7 +44,7 @@ public class LayoutController implements AuthStateListener {
   @FXML
   private void initialize() {
     AuthController.getInstance().addAuthStateListener(this);
-    loadComponent("/views/home.fxml");
+    loadComponent("/views/search-interface.fxml");
     if (AuthController.getInstance().validateIdToken()) {
       JSONObject claims = AuthController.getInstance().getUserClaims();
       updateUI(true, claims);
@@ -95,7 +97,7 @@ public class LayoutController implements AuthStateListener {
 
   @FXML
   public void handleProfileSettings() {
-    // Open user profile settings
+    loadComponent("/views/profile.fxml");
   }
 
   @FXML
@@ -106,8 +108,6 @@ public class LayoutController implements AuthStateListener {
   public void handleManageUsers() {
     loadComponent("/views/manage_users.fxml");
   }
-
-
   @FXML
   private void onRegisterButtonClick() {
     StageManager.showRegisterWindow();
@@ -116,6 +116,7 @@ public class LayoutController implements AuthStateListener {
   @FXML
   private void onLogoutButtonClick() {
     AuthController.getInstance().logout();
+    loadComponent("/views/home.fxml");
   }
 
   @FXML
@@ -132,6 +133,8 @@ public class LayoutController implements AuthStateListener {
     try {
       FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
       Parent component = loader.load();
+//      component.getStylesheets().add(
+//          Objects.requireNonNull(getClass().getResource("/styles/global.css")).toExternalForm());
       contentPane.getChildren().clear();
       contentPane.getChildren().add(component);
     } catch (Exception e) {

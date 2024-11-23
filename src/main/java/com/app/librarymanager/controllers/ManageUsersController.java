@@ -1,7 +1,7 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.utils.AlertDialog;
 import java.util.Date;
-import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -16,11 +16,10 @@ import javafx.scene.image.ImageView;
 import com.app.librarymanager.models.User;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class ManageUsersController {
+public class ManageUsersController extends ControllerWithLoader {
 
   private static ManageUsersController instance;
 
@@ -65,12 +64,6 @@ public class ManageUsersController {
   @FXML
   private ComboBox<String> disabledFilter;
 
-  @FXML
-  private ProgressIndicator loadingSpinner;
-
-  @FXML
-  private VBox loadingOverlay;
-
   private ObservableList<User> usersList = FXCollections.observableArrayList();
 
   public synchronized static ManageUsersController getInstance() {
@@ -82,6 +75,8 @@ public class ManageUsersController {
 
   @FXML
   public void initialize() {
+    setLoadingText("Loading users...");
+
     uidColumn.setCellValueFactory(new PropertyValueFactory<>("uid"));
     emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
     displayNameColumn.setCellValueFactory(new PropertyValueFactory<>("displayName"));
@@ -137,6 +132,7 @@ public class ManageUsersController {
 
     setDateCellFactory(createdAtColumn);
     setDateCellFactory(updatedAtColumn);
+    setDateCellFactory(lastLoginAtColumn);
 
     adminFilter.getItems().addAll("All", "True", "False");
     emailVerifiedFilter.getItems().addAll("All", "True", "False");
@@ -167,14 +163,10 @@ public class ManageUsersController {
           JSONArray usersArray = response.getJSONArray("data");
           for (int i = 0; i < usersArray.length(); i++) {
             JSONObject userJson = usersArray.getJSONObject(i);
-            User user = new User(
-                userJson.getString("uid"),
-                userJson.getString("email"),
-                userJson.optString("password", ""),
-                userJson.optString("displayName", ""),
+            User user = new User(userJson.getString("uid"), userJson.getString("email"),
+                userJson.optString("password", ""), userJson.optString("displayName", ""),
                 userJson.optJSONObject("customClaims").optString("birthday", ""),
-                userJson.optString("phoneNumber", ""),
-                userJson.optString("photoUrl", ""),
+                userJson.optString("phoneNumber", ""), userJson.optString("photoUrl", ""),
                 String.valueOf(
                     userJson.getJSONObject("userMetadata").optLong("creationTimestamp", 0L)),
                 String.valueOf(
@@ -183,11 +175,11 @@ public class ManageUsersController {
                     userJson.getJSONObject("userMetadata").optLong("lastSignInTimestamp", 0L)),
                 userJson.optString("providerId", ""),
                 userJson.optJSONObject("customClaims").optBoolean("admin", false),
-                userJson.getBoolean("emailVerified"),
-                userJson.getBoolean("disabled")
-            );
+                userJson.getBoolean("emailVerified"), userJson.getBoolean("disabled"));
             users.add(user);
           }
+        } else {
+          AlertDialog.showAlert("error", "Error", response.getString("message"), null);
         }
         return users;
       }
@@ -209,14 +201,18 @@ public class ManageUsersController {
   }
 
   @FXML
+  private void onCreateUser() {
+    openUserModal(null);
+  }
+
+  @FXML
   private void onSearch() {
     String searchText = searchField.getText().toLowerCase();
     ObservableList<User> filteredList = FXCollections.observableArrayList();
     for (User user : usersList) {
-      if (user.getDisplayName().toLowerCase().contains(searchText) ||
-          user.getEmail().toLowerCase().contains(searchText) ||
-          user.getUid().toLowerCase().contains(searchText) ||
-          user.getPhoneNumber().toLowerCase().contains(searchText)) {
+      if (user.getDisplayName().toLowerCase().contains(searchText) || user.getEmail().toLowerCase()
+          .contains(searchText) || user.getUid().toLowerCase().contains(searchText)
+          || user.getPhoneNumber().toLowerCase().contains(searchText)) {
         filteredList.add(user);
       }
     }
@@ -232,22 +228,23 @@ public class ManageUsersController {
 
     ObservableList<User> filteredList = FXCollections.observableArrayList();
     for (User user : usersList) {
-      boolean matchesSearch = user.getDisplayName().toLowerCase().contains(searchText) ||
-          user.getEmail().toLowerCase().contains(searchText) ||
-          user.getUid().toLowerCase().contains(searchText) ||
-          user.getPhoneNumber().toLowerCase().contains(searchText);
+      boolean matchesSearch =
+          user.getDisplayName().toLowerCase().contains(searchText) || user.getEmail().toLowerCase()
+              .contains(searchText) || user.getUid().toLowerCase().contains(searchText)
+              || user.getPhoneNumber().toLowerCase().contains(searchText);
 
-      boolean matchesAdmin = adminFilterValue.equals("All") ||
-          (adminFilterValue.equals("True") && user.isAdmin()) ||
-          (adminFilterValue.equals("False") && !user.isAdmin());
+      boolean matchesAdmin =
+          adminFilterValue.equals("All") || (adminFilterValue.equals("True") && user.isAdmin()) || (
+              adminFilterValue.equals("False") && !user.isAdmin());
 
-      boolean matchesEmailVerified = emailVerifiedFilterValue.equals("All") ||
-          (emailVerifiedFilterValue.equals("True") && user.isEmailVerified()) ||
-          (emailVerifiedFilterValue.equals("False") && !user.isEmailVerified());
+      boolean matchesEmailVerified =
+          emailVerifiedFilterValue.equals("All") || (emailVerifiedFilterValue.equals("True")
+              && user.isEmailVerified()) || (emailVerifiedFilterValue.equals("False")
+              && !user.isEmailVerified());
 
-      boolean matchesDisabled = disabledFilterValue.equals("All") ||
-          (disabledFilterValue.equals("True") && user.isDisabled()) ||
-          (disabledFilterValue.equals("False") && !user.isDisabled());
+      boolean matchesDisabled =
+          disabledFilterValue.equals("All") || (disabledFilterValue.equals("True")
+              && user.isDisabled()) || (disabledFilterValue.equals("False") && !user.isDisabled());
 
       if (matchesSearch && matchesAdmin && matchesEmailVerified && matchesDisabled) {
         filteredList.add(user);
@@ -283,7 +280,7 @@ public class ManageUsersController {
       editMenuItem.setOnAction(event -> {
         User user = row.getItem();
         System.out.println("Edit user: " + user.getUid());
-        openEditUserModal(user);
+        openUserModal(user);
       });
 
       deleteMenuItem.setOnAction(event -> {
@@ -294,22 +291,24 @@ public class ManageUsersController {
         alert.setHeaderText("Are you sure you want to delete user " + user.getEmail() + "?");
         alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.CANCEL);
         alert.showAndWait().ifPresent(response -> {
-          if (response == ButtonType.OK) {
-            Task<Void> task = new Task<>() {
+          if (response == ButtonType.YES) {
+            Task<JSONObject> task = new Task<JSONObject>() {
               @Override
-              protected Void call() {
-                UserController.deleteUser(user);
-                return null;
+              protected JSONObject call() throws Exception {
+                return UserController.deleteUser(user);
               }
             };
             task.setOnRunning(ev -> showLoading(true));
-            task.setOnSucceeded(ev -> {
-              loadUsers();
+            task.setOnSucceeded(e -> {
+              JSONObject delRes = task.getValue();
+              System.out.println("User deleted: " + delRes);
               showLoading(false);
+//              loadUsers();
+              removeUserFromTable(user);
             });
             task.setOnFailed(ev -> {
-              System.out.println("Error while deleting user: " + task.getException().getMessage());
               showLoading(false);
+              System.out.println("Error while deleting user: " + task.getException().getMessage());
             });
             new Thread(task).start();
           }
@@ -318,10 +317,8 @@ public class ManageUsersController {
 
       contextMenu.getItems().addAll(editMenuItem, deleteMenuItem);
       row.contextMenuProperty().bind(
-          javafx.beans.binding.Bindings.when(row.emptyProperty())
-              .then((ContextMenu) null)
-              .otherwise(contextMenu)
-      );
+          javafx.beans.binding.Bindings.when(row.emptyProperty()).then((ContextMenu) null)
+              .otherwise(contextMenu));
       return row;
     });
   }
@@ -340,31 +337,29 @@ public class ManageUsersController {
     });
   }
 
-  private void showLoading(boolean show) {
-    loadingOverlay.setVisible(show);
-    loadingSpinner.setVisible(show);
-  }
-
-
   private void openEditUserModal(User user) {
     try {
-      FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/components/edit-user-modal.fxml"));
+      FXMLLoader loader = new FXMLLoader(
+          getClass().getResource("/views/components/user-modal.fxml"));
       Parent parent = loader.load();
 
-      EditUserController controller = loader.getController();
+      UserModalController controller = loader.getController();
       controller.setUser(user);
-      controller.setSaveCallback(updatedUser -> updateUserInTable(updatedUser));
+      controller.setSaveCallback(this::updateUserInTable);
 
       Dialog<Void> dialog = new Dialog<>();
       dialog.setTitle("Edit User");
       dialog.initOwner(usersTable.getScene().getWindow());
       dialog.getDialogPane().setContent(parent);
-      ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+
+      String saveButtonText = user != null ? "Save & Update" : "Create";
+
+      ButtonType saveButtonType = new ButtonType(saveButtonText, ButtonBar.ButtonData.OK_DONE);
       ButtonType cancelButtonType = ButtonType.CANCEL;
       dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
       Button saveButton = (Button) dialog.getDialogPane().lookupButton(saveButtonType);
       saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-        controller.onSave();
+        controller.onSubmit();
         event.consume();
       });
       Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelButtonType);
@@ -377,12 +372,57 @@ public class ManageUsersController {
       e.printStackTrace();
     }
   }
-  public void refreshTable() {
-    loadUsers();
-  }
 
   public void updateUserInTable(User updatedUser) {
     usersList.replaceAll(user -> user.getUid().equals(updatedUser.getUid()) ? updatedUser : user);
     usersTable.refresh();
-}
+  }
+
+  private void removeUserFromTable(User user) {
+    usersList.remove(user);
+    usersTable.refresh();
+  }
+
+  private void openUserModal(User user) {
+    try {
+      FXMLLoader loader = new FXMLLoader(
+          getClass().getResource("/views/components/user-modal.fxml"));
+      Parent parent = loader.load();
+
+      UserModalController controller = loader.getController();
+      controller.setUser(user);
+      controller.setSaveCallback(updatedUser -> {
+        if (user == null) {
+          usersList.add(updatedUser);
+          usersTable.refresh();
+        } else {
+          updateUserInTable(updatedUser);
+        }
+      });
+
+      Dialog<Void> dialog = new Dialog<>();
+      dialog.setTitle(user == null ? "Create User" : "Edit User");
+      dialog.initOwner(usersTable.getScene().getWindow());
+      dialog.getDialogPane().setContent(parent);
+
+      String okButtonText = user != null ? "Save & Update" : "Create";
+
+      ButtonType okButtonType = new ButtonType(okButtonText, ButtonBar.ButtonData.OK_DONE);
+      ButtonType cancelButtonType = ButtonType.CANCEL;
+      dialog.getDialogPane().getButtonTypes().addAll(okButtonType, cancelButtonType);
+      Button saveButton = (Button) dialog.getDialogPane().lookupButton(okButtonType);
+      saveButton.addEventFilter(ActionEvent.ACTION, event -> {
+        controller.onSubmit();
+        event.consume();
+      });
+      Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelButtonType);
+      cancelButton.addEventFilter(ActionEvent.ACTION, event -> dialog.close());
+
+      dialog.setResultConverter(dialogButton -> null);
+
+      dialog.showAndWait();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }

@@ -15,7 +15,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import org.json.JSONObject;
 
-public class LoginController {
+public class LoginController extends ControllerWithLoader {
 
   @FXML
   private TextField emailField;
@@ -25,30 +25,28 @@ public class LoginController {
   private Button googleLoginButton;
   @FXML
   private Button loginButton;
-  @FXML
-  private VBox loadingOverlay;
-  @FXML
-  private ProgressIndicator loadingSpinner;
 
+  @FXML
+  private void initialize() {
+    Platform.runLater(() -> emailField.requestFocus());
+    setLoadingText("Logging in...");
+  }
 
   @FXML
   private void handleLoginAction() {
-    String email = emailField.getText();
-    String password = passwordField.getText();
+    String email = emailField.getText().trim();
+    String password = passwordField.getText().trim();
 
-    if (email.isEmpty() || password.isEmpty()) {
-      AlertDialog.showAlert("error", "Validation Error", "Please enter your email and password.",
-          null);
-      showLoading(false);
+    if (validateEmailAndPassword(email, password)) {
       return;
     }
-    showLoading(true);
     Task<JSONObject> loginTask = new Task<JSONObject>() {
       @Override
       protected JSONObject call() throws Exception {
         return AuthController.login(email, password);
       }
     };
+    loginTask.setOnRunning(e -> showLoading(true));
     loginTask.setOnSucceeded(e -> {
       showLoading(false);
       JSONObject response = loginTask.getValue();
@@ -60,6 +58,20 @@ public class LoginController {
       }
     });
     new Thread(loginTask).start();
+  }
+
+  static boolean validateEmailAndPassword(String email, String password) {
+    if (email.isEmpty() || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+      AlertDialog.showAlert("error", "Invalid Email", "Please enter a valid email address.", null);
+      return true;
+    }
+
+    if (password.isEmpty() || password.length() < 6) {
+      AlertDialog.showAlert("error", "Invalid Password",
+          "Password must be at least 6 characters long.", null);
+      return true;
+    }
+    return false;
   }
 
   @FXML
@@ -105,11 +117,5 @@ public class LoginController {
   @FXML
   public void handleClose() {
   }
-
-  private void showLoading(boolean show) {
-    loadingOverlay.setVisible(show);
-    loadingSpinner.setVisible(show);
-  }
-
 
 }

@@ -38,7 +38,8 @@ public class AlertDialog {
   @NotNull
   private static Alert getAlert(String title, String message, String type) {
     Alert alert = new Alert(AlertType.INFORMATION);
-    alert.setTitle((!type.isEmpty() ? type.toUpperCase() : "INFORMATION") + " | " + title);
+//    alert.setTitle((!type.isEmpty() ? type.toUpperCase() : "INFORMATION") + " | " + title);
+    alert.setTitle(title);
     switch (type.toLowerCase()) {
       case "error":
         alert.setAlertType(AlertType.ERROR);
