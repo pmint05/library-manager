@@ -24,7 +24,17 @@
         <DatePicker fx:id="birthdayField" />
         <Label text="Change Password:" />
         <PasswordField fx:id="passwordField" promptText="Your new password" styleClass="input" />
-        <Button fx:id="saveChangesButton" disable="true" onAction="#handleSaveChanges" styleClass="btn, btn-primary" text="Save Changes" VBox.vgrow="ALWAYS" />
+            <HBox alignment="BOTTOM_CENTER">
+               <children>
+              <Button fx:id="saveChangesButton" disable="true" onAction="#handleSaveChanges" styleClass="btn, btn-primary" text="Save Changes" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin></Button>
+               </children>
+               <VBox.margin>
+                  <Insets top="15.0" />
+               </VBox.margin>
+            </HBox>
       </VBox>
     </HBox>
   </VBox>

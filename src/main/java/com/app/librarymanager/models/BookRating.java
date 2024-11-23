@@ -37,4 +37,3 @@ public class BookRating extends BookUser {
     this.rate = document.getDouble("rate");
   }
 }
-
