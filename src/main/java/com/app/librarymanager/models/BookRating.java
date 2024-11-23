@@ -28,7 +28,7 @@ public class BookRating extends BookUser {
   }
 
   public BookRating(Book book, User user, double rate) {
-    super(book.getId(), user.getId());
+    super(book.getId(), user.getUid());
     this.rate = rate;
   }
 
