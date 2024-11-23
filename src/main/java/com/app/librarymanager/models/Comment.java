@@ -33,7 +33,7 @@ public class Comment extends BookUser {
   }
 
   public Comment(User user, Book book, String content) {
-    super(user.getId(), book.getId());
+    super(user.getUid(), book.getId());
     this.content = content;
   }
 

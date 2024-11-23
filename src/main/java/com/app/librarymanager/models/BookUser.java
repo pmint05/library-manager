@@ -43,7 +43,7 @@ public class BookUser {
 
   public BookUser(User user, Book book) {
     this._id = null;
-    this.userId = user.getId();
+    this.userId = user.getUid();
     this.bookId = book.getId();
     this.lastUpdated = null;
   }
