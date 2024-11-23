@@ -1,0 +1,63 @@
+package com.app.librarymanager.utils;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class DateUtil {
+
+  public static final class DateFormat {
+
+    public static final String DD_MM_YYYY = "dd/MM/yyyy";
+    public static final String YYYY_MM_DD = "yyyy-MM-dd";
+    public static final String DD_MM_YYYY_HH_MM_SS = "dd/MM/yyyy HH:mm:ss";
+  }
+
+  public static LocalDate parse(String date) {
+    String[] parts = date.split("/");
+    return LocalDate.of(Integer.parseInt(parts[2]), Integer.parseInt(parts[1]),
+        Integer.parseInt(parts[0]));
+  }
+
+  public static String format(LocalDate date) {
+    return date.getDayOfMonth() + "/" + date.getMonthValue() + "/" + date.getYear();
+  }
+
+  public static String format(LocalDate date, DateFormat format) {
+    return date.format(DateTimeFormatter.ofPattern(format.toString()));
+  }
+
+  public static boolean isValid(String date) {
+    try {
+      parse(date);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+
+  public static boolean isBefore(String date1, String date2) {
+    return parse(date1).isBefore(parse(date2));
+  }
+
+  public static boolean isAfter(String date1, String date2) {
+    return parse(date1).isAfter(parse(date2));
+  }
+
+  public static boolean isEqual(String date1, String date2) {
+    return parse(date1).isEqual(parse(date2));
+  }
+
+  public static boolean isBeforeOrEqual(String date1, String date2) {
+    return isBefore(date1, date2) || isEqual(date1, date2);
+  }
+
+  public static boolean isAfterOrEqual(String date1, String date2) {
+    return isAfter(date1, date2) || isEqual(date1, date2);
+  }
+
+  public static boolean isBetween(String date, String start, String end) {
+    return isAfterOrEqual(date, start) && isBeforeOrEqual(date, end);
+  }
+
+}

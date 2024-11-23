@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:id="rootPane"
+  fx:controller="com.app.librarymanager.controllers.LayoutController">
+
+  <top>
+    <MenuBar fx:id="menuBar" styleClass="menu-bar">
+      <Menu text="Account" styleClass="menu">
+        <MenuItem text="Login" onAction="#onLoginButtonClick" fx:id="loginMenuItem"/>
+        <MenuItem text="Register" onAction="#onRegisterButtonClick" fx:id="registerMenuItem"/>
+        <MenuItem text="Profile" onAction="#handleProfileSettings" fx:id="profileMenuItem"/>
+        <MenuItem text="Logout" onAction="#onLogoutButtonClick" fx:id="logoutMenuItem"/>
+      </Menu>
+      <Menu text="Admin" fx:id="adminMenu" styleClass="menu">
+        <MenuItem text="Manage Books" onAction="#handleManageBooks"/>
+        <MenuItem text="Manage Users" onAction="#handleManageUsers"/>
+      </Menu>
+    </MenuBar>
+  </top>
+  <center>
+    <StackPane fx:id="contentPane"></StackPane>
+  </center>
+  <bottom>
+    <Label text="Library Manager © 2024" styleClass="footer-label" alignment="CENTER"/>
+  </bottom>
+</BorderPane>

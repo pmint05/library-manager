@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane fx:id="stackPane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.librarymanager.controllers.ProfileController">
+  <VBox spacing="10">
+    <Text styleClass="content-title" text="Your Profile" />
+    <HBox fx:id="hBox" alignment="TOP_CENTER" spacing="10">
+      <VBox spacing="10">
+        <HBox alignment="TOP_CENTER">
+          <ImageView fx:id="profileImageView" fitHeight="50.0" fitWidth="50.0" />
+        </HBox>
+        <Label text="Email:" />
+        <TextField fx:id="emailField" disable="true" editable="false" promptText="Your email here" styleClass="input" />
+        <Label text="Display Name:" />
+        <TextField fx:id="displayNameField" promptText="Display name" styleClass="input" />
+        <Label text="Phone Number:" />
+        <TextField fx:id="phoneNumberField" promptText="Phone number" styleClass="input" />
+        <Label text="Birthday:" />
+        <DatePicker fx:id="birthdayField" />
+        <Label text="Change Password:" />
+        <PasswordField fx:id="passwordField" promptText="Your new password" styleClass="input" />
+        <Button fx:id="saveChangesButton" disable="true" onAction="#handleSaveChanges" styleClass="btn, btn-primary" text="Save Changes" VBox.vgrow="ALWAYS" />
+      </VBox>
+    </HBox>
+  </VBox>
+  <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false" StackPane.alignment="CENTER">
+    <Text fx:id="loadingText" text="Loading in..." />
+    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100" />
+  </VBox>
+
+  <padding>
+    <Insets bottom="20" left="20" right="20" top="20" />
+  </padding>
+</StackPane>
