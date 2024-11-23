@@ -29,14 +29,15 @@
   -fx-warning: #f59e0b;
   -fx-success: #10b981;
   -fx-info: #3b82f6;
-  -fx-disabled: #4b4b4b;
+  -fx-disabled: #aaaaaa;
 }
 
 .root {
   -fx-font-size: 12pt;
   -fx-font-family: "Poppins", sans-serif;
   -fx-font-smoothing-type: gray;
-
+  -fx-background-color: -fx-bg;
+  -fx-text-fill: -fx-text;
 }
 
 Button {
@@ -72,6 +73,7 @@ Button {
 .input:disabled {
   -fx-background-color: -fx-disabled;
   -fx-cursor: not-allowed;
+  -fx-prompt-text-fill: -fx-muted;
 }
 
 .combo-box {
