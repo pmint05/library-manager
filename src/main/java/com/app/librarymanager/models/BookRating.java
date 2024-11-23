@@ -2,31 +2,39 @@ package com.app.librarymanager.models;
 
 import com.google.cloud.Timestamp;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class BookRating {
+public class BookRating extends BookUser {
 
-  private String id;
-  private String bookId;
-  private String userId;
   private double rate;
-  private Timestamp createdTime;
-  private Timestamp updatedTime;
 
-  BookRating() {
-    id = null;
-    bookId = null;
-    userId = null;
+  public BookRating() {
+    super();
     rate = -1;
-    createdTime = null;
-    updatedTime = null;
   }
 
-  BookRating(String id, String bookId, String userId, double rate) {
-    this.id = id;
-    this.bookId = bookId;
-    this.userId = userId;
+  public BookRating(String _id, String bookId, String userId, double rate) {
+    super(_id, bookId, userId);
     this.rate = rate;
+  }
+
+  public BookRating(ObjectId _id, String bookId, String userId, double rate) {
+    super(_id, bookId, userId);
+    this.rate = rate;
+  }
+
+  public BookRating(Book book, User user, double rate) {
+    super(book.getId(), user.getId());
+    this.rate = rate;
+  }
+
+  public BookRating(Document document) {
+    super(document);
+    this.rate = document.getDouble("rate");
   }
 }
 

@@ -1,22 +1,12 @@
 package com.app.librarymanager.controllers;
 
-import static com.mongodb.client.model.Filters.lt;
-
 import com.app.librarymanager.models.Book;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.Fetcher;
-import com.google.cloud.Timestamp;
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import io.github.cdimascio.dotenv.Dotenv;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -54,6 +44,8 @@ public class BookController {
       String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
       String searchUrl = SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY");
 
+//      System.out.println(searchUrl);
+
       JSONObject jsonObject = Fetcher.get(searchUrl);
       assert jsonObject != null;
       JSONArray jsonArray = jsonObject.getJSONArray("items");
@@ -62,6 +54,8 @@ public class BookController {
         JSONObject curBook = jsonArray.getJSONObject(indexBook);
 
         String id = curBook.getString("id");
+
+        System.err.println(id);
 
         JSONObject volumeInfo = curBook.getJSONObject("volumeInfo");
         String title = volumeInfo.optString("title", "N/A");
@@ -102,9 +96,16 @@ public class BookController {
         if (saleInfo.getString("saleability").equals("NOT_FOR_SALE")) {
           continue;
         }
-        JSONObject retailPrice = saleInfo.getJSONObject("retailPrice");
-        int price = retailPrice.getInt("amount");
-        String currencyCode = retailPrice.getString("currencyCode");
+        JSONObject retailPrice = saleInfo.optJSONObject("retailPrice");
+        int price;
+        String currencyCode;
+        if (retailPrice == null) {
+          price = -1;
+          currencyCode = "N/A";
+        } else {
+          price = retailPrice.getInt("amount");
+          currencyCode = retailPrice.getString("currencyCode");
+        }
 
         bookList.add(
             new Book(id, title, publisher, publishedDate, description, pageCount, categories, iSBN,
@@ -113,7 +114,7 @@ public class BookController {
 
       return bookList;
     } catch (Exception e) {
-      e.printStackTrace();
+      System.err.println(e.getMessage());
       return new ArrayList<>();
     }
   }
@@ -129,25 +130,28 @@ public class BookController {
     return database.findAnObject("books", "iSBN", book.getISBN()) != null;
   }
 
+  public static Book getBookFromDocument(Document document) {
+    Book curBook = MongoDB.jsonToObject(document.toJson(), Book.class);
+    curBook.set_id(document.getObjectId("_id"));
+    curBook.setLastUpdated(document.getDate("lastUpdated"));
+    return curBook;
+  }
+
   public static Book findBookByISBN(String iSBN) {
-    MongoDB database = MongoDB.getInstance();
-    String jsonBook = database.findAnObject("books", "iSBN", iSBN);
-    return MongoDB.jsonToObject(jsonBook, Book.class);
+    return getBookFromDocument(MongoDB.getInstance().findAnObject("books", "iSBN", iSBN));
   }
 
   public static Book findBookByID(String id) {
-    MongoDB database = MongoDB.getInstance();
-    String jsonBook = database.findAnObject("books", "id", id);
-    return MongoDB.jsonToObject(jsonBook, Book.class);
+    return getBookFromDocument(MongoDB.getInstance().findAnObject("books", "id", id));
   }
 
   // find all books which title contains `keyword`
   public static List<Book> findBookByKeyword(String keyword) {
     MongoDB database = MongoDB.getInstance();
-    List<String> jsonBook = database.findAllObject("books", "title", keyword);
+    List<Document> jsonBook = database.findAllObject("books", "title", keyword);
     List<Book> result = new ArrayList<>();
     jsonBook.forEach(curBook -> {
-      result.add(MongoDB.jsonToObject(curBook, Book.class));
+      result.add(getBookFromDocument(curBook));
     });
     return result;
   }
@@ -180,5 +184,6 @@ public class BookController {
   }
 
   public static void main(String[] args) {
+    System.out.println(findBookByKeyword("algebra"));
   }
 }
