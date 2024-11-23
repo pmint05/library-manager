@@ -2,9 +2,11 @@ package com.app.librarymanager.models;
 
 import com.google.cloud.Timestamp;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class BookRating extends BookUser {
 

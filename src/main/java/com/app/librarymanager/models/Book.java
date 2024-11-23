@@ -117,4 +117,9 @@ public class Book {
     this.pdfLink = pdfLink;
     this.lastUpdated = lastUpdated;
   }
+
+//  public String toString() {
+//    return "Book book = new Book(" + _id + ", "
+//    id + ", " + title + ", " + publisher + ", " + publishedDate + ", " + description + ", "+pageCount+", ";
+//  }
 }

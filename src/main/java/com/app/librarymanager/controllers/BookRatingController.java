@@ -1,15 +1,10 @@
 package com.app.librarymanager.controllers;
 
-import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookRating;
-import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.MongoDB;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.json.JSONObject;
 
 public class BookRatingController {
 

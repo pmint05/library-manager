@@ -22,8 +22,6 @@ module com.app.librarymanager {
   requires org.mongodb.driver.core;
   requires org.mongodb.driver.sync.client;
   requires org.mongodb.bson;
-  requires com.fasterxml.jackson.databind;
-  requires bson4jackson;
   requires java.sql;
 
   opens com.app.librarymanager to javafx.fxml, com.google.gson;
