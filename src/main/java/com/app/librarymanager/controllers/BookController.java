@@ -3,6 +3,7 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.models.Book;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.Fetcher;
+import com.mongodb.client.model.Filters;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -44,8 +45,6 @@ public class BookController {
       String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
       String searchUrl = SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY");
 
-//      System.out.println(searchUrl);
-
       JSONObject jsonObject = Fetcher.get(searchUrl);
       assert jsonObject != null;
       JSONArray jsonArray = jsonObject.getJSONArray("items");
@@ -54,8 +53,6 @@ public class BookController {
         JSONObject curBook = jsonArray.getJSONObject(indexBook);
 
         String id = curBook.getString("id");
-
-        System.err.println(id);
 
         JSONObject volumeInfo = curBook.getJSONObject("volumeInfo");
         String title = volumeInfo.optString("title", "N/A");
@@ -97,7 +94,7 @@ public class BookController {
           continue;
         }
         JSONObject retailPrice = saleInfo.optJSONObject("retailPrice");
-        int price;
+        double price;
         String currencyCode;
         if (retailPrice == null) {
           price = -1;
@@ -107,9 +104,18 @@ public class BookController {
           currencyCode = retailPrice.getString("currencyCode");
         }
 
+        JSONObject accessInfo = curBook.optJSONObject("accessInfo");
+        String pdfLink = "N/A";
+        if (accessInfo != null) {
+          JSONObject pdfJson = accessInfo.optJSONObject("pdf");
+          if (pdfJson != null) {
+            pdfLink = pdfJson.optString("downloadLink", "N/A");
+          }
+        }
+
         bookList.add(
             new Book(id, title, publisher, publishedDate, description, pageCount, categories, iSBN,
-                thumbnail, language, authors, price, currencyCode, "N/A"));
+                thumbnail, language, authors, price, currencyCode, pdfLink));
       }
 
       return bookList;
@@ -146,15 +152,15 @@ public class BookController {
   }
 
   // find all books which title contains `keyword`
-  public static List<Book> findBookByKeyword(String keyword) {
+  public static List<Book> findBookByKeyword(String keyword, int start, int length) {
     MongoDB database = MongoDB.getInstance();
-    List<Document> jsonBook = database.findAllObject("books", "title", keyword);
+    List<Document> jsonBook = MongoDB.getInstance()
+        .findAllObject("books", Filters.regex("title", keyword, "i"), start, length);
     List<Book> result = new ArrayList<>();
-    jsonBook.forEach(curBook -> {
-      result.add(getBookFromDocument(curBook));
-    });
+    jsonBook.forEach(curBook -> result.add(getBookFromDocument(curBook)));
     return result;
   }
+
 
   public static boolean addBook(Book book) {
     if (isAvailable(book)) {
@@ -184,6 +190,10 @@ public class BookController {
   }
 
   public static void main(String[] args) {
-    System.out.println(findBookByKeyword("algebra"));
+//    List<Book> bl = searchByKeyword("algebra");
+//    System.out.println(bl.get(bl.size() - 1).getPdfLink());
+//    addBook(bl.get(bl.size() - 1));
+//    System.out.println(findBookByID("QvMGAAAAYAAJ"));
+//    System.out.println(findBookByKeyword("", 3, 2).size());
   }
 }
