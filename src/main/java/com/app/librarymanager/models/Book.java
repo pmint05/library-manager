@@ -47,13 +47,19 @@ public class Book {
   private ArrayList<String> authors;
 
   @Expose
-  private int price;
+  private double price;
+
+  @Expose
+  private double discountPrice;
 
   @Expose
   private String currencyCode;
 
   @Expose
   private String pdfLink;
+
+  @Expose
+  private boolean activated;
 
   private Date lastUpdated;
 
@@ -72,14 +78,16 @@ public class Book {
     language = "N/A";
     authors = new ArrayList<>();
     price = -1;
+    discountPrice = -1;
     currencyCode = "N/A";
     pdfLink = "N/A";
+    activated = false;
     lastUpdated = null;
   }
 
   public Book(String id, String title, String publisher, String publishedDate, String description,
       int pageCount, ArrayList<String> categories, String iSBN, String thumbnail, String language,
-      ArrayList<String> authors, int price, String currencyCode, String pdfLink) {
+      ArrayList<String> authors, double price, String currencyCode, String pdfLink) {
     this.id = id;
     this.title = title;
     this.publisher = publisher;
@@ -92,14 +100,17 @@ public class Book {
     this.language = language;
     this.authors = authors;
     this.price = price;
+    this.discountPrice = price;
     this.currencyCode = currencyCode;
     this.pdfLink = pdfLink;
+    this.activated = true;
   }
 
   public Book(ObjectId _id, String id, String title, String publisher, String publishedDate,
       String description, int pageCount, ArrayList<String> categories, String iSBN,
-      String thumbnail, String language, ArrayList<String> authors, int price, String currencyCode,
-      String pdfLink, Date lastUpdated) {
+      String thumbnail, String language, ArrayList<String> authors, double price,
+      double discountPrice, String currencyCode,
+      String pdfLink, boolean activated, Date lastUpdated) {
     this._id = _id;
     this.id = id;
     this.title = title;
@@ -113,13 +124,11 @@ public class Book {
     this.language = language;
     this.authors = authors;
     this.price = price;
+    this.discountPrice = discountPrice;
     this.currencyCode = currencyCode;
     this.pdfLink = pdfLink;
+    this.activated = activated;
     this.lastUpdated = lastUpdated;
   }
 
-//  public String toString() {
-//    return "Book book = new Book(" + _id + ", "
-//    id + ", " + title + ", " + publisher + ", " + publishedDate + ", " + description + ", "+pageCount+", ";
-//  }
 }
