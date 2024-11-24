@@ -42,7 +42,7 @@ public class HomeController implements AuthStateListener {
         welcomeLabel.setText("Welcome, " + email);
 //        mainTabPane.getTabs().add(authUserTab);
 //        authUserTab.setDisable(false);
-        if (userClaims.getBoolean("admin")) {
+        if (userClaims.optBoolean("admin")) {
 //          mainTabPane.getTabs().add(adminTab);
         }
       } else {

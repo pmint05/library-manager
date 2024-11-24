@@ -1,7 +1,10 @@
 package com.app.librarymanager.utils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class DateUtil {
 
@@ -24,6 +27,14 @@ public class DateUtil {
 
   public static String format(LocalDate date, DateFormat format) {
     return date.format(DateTimeFormatter.ofPattern(format.toString()));
+  }
+
+  public static Date localDateToDate(LocalDate localDate) {
+    return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+  }
+
+  public static LocalDate dateToLocalDate(Date date) {
+    return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
   }
 
   public static boolean isValid(String date) {
