@@ -22,6 +22,8 @@
   /*-fx-fg: #27272a;*/
   -fx-bg: #e5e5e5;
   -fx-fg: #d4d4d4;
+  -fx-default-btn: #cfcfcf;
+  -fx-default-btn-hover: #d0d0d0;
   /*-fx-prompt-text-fill: #3f3f46 !important;*/
   -fx-prompt-text-fill: #71717a !important;
 
@@ -48,6 +50,11 @@ Button {
   -fx-border-radius: 5;
   -fx-padding: 5 20 5 20;
   -fx-font-size: 14px;
+  -fx-background-color: -fx-default-btn;
+}
+
+.btn:hover {
+  -fx-background-color: -fx-default-btn-hover;
 }
 
 .btn-primary {
@@ -121,6 +128,17 @@ Button {
 /*  -fx-background-color: -fx-primary-hover;*/
 /*}*/
 
+.chip {
+  -fx-background-color: #e0e0e080;
+  -fx-padding: 2px 8px;
+  -fx-border-radius: 5px;
+  -fx-background-radius: 5px;
+  -fx-font-size: 12px;
+}
+.table-row-cell:selected .chip {
+  /*-fx-background-color: #aaaaaa;*/
+  /*-fx-text-fill: -fx-text;*/
+}
 .or-separator {
   -fx-background-color: #000;
   -fx-max-width: Infinity;

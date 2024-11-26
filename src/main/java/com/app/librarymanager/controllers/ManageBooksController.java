@@ -1,7 +1,12 @@
 package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.utils.AlertDialog;
+import com.app.librarymanager.utils.DateUtil;
+import com.app.librarymanager.utils.DateUtil.DateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -14,6 +19,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import com.app.librarymanager.models.Book;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,9 +43,9 @@ public class ManageBooksController extends ControllerWithLoader {
   @FXML
   private TableColumn<Book, String> publisherColumn;
   @FXML
-  private TableColumn<Book, String> authorsColumn;
+  private TableColumn<Book, ArrayList<String>> authorsColumn;
   @FXML
-  private TableColumn<Book, String> categoriesColumn;
+  private TableColumn<Book, ArrayList<String>> categoriesColumn;
   @FXML
   private TableColumn<Book, Double> priceColumn;
   @FXML
@@ -63,6 +69,11 @@ public class ManageBooksController extends ControllerWithLoader {
   @FXML
   private ComboBox<String> activeFilter;
 
+
+  private int start = 0;
+  private int limit = 10;
+
+
   private ObservableList<Book> booksList = FXCollections.observableArrayList();
 
   public synchronized static ManageBooksController getInstance() {
@@ -79,18 +90,19 @@ public class ManageBooksController extends ControllerWithLoader {
     _idColumn.setCellValueFactory(new PropertyValueFactory<>("_id"));
     idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
     iSBNColumn.setCellValueFactory(new PropertyValueFactory<>("iSBN"));
-    thumbnailColumn.setCellValueFactory(new PropertyValueFactory<>("displayName"));
-    descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
-    publisherColumn.setCellValueFactory(new PropertyValueFactory<>("birthday"));
-    authorsColumn.setCellValueFactory(new PropertyValueFactory<>("admin"));
-    categoriesColumn.setCellValueFactory(new PropertyValueFactory<>("emailVerified"));
-    priceColumn.setCellValueFactory(new PropertyValueFactory<>("disabled"));
-    discountPriceColumn.setCellValueFactory(new PropertyValueFactory<>("photoUrl"));
-    currencyCodeColumn.setCellValueFactory(new PropertyValueFactory<>("createdAt"));
-    pageCountColumn.setCellValueFactory(new PropertyValueFactory<>("lastModifiedDate"));
-    languageColumn.setCellValueFactory(new PropertyValueFactory<>("lastLoginAt"));
-    isActiveColumn.setCellValueFactory(new PropertyValueFactory<>("lastLoginAt"));
-    publishedDateColumn.setCellValueFactory(new PropertyValueFactory<>("lastLoginAt"));
+    thumbnailColumn.setCellValueFactory(new PropertyValueFactory<>("thumbnail"));
+    titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
+    descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
+    publisherColumn.setCellValueFactory(new PropertyValueFactory<>("publisher"));
+    authorsColumn.setCellValueFactory(new PropertyValueFactory<>("authors"));
+    categoriesColumn.setCellValueFactory(new PropertyValueFactory<>("categories"));
+    priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
+    discountPriceColumn.setCellValueFactory(new PropertyValueFactory<>("discountPrice"));
+    currencyCodeColumn.setCellValueFactory(new PropertyValueFactory<>("currencyCode"));
+    pageCountColumn.setCellValueFactory(new PropertyValueFactory<>("pageCount"));
+    languageColumn.setCellValueFactory(new PropertyValueFactory<>("language"));
+    isActiveColumn.setCellValueFactory(new PropertyValueFactory<>("activated"));
+    publishedDateColumn.setCellValueFactory(new PropertyValueFactory<>("publishedDate"));
 
     thumbnailColumn.setCellFactory(column -> new TableCell<Book, String>() {
       private final ImageView imageView = new ImageView();
@@ -109,8 +121,8 @@ public class ManageBooksController extends ControllerWithLoader {
               }
             });
             imageView.setImage(image);
-            imageView.setFitHeight(40);
-            imageView.setFitWidth(40);
+            imageView.setFitHeight(50);
+            imageView.setPreserveRatio(true);
             setGraphic(imageView);
           } catch (Exception e) {
             setGraphic(null);
@@ -120,23 +132,25 @@ public class ManageBooksController extends ControllerWithLoader {
     });
 
     _idColumn.setPrefWidth(150);
-    idColumn.setPrefWidth(150);
-    iSBNColumn.setPrefWidth(200);
-    thumbnailColumn.setPrefWidth(200);
+    idColumn.setPrefWidth(120);
+    iSBNColumn.setPrefWidth(120);
+    thumbnailColumn.setPrefWidth(50);
     titleColumn.setPrefWidth(150);
     descriptionColumn.setPrefWidth(150);
-    publisherColumn.setPrefWidth(100);
+    publisherColumn.setPrefWidth(150);
     authorsColumn.setPrefWidth(150);
     categoriesColumn.setPrefWidth(100);
-    priceColumn.setPrefWidth(50);
-    discountPriceColumn.setPrefWidth(200);
-    currencyCodeColumn.setPrefWidth(200);
-    pageCountColumn.setPrefWidth(200);
-    languageColumn.setPrefWidth(200);
-    isActiveColumn.setPrefWidth(200);
-    publishedDateColumn.setPrefWidth(200);
+    priceColumn.setPrefWidth(100);
+    discountPriceColumn.setPrefWidth(80);
+    currencyCodeColumn.setPrefWidth(60);
+    pageCountColumn.setPrefWidth(50);
+    languageColumn.setPrefWidth(80);
+    isActiveColumn.setPrefWidth(80);
+    publishedDateColumn.setPrefWidth(150);
 
     setDateCellFactory(publishedDateColumn);
+    setArrayCellFactory(authorsColumn);
+    setArrayCellFactory(categoriesColumn);
 
     activeFilter.getItems().addAll("All", "True", "False");
 
@@ -154,30 +168,8 @@ public class ManageBooksController extends ControllerWithLoader {
       @Override
       protected ObservableList<Book> call() {
         ObservableList<Book> books = FXCollections.observableArrayList();
-//        JSONObject response = BookController.listBooks();
-        JSONObject response = new JSONObject();
-        if (response.getBoolean("success")) {
-//          JSONArray booksArray = response.getJSONArray("data");
-//          for (int i = 0; i < booksArray.length(); i++) {
-//            JSONObject bookJson = booksArray.getJSONObject(i);
-//            Book book = new Book(bookJson.getString("uid"), bookJson.getString("email"),
-//                bookJson.optString("password", ""), bookJson.optString("displayName", ""),
-//                bookJson.optJSONObject("customClaims").optString("birthday", ""),
-//                bookJson.optString("phoneNumber", ""), bookJson.optString("photoUrl", ""),
-//                String.valueOf(
-//                    bookJson.getJSONObject("bookMetadata").optLong("creationTimestamp", 0L)),
-//                String.valueOf(
-//                    bookJson.getJSONObject("bookMetadata").optLong("lastModifiedAt", 0L)),
-//                String.valueOf(
-//                    bookJson.getJSONObject("bookMetadata").optLong("lastSignInTimestamp", 0L)),
-//                bookJson.optString("providerId", ""),
-//                bookJson.optJSONObject("customClaims").optBoolean("admin", false),
-//                bookJson.getBoolean("emailVerified"), bookJson.getBoolean("disabled"));
-//            books.add(book);
-//          }
-        } else {
-          AlertDialog.showAlert("error", "Error", response.getString("message"), null);
-        }
+        List<Book> bookList = BookController.findBookByKeyword("", start, limit);
+        books.addAll(bookList);
         return books;
       }
     };
@@ -221,9 +213,7 @@ public class ManageBooksController extends ControllerWithLoader {
   @FXML
   private void onFilter() {
     String searchText = searchField.getText().toLowerCase();
-    String adminFilterValue = activeFilter.getValue();
-//    String emailVerifiedFilterValue = emailVerifiedFilter.getValue();
-//    String disabledFilterValue = disabledFilter.getValue();
+    String activeFilterValue = activeFilter.getValue();
 
     ObservableList<Book> filteredList = FXCollections.observableArrayList();
     for (Book book : booksList) {
@@ -234,31 +224,12 @@ public class ManageBooksController extends ControllerWithLoader {
               || book.getCategories().toString().toLowerCase().contains(searchText)
               || book.getDescription().toLowerCase().contains(searchText);
 
-//      boolean matchesActive =
-//          adminFilterValue.equals("All") || (adminFilterValue.equals("True") && book.isActive()) || (
-      boolean matchesActive = true;
-      if (matchesSearch && matchesActive) {
+      if (matchesSearch && (activeFilterValue.equals("All") || activeFilterValue
+          .equals(String.valueOf(book.isActivated())))) {
         filteredList.add(book);
       }
     }
     booksTable.setItems(filteredList);
-  }
-
-  private void setColumnWidthsToFitContent() {
-    booksTable.getColumns().forEach(column -> {
-      Text text = new Text(column.getText());
-      double maxWidth = text.getLayoutBounds().getWidth();
-      for (int i = 0; i < booksTable.getItems().size(); i++) {
-        if (column.getCellData(i) != null) {
-          text = new Text(column.getCellData(i).toString());
-          double width = text.getLayoutBounds().getWidth();
-          if (width > maxWidth) {
-            maxWidth = width;
-          }
-        }
-      }
-      column.setPrefWidth(maxWidth + 20);
-    });
   }
 
   private void setRowContextMenu() {
@@ -328,7 +299,29 @@ public class ManageBooksController extends ControllerWithLoader {
         if (empty || item == null || item.isEmpty()) {
           setText(null);
         } else {
-          setText(new Date(Long.parseLong(item)).toLocaleString());
+          setText(DateUtil.ymdToDmy(item));
+        }
+      }
+    });
+  }
+
+  private void setArrayCellFactory(TableColumn<Book, ArrayList<String>> column) {
+    column.setCellFactory(col -> new TableCell<Book, ArrayList<String>>() {
+      @Override
+      protected void updateItem(ArrayList<String> items, boolean empty) {
+        super.updateItem(items, empty);
+        if (empty || items == null || items.isEmpty()) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          HBox hBox = new HBox(5);
+          for (String item : items) {
+            Label chip = new Label(item);
+            chip.getStyleClass().add("chip");
+            hBox.getChildren().add(chip);
+          }
+          setGraphic(hBox);
+          setText(null);
         }
       }
     });
@@ -347,7 +340,7 @@ public class ManageBooksController extends ControllerWithLoader {
   private void openBookModal(Book book) {
     try {
       FXMLLoader loader = new FXMLLoader(
-          getClass().getResource("/views/components/book-info-modal.fxml.fxml"));
+          getClass().getResource("/views/components/book-info-modal.fxml"));
       Parent parent = loader.load();
       BookModalController controller = loader.getController();
       controller.setBook(book);

@@ -25,8 +25,18 @@ public class DateUtil {
     return date.getDayOfMonth() + "/" + date.getMonthValue() + "/" + date.getYear();
   }
 
-  public static String format(LocalDate date, DateFormat format) {
-    return date.format(DateTimeFormatter.ofPattern(format.toString()));
+  public static String ymdToDmy(String date) {
+    try {
+      String[] parts = date.split("-");
+      return parts[2] + "/" + parts[1] + "/" + parts[0];
+
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return date;
+    }
+  }
+
+  public static String format(LocalDate date, String format) {
+    return date.format(DateTimeFormatter.ofPattern(format));
   }
 
   public static Date localDateToDate(LocalDate localDate) {

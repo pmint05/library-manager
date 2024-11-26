@@ -30,6 +30,8 @@ module com.app.librarymanager {
   requires java.prefs;
   requires com.google.api.client.json.gson;
   requires jdk.httpserver;
+  requires org.apache.commons.lang3;
+
 
   opens com.app.librarymanager to javafx.fxml, com.google.gson;
   exports com.app.librarymanager;
