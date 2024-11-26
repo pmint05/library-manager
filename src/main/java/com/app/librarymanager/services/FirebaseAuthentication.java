@@ -181,7 +181,6 @@ public class FirebaseAuthentication {
           Map.of("success", false, "message", "Failed to get authorization code", "code",
               "AUTH_CODE_NOT_FOUND"));
     }
-
     GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(httpTransport,
         JSON_FACTORY, clientSecrets.getDetails().getClientId(),
         clientSecrets.getDetails().getClientSecret(), authCode, redirectUri).execute();
@@ -214,5 +213,9 @@ public class FirebaseAuthentication {
     return new JSONObject(Map.of("success", true, "data", resp));
   }
 
+  public static boolean verifyPassword(String email, String password) {
+    JSONObject response = loginWithEmailAndPassword(email, password);
+    return response.has("data");
+  }
 
 }

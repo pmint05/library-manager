@@ -104,11 +104,11 @@ public class StageManager {
 //  }
 
   public static void showLoginWindow() {
-    showChildWindow("/views/login.fxml", "Login | Library Manager", false);
+    showChildWindow("/views/auth/login.fxml", "Login | Library Manager", false);
   }
 
   public static void showRegisterWindow() {
-    showChildWindow("/views/register.fxml", "Register | Library Manager", false);
+    showChildWindow("/views/auth/register.fxml", "Register | Library Manager", false);
   }
 
   public static void showHomeWindow() {
@@ -117,7 +117,7 @@ public class StageManager {
     showStage(Objects.requireNonNull(loadScene("/views/layout.fxml")), primaryStage, "Library Manager", true);
   }
   public static void showForgotPasswordWindow() {
-    showChildWindow("/views/forgot-password.fxml", "Forgot Password | Library Manager", false);
+    showChildWindow("/views/auth/forgot-password.fxml", "Forgot Password | Library Manager", false);
   }
 
   public static void setPrimaryStage(Stage stage) {
