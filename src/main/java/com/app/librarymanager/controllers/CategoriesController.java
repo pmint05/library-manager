@@ -7,14 +7,16 @@ import com.mongodb.client.model.Filters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.text.WordUtils;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.checkerframework.checker.units.qual.C;
 
 public class CategoriesController {
 
   public static Document findCategory(Categories categories) {
     return MongoDB.getInstance()
-        .findAnObject("categories", Filters.eq("name", categories.getName().toLowerCase()));
+        .findAnObject("categories", Filters.eq("name", categories.getName()));
   }
 
   public static Document addCategory(Categories categories) {
@@ -27,13 +29,16 @@ public class CategoriesController {
     return document;
   }
 
+  public static boolean removeCategory(Categories categories) {
+    return MongoDB.getInstance().deleteFromCollection("categories", "name", categories.getName());
+  }
+
   public static List<Categories> getCategories(int start, int length) {
     List<Categories> categories = new ArrayList<>();
     MongoDB.getInstance().findAllObject("categories", Filters.empty(), start, length)
         .forEach(document -> categories.add(new Categories(document)));
     return categories;
   }
-
 
   public static List<Book> getBookOfCategory(Categories categories, int start, int length) {
     List<Book> books = new ArrayList<>();
@@ -44,12 +49,5 @@ public class CategoriesController {
   }
 
   public static void main(String[] args) {
-//    addCategory(new Categories("ahuhu"));
-//    addCategory(new Categories("ahuhu"));
-//    addCategory(new Categories("ahihi"));
-//    System.out.println(getCategories(0, 10000));
-//    Categories cat = new Categories("Mathematics");
-//    System.out.println(cat.getName());
-//    System.out.println(getBookOfCategory(new Categories("Mathematics"), 0, 1000000));
   }
 }

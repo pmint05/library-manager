@@ -1,10 +1,13 @@
 package com.app.librarymanager.utils;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.stream.Stream;
+import org.bson.types.ObjectId;
 
 public class DateUtil {
 
@@ -13,6 +16,22 @@ public class DateUtil {
     public static final String DD_MM_YYYY = "dd/MM/yyyy";
     public static final String YYYY_MM_DD = "yyyy-MM-dd";
     public static final String DD_MM_YYYY_HH_MM_SS = "dd/MM/yyyy HH:mm:ss";
+  }
+
+  public static String convertToStringFrom(String objectId) {
+    return dateToString(convertToDateFrom(objectId));
+  }
+
+  public static Date convertToDateFrom(String objectId) {
+    return new Date(convertToTimestampFrom(objectId));
+  }
+
+  public static long convertToTimestampFrom(String objectId) {
+    return Long.parseLong(objectId.substring(0, 8), 16) * 1000;
+  }
+
+  public static String dateToString(Date date) {
+    return format(dateToLocalDate(date));
   }
 
   public static LocalDate parse(String date) {
