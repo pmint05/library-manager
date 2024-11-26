@@ -47,7 +47,6 @@ public class AuthController {
 
     if (userClaims != null && !userClaims.isEmpty()) {
       this.currentUser = new User(userClaims);
-      System.out.println("Current user: " + this.currentUser.toString());
     } else {
       this.currentUser = null;
     }

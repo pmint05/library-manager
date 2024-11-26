@@ -3,15 +3,24 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.UserService;
 import com.app.librarymanager.utils.AlertDialog;
+import com.app.librarymanager.utils.AvatarUtil;
 import com.app.librarymanager.utils.DatePickerUtil;
 import com.app.librarymanager.utils.DateUtil;
+import com.app.librarymanager.utils.UploadFileUtil;
 import com.google.firebase.auth.FirebaseAuth;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Objects;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -19,13 +28,20 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.util.Callback;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 public class ProfileController extends ControllerWithLoader {
 
   @FXML
-  private TextField emailField;
+  private Text localIdField;
+
+  @FXML
+  private Text emailField;
 
   @FXML
   private TextField displayNameField;
@@ -37,13 +53,16 @@ public class ProfileController extends ControllerWithLoader {
   private DatePicker birthdayField;
 
   @FXML
-  private PasswordField passwordField;
+  private PasswordField oldPasswordField;
+
+  @FXML
+  private PasswordField newPasswordField;
 
   @FXML
   private ImageView profileImageView;
 
-  @FXML
-  private HBox hBox;
+//  @FXML
+//  private HBox hBox;
 
   @FXML
   private StackPane stackPane;
@@ -51,9 +70,22 @@ public class ProfileController extends ControllerWithLoader {
   @FXML
   private Button saveChangesButton;
 
+  @FXML
+  private Button updatePasswordButton;
+  @FXML
+  private Label changeAvatarLabel;
+
+  @FXML
+  private StackPane imageStackPane;
+
+  @FXML
+  private HBox avatarContainer;
+
   private String initialDisplayName;
   private String initialPhoneNumber;
   private String initialBirthday;
+  private boolean admin;
+  private String filePath;
 
   public ProfileController() {
   }
@@ -71,7 +103,7 @@ public class ProfileController extends ControllerWithLoader {
     task.setOnSucceeded(event -> showLoading(false));
     task.setOnFailed(event -> showLoading(false));
     new Thread(task).start();
-    hBox.prefWidthProperty().bind(stackPane.widthProperty());
+//    hBox.prefWidthProperty().bind(stackPane.widthProperty());
     DatePickerUtil.setDatePickerFormat(birthdayField);
     birthdayField.setDayCellFactory(new Callback<DatePicker, DateCell>() {
       @Override
@@ -88,24 +120,68 @@ public class ProfileController extends ControllerWithLoader {
         };
       }
     });
+    profileImageView.setOnMouseClicked(event -> {
+      FileChooser fileChooser = new FileChooser();
+      fileChooser.getExtensionFilters()
+          .add(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
+      fileChooser.setTitle("Choose an image");
+      fileChooser.setInitialDirectory(new File(UserService.initialDirectory));
+      File file = fileChooser.showOpenDialog(profileImageView.getScene().getWindow());
+      if (file != null) {
+        filePath = file.getAbsolutePath();
+        BufferedImage croppedImage;
+        try {
+          croppedImage = UploadFileUtil.cropImage(file, 96);
+          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          ImageIO.write(croppedImage, "png", baos);
+          Image image = new Image(new ByteArrayInputStream(baos.toByteArray()));
+          profileImageView.setImage(image);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+
+        saveChangesButton.setDisable(false);
+      }
+    });
+    imageStackPane.setOnMouseEntered(event -> changeAvatarLabel.setVisible(true));
+    imageStackPane.setOnMouseExited(event -> changeAvatarLabel.setVisible(false));
+
     addFieldListeners();
   }
 
   private void loadUserProfile() {
-    JSONObject userClaims = AuthController.getInstance().getUserClaims();
-    if (userClaims != null) {
-      emailField.setText(userClaims.optString("email", ""));
-      initialDisplayName = userClaims.optString("displayName", "");
+    User currentUser = AuthController.getInstance().getCurrentUser();
+    if (currentUser != null) {
+      localIdField.setText(currentUser.getUid());
+      emailField.setText(currentUser.getEmail());
+      initialDisplayName = currentUser.getDisplayName();
       displayNameField.setText(initialDisplayName);
-      initialPhoneNumber = userClaims.optString("phoneNumber", "");
+      initialPhoneNumber = currentUser.getPhoneNumber();
       phoneNumberField.setText(initialPhoneNumber);
-      initialBirthday = userClaims.optString("birthday", "");
+      initialBirthday = currentUser.getBirthday();
       birthdayField.setValue(initialBirthday.isEmpty() ? null : DateUtil.parse(initialBirthday));
-      String photoUrl = userClaims.optString("photoUrl", "");
+      admin = currentUser.isAdmin();
+      String photoUrl = currentUser.getPhotoUrl();
       if (!photoUrl.isEmpty()) {
-        profileImageView.setImage(new Image(photoUrl));
+        System.out.println("Loading photoUrl: " + photoUrl);
+        try {
+          setDefaultAvatar();
+          profileImageView.setImage(currentUser.getAvatar());
+        } catch (Exception e) {
+          System.err.println("Failed to load image from photoUrl: " + e.getMessage());
+        }
+      } else {
+        setDefaultAvatar();
       }
     }
+  }
+
+  private void setDefaultAvatar() {
+    avatarContainer.setVisible(true);
+    AvatarUtil avatarUtil = new AvatarUtil();
+    avatarUtil.setRounded(true).setBold(true).setBackground("bae6fd");
+    profileImageView.setImage(new Image(
+        avatarUtil.getAvatarUrl(Objects.requireNonNullElse(initialDisplayName, "Anonymous"))));
   }
 
   private void addFieldListeners() {
@@ -115,34 +191,42 @@ public class ProfileController extends ControllerWithLoader {
         .addListener((observable, oldValue, newValue) -> checkForChanges());
     birthdayField.valueProperty()
         .addListener((observable, oldValue, newValue) -> checkForChanges());
-    passwordField.textProperty().addListener((observable, oldValue, newValue) -> checkForChanges());
+    oldPasswordField.textProperty()
+        .addListener((observable, oldValue, newValue) -> checkForPasswordChanges());
+    newPasswordField.textProperty()
+        .addListener((observable, oldValue, newValue) -> checkForPasswordChanges());
   }
 
   private void checkForChanges() {
-    boolean hasChanges = !displayNameField.getText().equals(initialDisplayName) ||
-        !phoneNumberField.getText().equals(initialPhoneNumber) ||
-        !passwordField.getText().isEmpty() || (birthdayField.getValue() != null
-        && !birthdayField.getValue().toString().equals(initialBirthday));
+    boolean hasChanges =
+        !displayNameField.getText().equals(initialDisplayName) || !phoneNumberField.getText()
+            .equals(initialPhoneNumber) || (
+            birthdayField.getEditor().getText() != null && !birthdayField.getEditor().getText()
+                .equals(initialBirthday) || (birthdayField.getEditor().getText() == null
+                && !initialBirthday.isEmpty()));
     saveChangesButton.setDisable(!hasChanges);
+  }
+
+  private void checkForPasswordChanges() {
+    boolean hasPasswordChanges =
+        !oldPasswordField.getText().isEmpty() && !newPasswordField.getText().isEmpty();
+    updatePasswordButton.setDisable(!hasPasswordChanges);
   }
 
   @FXML
   private void handleSaveChanges() {
     String displayName = displayNameField.getText().trim();
     String phoneNumber = phoneNumberField.getText().trim();
-    String birthday = birthdayField.getValue().toString().trim();
-    String newPassword = passwordField.getText().trim();
-
-    if (!phoneNumber.isEmpty() && !phoneNumber.matches("\\d{10}")) {
-      AlertDialog.showAlert("error", "Invalid phone number", "Phone number must be 10 digits",
-          null);
-      return;
-    }
+    String birthday = birthdayField.getEditor().getText().trim();
+    String localId = localIdField.getText().trim();
 
     User user = new User();
     user.setDisplayName(displayName);
     user.setPhoneNumber(phoneNumber);
     user.setBirthday(birthday);
+    user.setUid(localId);
+    user.setPhotoUrl(filePath);
+    user.setAdmin(admin);
 
     setLoadingText("Updating profile...");
 
@@ -152,14 +236,62 @@ public class ProfileController extends ControllerWithLoader {
         return UserService.getInstance().updateUserProfile(user);
       }
     };
-    if (!newPassword.isEmpty()) {
-      UserService.getInstance().updateUserPassword(user);
-    }
+    task.setOnRunning(event -> showLoading(true));
+    task.setOnSucceeded(event -> {
+      JSONObject resp = task.getValue();
+      showLoading(false);
+      if (resp.getBoolean("success")) {
+        initialDisplayName = displayName;
+        initialPhoneNumber = phoneNumber;
+        initialBirthday = birthday;
+        saveChangesButton.setDisable(true);
+        AlertDialog.showAlert("success", "Success", resp.getString("message"), null);
+      } else {
+        AlertDialog.showAlert("error", "Error", resp.getString("message"), null);
+      }
+    });
+    task.setOnFailed(event -> {
+      showLoading(false);
+      AlertDialog.showAlert("error", "Error", "An error occurred while updating the profile.",
+          null);
+    });
+    new Thread(task).start();
+  }
 
-    initialDisplayName = displayName;
-    initialPhoneNumber = phoneNumber;
-    initialBirthday = birthday;
-    passwordField.clear();
-    saveChangesButton.setDisable(true);
+  @FXML
+  private void handleUpdatePassword() {
+    String oldPassword = oldPasswordField.getText().trim();
+    String newPassword = newPasswordField.getText().trim();
+    String localId = localIdField.getText().trim();
+    String email = emailField.getText().trim();
+
+    setLoadingText("Updating password...");
+
+    Task<JSONObject> task = new Task<JSONObject>() {
+      @Override
+      protected JSONObject call() {
+        return UserService.getInstance()
+            .updateUserPassword(localId, email, oldPassword, newPassword);
+      }
+    };
+    task.setOnRunning(event -> showLoading(true));
+    task.setOnSucceeded(event -> {
+      JSONObject resp = task.getValue();
+      showLoading(false);
+      if (resp.getBoolean("success")) {
+        oldPasswordField.clear();
+        newPasswordField.clear();
+        updatePasswordButton.setDisable(true);
+        AlertDialog.showAlert("success", "Success", resp.getString("message"), null);
+      } else {
+        AlertDialog.showAlert("error", "Error", resp.getString("message"), null);
+      }
+    });
+    task.setOnFailed(event -> {
+      showLoading(false);
+      AlertDialog.showAlert("error", "Error", "An error occurred while updating the password.",
+          null);
+    });
+    new Thread(task).start();
   }
 }

@@ -30,7 +30,6 @@ module com.app.librarymanager {
   requires java.prefs;
   requires com.google.api.client.json.gson;
   requires jdk.httpserver;
-  requires org.checkerframework.checker.qual;
   requires org.apache.commons.lang3;
   requires java.desktop;
 
