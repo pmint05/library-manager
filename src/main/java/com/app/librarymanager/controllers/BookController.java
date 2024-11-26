@@ -153,7 +153,6 @@ public class BookController {
 
   // find all books which title contains `keyword`
   public static List<Book> findBookByKeyword(String keyword, int start, int length) {
-    MongoDB database = MongoDB.getInstance();
     List<Document> jsonBook = MongoDB.getInstance()
         .findAllObject("books", Filters.regex("title", keyword, "i"), start, length);
     List<Book> result = new ArrayList<>();
@@ -162,13 +161,12 @@ public class BookController {
   }
 
 
-  public static boolean addBook(Book book) {
+  public static Document addBook(Book book) {
     if (isAvailable(book)) {
-      return false;
+      return null;
     }
     MongoDB database = MongoDB.getInstance();
-    database.addToCollection("books", MongoDB.objectToMap(book));
-    return true;
+    return database.addToCollection("books", MongoDB.objectToMap(book));
   }
 
   public static boolean deleteBook(Book book) {
@@ -180,20 +178,16 @@ public class BookController {
     return true;
   }
 
-  public static boolean editBook(Book book) {
+  public static Document editBook(Book book) {
     MongoDB database = MongoDB.getInstance();
-    if (database.findAnObject("books", "id", book.getId()) == null) {
-      return false;
+    Document document = database.findAnObject("books", "id", book.getId());
+    if (document == null) {
+      return null;
     }
-    database.updateData("books", "id", book.getId(), MongoDB.objectToMap(book));
-    return true;
+    document = database.updateData("books", "id", book.getId(), MongoDB.objectToMap(book));
+    return document;
   }
 
   public static void main(String[] args) {
-//    List<Book> bl = searchByKeyword("algebra");
-//    System.out.println(bl.get(bl.size() - 1).getPdfLink());
-//    addBook(bl.get(bl.size() - 1));
-//    System.out.println(findBookByID("QvMGAAAAYAAJ"));
-//    System.out.println(findBookByKeyword("", 3, 2).size());
   }
 }
