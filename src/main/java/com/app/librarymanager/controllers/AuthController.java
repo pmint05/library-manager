@@ -26,13 +26,14 @@ public class AuthController {
   private String idToken;
   private String refreshToken;
   private String userClaims;
-  private Boolean isAuthenticated;
+  private Boolean isAuthenticated = false;
   private final Preferences authPrefs;
+
+  private User currentUser;
 
 
   public AuthController() {
     authPrefs = Preferences.userNodeForPackage(AuthController.class);
-    loadSession();
   }
 
   public static synchronized AuthController getInstance() {
@@ -42,14 +43,27 @@ public class AuthController {
     return instance;
   }
 
-  private void loadSession() {
+  private void setCurrentUser(JSONObject userClaims) {
+
+    if (userClaims != null && !userClaims.isEmpty()) {
+      this.currentUser = new User(userClaims);
+      System.out.println("Current user: " + this.currentUser.toString());
+    } else {
+      this.currentUser = null;
+    }
+  }
+
+  public void loadSession() {
     System.out.println("Loading session...");
     System.out.println("ID Token: " + authPrefs.get("idToken", null));
     this.idToken = authPrefs.get("idToken", null);
     this.refreshToken = authPrefs.get("refreshToken", null);
     this.userClaims = authPrefs.get("userClaims", null);
     this.isAuthenticated = (idToken != null);
+    JSONObject claims = getUserClaims();
+    setCurrentUser(claims);
   }
+
 
   public static JSONObject login(String email, String password) {
     return FirebaseAuthentication.loginWithEmailAndPassword(email, password);
@@ -133,13 +147,13 @@ public class AuthController {
   }
 
   private void onAuthSuccess(JSONObject user) {
-//    JSONObject resp = FirebaseAuthentication.getUserData(user.getString("idToken"));
-//    System.out.println("User data: " + resp);
     this.isAuthenticated = true;
     this.idToken = user.getString("idToken");
     this.refreshToken = user.getString("refreshToken");
     authPrefs.put("idToken", idToken);
     authPrefs.put("refreshToken", refreshToken);
+    JSONObject claims = getUserClaims();
+    setCurrentUser(claims);
   }
 
   public void onRegisterFailure(String errorMessage) {
@@ -294,10 +308,28 @@ public class AuthController {
           claims.put("admin", false);
           claims.put("birthday", "");
         }
-        claims.put("photoUrl",
-            user.getJSONArray("providerUserInfo").getJSONObject(0).optString("photoUrl", ""));
-        claims.put("displayName",
-            user.getJSONArray("providerUserInfo").getJSONObject(0).optString("displayName", ""));
+        String displayName = user.optString("displayName", "");
+        String photoUrl = user.optString("photoUrl", "");
+        if (displayName.isEmpty() && user.optJSONArray("providerUserInfo") != null) {
+          for (int i = 0; i < user.optJSONArray("providerUserInfo").length(); i++) {
+            displayName = user.optJSONArray("providerUserInfo").getJSONObject(i)
+                .optString("displayName", "");
+            if (!displayName.isEmpty()) {
+              break;
+            }
+          }
+        }
+        if (photoUrl.isEmpty() && user.optJSONArray("providerUserInfo") != null) {
+          for (int i = 0; i < user.optJSONArray("providerUserInfo").length(); i++) {
+            photoUrl = user.optJSONArray("providerUserInfo").getJSONObject(i)
+                .optString("photoUrl", "");
+            if (!photoUrl.isEmpty()) {
+              break;
+            }
+          }
+        }
+        claims.put("displayName", displayName);
+        claims.put("photoUrl", photoUrl);
         claims.put("providerId",
             user.getJSONArray("providerUserInfo").getJSONObject(0).optString("providerId", ""));
       }
@@ -311,4 +343,13 @@ public class AuthController {
     }
   }
 
+  public void getNewUserClaims() {
+    this.userClaims = null;
+    getUserClaims();
+    notifyAuthStateListeners();
+  }
+
+  public void setCurrentUser(User updatedUser) {
+    this.currentUser = updatedUser;
+  }
 }
