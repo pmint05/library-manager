@@ -29,7 +29,7 @@ public class AlertDialog {
       alert.getDialogPane().lookup(".header-panel").getStyleClass().add("custom-alert-header");
     }
     Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
-    okButton.getStyleClass().add("custom-alert-button");
+    okButton.getStyleClass().addAll("btn", "btn-primary");
     okButton.setOnAction(okCallback);
     alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
     alert.showAndWait();

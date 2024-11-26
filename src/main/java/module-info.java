@@ -25,6 +25,7 @@ module com.app.librarymanager {
   requires google.api.client;
   requires com.google.api.client.auth;
   requires com.google.api.client.json.jackson2;
+  requires java.desktop;
   requires com.google.api.client.extensions.jetty.auth;
   requires java.prefs;
   requires com.google.api.client.json.gson;
