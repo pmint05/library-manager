@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane nodeOrientation="LEFT_TO_RIGHT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.librarymanager.controllers.ViewBookController">
+    <center>
+        <HBox alignment="CENTER" spacing="20">
+            <children>
+                <ImageView fx:id="bookCoverImage" preserveRatio="true" style="-fx-alignment: CENTER;" BorderPane.alignment="CENTER" />
+                <VBox alignment="CENTER_LEFT">
+                    <children>
+                        <HBox spacing="20">
+                            <children>
+                                <VBox spacing="10">
+                                    <children>
+                                        <Label fx:id="titleLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;" wrapText="true" />
+                                        <Label fx:id="authorLabel" style="-fx-font-size: 16px;" />
+                                        <Label fx:id="publisherLabel" style="-fx-font-size: 14px; -fx-text-fill: gray;" />
+                                        <Label fx:id="pageCountLabel" style="-fx-font-size: 14px;" />
+                                        <Label fx:id="price" style="-fx-font-size: 14px; -fx-strikethrough: true;" />
+                                        <Label fx:id="discountPriceLabel" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: red;" />
+                                        <Label fx:id="descriptionlabel"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                    </children>
+                </VBox>
+                <VBox prefHeight="200.0" prefWidth="100.0">
+                    <children>
+                        <HBox spacing="20">
+                            <children>
+                                <VBox prefHeight="200.0" prefWidth="100.0">
+                                    <children>
+                                        <Button fx:id="readBookButton" style="-fx-font-size: 14px;" text="Đọc sách" />
+                                        <Button style="-fx-font-size: 14px;" text="Thêm vào danh sách yêu thích" />
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+        <!--        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">-->
+        <!--            <content>-->
+        <!--                <HBox spacing="20" alignment="CENTER">-->
+        <!--                    <children>-->
+        <!--                      <VBox alignment="CENTER_LEFT">-->
+        <!--                         <children>-->
+        <!--                          &lt;!&ndash; Tên sách &ndash;&gt;-->
+        <!--                          <Label fx:id="titleLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;" wrapText="true" />-->
+        <!--                          &lt;!&ndash; Tác giả và ngày phát hành &ndash;&gt;-->
+        <!--                          <VBox spacing="5">-->
+        <!--                              <children>-->
+        <!--                                  <Label fx:id="authorLabel" style="-fx-font-size: 16px;" />-->
+        <!--                                  <Label fx:id="releaseDateLabel" style="-fx-font-size: 14px; -fx-text-fill: gray;" />-->
+        <!--                              </children>-->
+        <!--                          </VBox>-->
+        <!--                          <HBox spacing="20">-->
+        <!--                              <children>-->
+        <!--                                  &lt;!&ndash; Nội dung văn bản &ndash;&gt;-->
+        <!--                                  <VBox spacing="10">-->
+        <!--                                      <children>-->
+        <!--                                          <Label fx:id="titleLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;" wrapText="true" />-->
+        <!--                                          <Label fx:id="authorLabel" style="-fx-font-size: 16px;" />-->
+        <!--                                          <Label fx:id="releaseDateLabel" style="-fx-font-size: 14px; -fx-text-fill: gray;" />-->
+        <!--                                          <Label fx:id="pageCountLabel" style="-fx-font-size: 14px;" />-->
+        <!--                                          <Label fx:id="price" style="-fx-font-size: 14px; -fx-strikethrough: true;" />-->
+        <!--                                          <Label fx:id="discountPriceLabel" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: red;" />-->
+        <!--                                      </children>-->
+        <!--                                  </VBox>-->
+        <!--                              </children>-->
+        <!--                          </HBox>-->
+        <!--                          <HBox spacing="20">-->
+        <!--                              <children>-->
+        <!--                                  <Button fx:id="readBookButton" style="-fx-font-size: 14px;" text="Đọc sách" />-->
+        <!--                                  <Button style="-fx-font-size: 14px;" text="Thêm vào danh sách yêu thích" />-->
+        <!--                              </children>-->
+        <!--                          </HBox>-->
+        <!--                         </children>-->
+        <!--                      </VBox>-->
+        <!--                          &lt;!&ndash; Ảnh bìa sách &ndash;&gt;-->
+        <!--                      <ImageView fx:id="bookCoverImage" BorderPane.alignment="CENTER" preserveRatio="true" style="-fx-alignment: CENTER;"/>-->
+        <!--                    </children>-->
+        <!--                </HBox>-->
+        <!--            </content>-->
+        <!--        </ScrollPane>-->
+    </center>
+</BorderPane>
