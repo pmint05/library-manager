@@ -32,7 +32,6 @@ module com.app.librarymanager {
   requires jdk.httpserver;
   requires org.checkerframework.checker.qual;
   requires org.apache.commons.lang3;
-  requires java.desktop;
 
   opens com.app.librarymanager to javafx.fxml, com.google.gson;
   exports com.app.librarymanager;
