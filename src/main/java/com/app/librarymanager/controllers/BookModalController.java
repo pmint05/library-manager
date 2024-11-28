@@ -6,7 +6,6 @@ import com.app.librarymanager.utils.DateUtil;
 import com.app.librarymanager.utils.DateUtil.DateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -20,8 +19,8 @@ import javafx.stage.Stage;
 import com.app.librarymanager.models.Book;
 import javafx.util.Callback;
 import lombok.Setter;
+import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.json.JSONObject;
 
 public class BookModalController extends ControllerWithLoader {
 
@@ -128,6 +127,8 @@ public class BookModalController extends ControllerWithLoader {
     if (book == null) {
       book = new Book();
     } else {
+      System.out.println(book.toString());
+      System.out.println(_idField.getText());
       book.set_id(new ObjectId(_idField.getText()));
     }
     book.setId(idField.getText());
@@ -140,16 +141,16 @@ public class BookModalController extends ControllerWithLoader {
     book.setAuthors(new ArrayList<>(List.of(authorsField.getText().split(","))));
     book.setThumbnail(thumbnailField.getText());
     book.setLanguage(languageField.getText());
-    book.setPrice(Integer.parseInt(priceField.getText()));
+    book.setPrice(Double.parseDouble(priceField.getText()));
     book.setCurrencyCode(currencyCodeField.getText());
     book.setPdfLink(pdfLinkField.getText());
     book.setPublishedDate(DateUtil.format(publishedDateField.getValue(), DateFormat.YYYY_MM_DD));
-    book.setDiscountPrice(Integer.parseInt(discountPriceField.getText()));
+    book.setDiscountPrice(Double.parseDouble(discountPriceField.getText()));
     book.setActivated(isActiveCheckBox.isSelected());
 
-    Task<Boolean> task = new Task<Boolean>() {
+    Task<Document> task = new Task<Document>() {
       @Override
-      protected Boolean call() throws Exception {
+      protected Document call() throws Exception {
         return isEditMode ? BookController.editBook(book) : BookController.addBook(book);
       }
     };
@@ -158,13 +159,14 @@ public class BookModalController extends ControllerWithLoader {
 
     task.setOnSucceeded(e -> {
       showLoading(false);
-      boolean resp = task.getValue();
+      Document resp = task.getValue();
       System.out.println(resp);
       Stage stage = (Stage) idField.getScene().getWindow();
-      if (resp) {
+      if (resp.getObjectId("_id") != null) {
         AlertDialog.showAlert("success", "Success",
             isEditMode ? "Book updated successfully." : "Book added successfully.", null);
         stage.close();
+        book.set_id(resp.getObjectId("_id"));
         if (saveCallback != null) {
           saveCallback.onSave(book);
         }
@@ -182,10 +184,12 @@ public class BookModalController extends ControllerWithLoader {
   }
 
   @FXML
-  private void handleUploadThumbnail() {}
+  private void handleUploadThumbnail() {
+  }
 
   @FXML
-  private void handleUploadPdf() {}
+  private void handleUploadPdf() {
+  }
 
   @FXML
   private void onCancel() {
