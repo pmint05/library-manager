@@ -3,14 +3,14 @@ package com.app.librarymanager.models;
 import com.app.librarymanager.services.MongoDB;
 import com.google.gson.annotations.Expose;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import lombok.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-
+import java.util.List;
 @Data
 public class Book {
-
   private ObjectId _id;
 
   @Expose
