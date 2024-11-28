@@ -1,5 +1,6 @@
 package com.app.librarymanager.models;
 
+import com.app.librarymanager.utils.StringUtil;
 import java.util.Date;
 import lombok.Data;
 import org.bson.Document;
@@ -20,13 +21,13 @@ public class Categories {
 
   public Categories(String name) {
     this._id = null;
-    this.name = name.toLowerCase();
+    this.name = StringUtil.toCapitalize(name);
     this.lastUpdated = null;
   }
 
   public Categories(ObjectId _id, String name, Date lastUpdated) {
     this._id = _id;
-    this.name = name.toLowerCase();
+    this.name = StringUtil.toCapitalize(name);
     this.lastUpdated = lastUpdated;
   }
 

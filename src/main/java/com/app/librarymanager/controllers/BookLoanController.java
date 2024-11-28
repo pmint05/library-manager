@@ -11,6 +11,7 @@ import com.app.librarymanager.services.MongoDB;
 
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -71,7 +72,8 @@ public class BookLoanController {
     MongoDB database = MongoDB.getInstance();
     Date curDate = new Date();
     Bson filter = Filters.and(eq("userId", userId), lte("dueDate", curDate), eq("valid", "true"));
-    Bson change = Updates.set("valid", false);
+    Bson change = Updates.combine(Updates.set("valid", false),
+        Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis())));
     database.updateAll("bookLoan", filter, change);
     List<Document> documentList = database.findAllObject("bookLoan",
         Filters.and(eq("userId", userId), eq("valid", true)));
@@ -90,7 +92,4 @@ public class BookLoanController {
         .findAllObject("bookLoan", Filters.and(eq("userId", userId), eq("valid", false))).size();
   }
 
-  public static void main(String[] args) {
-
-  }
 }
