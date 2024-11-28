@@ -2,7 +2,6 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.interfaces.AuthStateListener;
 
-import com.app.librarymanager.models.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
@@ -32,22 +31,31 @@ public class HomeController implements AuthStateListener {
   private void initialize() {
     AuthController.getInstance().addAuthStateListener(this);
     updateUI(AuthController.getInstance().isAuthenticated(),
-        AuthController.getInstance().getCurrentUser());
+        AuthController.getInstance().getUserClaims());
   }
 
-  private void updateUI(boolean isAuthenticated, User user) {
+  private void updateUI(boolean isAuthenticated, JSONObject userClaims) {
+    System.out.println("User claims: " + userClaims);
     if (isAuthenticated) {
-      welcomeLabel.setText("Welcome, " + user.getEmail());
-//      loadComponent("/fxml/ManageBookLoans.fxml");
+      if (!userClaims.isEmpty()) {
+        String email = userClaims.getString("email");
+        welcomeLabel.setText("Welcome, " + email);
+//        mainTabPane.getTabs().add(authUserTab);
+//        authUserTab.setDisable(false);
+        if (userClaims.getBoolean("admin")) {
+//          mainTabPane.getTabs().add(adminTab);
+        }
+      } else {
+        AuthController.getInstance().logout();
+      }
     } else {
-      welcomeLabel.setText("Welcome, Guest");
-//      loadComponent("/fxml/Login.fxml");
+//      mainTabPane.getTabs().add(unauthUserTab);
     }
   }
 
   @Override
   public void onAuthStateChanged(boolean isAuthenticated) {
-    updateUI(isAuthenticated, AuthController.getInstance().getCurrentUser());
+    updateUI(isAuthenticated, AuthController.getInstance().getUserClaims());
   }
 
   private void loadComponent(String fxmlPath) {
