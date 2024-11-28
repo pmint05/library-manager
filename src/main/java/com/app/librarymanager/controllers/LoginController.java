@@ -1,5 +1,6 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.services.FirebaseAuthentication;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.StageManager;
 import java.io.IOException;
@@ -54,8 +55,16 @@ public class LoginController extends ControllerWithLoader {
         AuthController.getInstance().onLoginSuccess(response.getJSONObject("data"));
         StageManager.closeActiveChildWindow();
       } else {
+        passwordField.clear();
+        passwordField.requestFocus();
         AuthController.getInstance().onLoginFailure(response.getString("message"));
       }
+    });
+    loginTask.setOnFailed(e -> {
+      showLoading(false);
+      AlertDialog.showAlert("error", "Error",
+          "An error occurred while logging in. Please try again.",
+          null);
     });
     new Thread(loginTask).start();
   }
@@ -99,6 +108,15 @@ public class LoginController extends ControllerWithLoader {
         AuthController.getInstance().onLoginFailure(response.getString("code"));
       }
     });
+
+    setCancelLoadingAction(e -> {
+      googleLoginTask.cancel();
+      FirebaseAuthentication.stopReceiver();
+      showLoading(false);
+      return e;
+    });
+    showCancel(true);
+
     new Thread(googleLoginTask).start();
   }
 

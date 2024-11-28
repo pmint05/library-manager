@@ -1,26 +1,42 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.services.UserService;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DatePickerUtil;
 import com.app.librarymanager.utils.DateUtil;
 import com.app.librarymanager.utils.DateUtil.DateFormat;
+import com.app.librarymanager.utils.UploadFileUtil;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import com.app.librarymanager.models.Book;
 import javafx.util.Callback;
+import javax.imageio.ImageIO;
 import lombok.Setter;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.json.JSONObject;
 
 public class BookModalController extends ControllerWithLoader {
 
@@ -41,7 +57,7 @@ public class BookModalController extends ControllerWithLoader {
   @FXML
   private TextField publisherField;
   @FXML
-  private TextField descriptionField;
+  private TextArea descriptionField;
   @FXML
   private TextField pageCountField;
   @FXML
@@ -66,6 +82,8 @@ public class BookModalController extends ControllerWithLoader {
   private CheckBox isActiveCheckBox;
   @FXML
   private ImageView thumbnailPreview;
+  @FXML
+  private Button generateIdButton;
 
   private Book book;
   @Setter
@@ -90,6 +108,10 @@ public class BookModalController extends ControllerWithLoader {
         };
       }
     });
+    initNumberField(pageCountField);
+    initNumberField(priceField);
+    initNumberField(discountPriceField);
+
   }
 
   public void setBook(Book book) {
@@ -99,7 +121,9 @@ public class BookModalController extends ControllerWithLoader {
       _idField.setText(book.get_id().toString());
       _idField.setDisable(true);
       idField.setText(book.getId());
+      idField.setDisable(true);
       iSBNField.setText(book.getISBN());
+      iSBNField.setDisable(true);
       titleField.setText(book.getTitle());
       publisherField.setText(book.getPublisher());
       descriptionField.setText(book.getDescription());
@@ -111,12 +135,11 @@ public class BookModalController extends ControllerWithLoader {
       priceField.setText(String.valueOf(book.getPrice()));
       currencyCodeField.setText(book.getCurrencyCode());
       pdfLinkField.setText(book.getPdfLink());
-      publishedDateField.setValue(LocalDate.parse(book.getPublishedDate()));
+      publishedDateField.getEditor().setText(DateUtil.ymdToDmy(book.getPublishedDate()));
       discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
       isActiveCheckBox.setSelected(book.isActivated());
-
       thumbnailPreview.setImage(new Image(book.getThumbnail()));
-
+      generateIdButton.setDisable(true);
     } else {
       isEditMode = false;
     }
@@ -183,12 +206,93 @@ public class BookModalController extends ControllerWithLoader {
     new Thread(task).start();
   }
 
+  private void initNumberField(TextField field) {
+    field.textProperty().addListener(new ChangeListener<String>() {
+      @Override
+      public void changed(ObservableValue<? extends String> observable, String oldValue,
+          String newValue) {
+        if (!newValue.matches("\\d*(\\.\\d*)?")) {
+          field.setText(oldValue);
+        }
+      }
+    });
+  }
+
+  @FXML
+  private void syncBookByISBN() {
+    if (iSBNField.getText().isEmpty()) {
+      AlertDialog.showAlert("error", "Error", "ISBN field is empty.", null);
+      return;
+    }
+  }
+
   @FXML
   private void handleUploadThumbnail() {
+    handleUploadFile(thumbnailField, thumbnailPreview, "Image Files", "*.jpg", "*.png", "*.jpeg");
   }
 
   @FXML
   private void handleUploadPdf() {
+    handleUploadFile(pdfLinkField, null, "PDF File", "*.pdf");
+  }
+
+  private void handleUploadFile(TextField field, ImageView imgPreview, String title,
+      String... type) {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(title, type));
+    File file = fileChooser.showOpenDialog(idField.getScene().getWindow());
+    if (file != null) {
+      field.setText(file.getAbsolutePath());
+      Task<JSONObject> uploadTask = new Task<JSONObject>() {
+        @Override
+        protected JSONObject call() {
+          return UploadFileUtil.uploadFile(file.getAbsolutePath(), file.getName());
+        }
+      };
+
+      uploadTask.setOnRunning(e -> field.setText("Uploading..."));
+      uploadTask.setOnSucceeded(e -> {
+        JSONObject resp = uploadTask.getValue();
+        if (resp.getBoolean("success")) {
+//          AlertDialog.showAlert("success", "Success",
+//              "File " + file.getName() + " uploaded successfully.", null);
+          String fileLink = resp.getString("longURL");
+          field.setText(fileLink);
+          if (imgPreview != null) {
+            try {
+              BufferedImage image = ImageIO.read(new File(file.getAbsolutePath()));
+              ByteArrayOutputStream baos = new ByteArrayOutputStream();
+              ImageIO.write(image, file.getName().split("\\.")[1], baos);
+              byte[] imageBytes = baos.toByteArray();
+              imgPreview.setImage(new Image(new ByteArrayInputStream(imageBytes)));
+            } catch (IOException ex) {
+              ex.printStackTrace();
+            }
+          }
+        } else {
+          AlertDialog.showAlert("error", "Error", resp.getString("message"), null);
+        }
+      });
+      uploadTask.setOnFailed(e -> {
+        field.setText("");
+        AlertDialog.showAlert("error", "Error", e.getSource().getException().getMessage(), null);
+      });
+      new Thread(uploadTask).start();
+    } else {
+//      AlertDialog.showAlert("error", "Error", "No file selected.", null);
+    }
+  }
+
+  @FXML
+  private void generateId() {
+    String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    StringBuilder salt = new StringBuilder();
+    Random rnd = new Random();
+    while (salt.length() < 12) {
+      int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+      salt.append(SALTCHARS.charAt(index));
+    }
+    idField.setText(salt.toString());
   }
 
   @FXML

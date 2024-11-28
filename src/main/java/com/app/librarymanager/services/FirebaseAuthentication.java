@@ -2,6 +2,7 @@ package com.app.librarymanager.services;
 
 import com.app.librarymanager.controllers.AuthController;
 import com.app.librarymanager.models.User;
+import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.Fetcher;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -17,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.auth.UserRecord.CreateRequest;
 import io.github.cdimascio.dotenv.Dotenv;
+import java.awt.Desktop;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -38,6 +40,7 @@ public class FirebaseAuthentication {
   private static final Collection<String> SCOPES = Arrays.asList(
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile");
+  private static LocalServerReceiver receiver;
 
   public static JSONObject loginWithEmailAndPassword(String email, String password) {
     String url = LOGIN_URL + Firebase.getApiKey();
@@ -166,14 +169,16 @@ public class FirebaseAuthentication {
     AuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport,
         JSON_FACTORY, clientSecrets, SCOPES).setAccessType("offline").build();
 
-    LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8889).build();
+    if (receiver == null) {
+      receiver = new LocalServerReceiver.Builder().setPort(8889).build();
+    }
     String redirectUri = receiver.getRedirectUri();
     String authUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri)
         .setState(String.valueOf(new Random().nextInt(999_999))).set("prompt", "select_account")
         .build();
     System.out.println("Authorization URL: " + authUrl);
 
-    java.awt.Desktop.getDesktop().browse(java.net.URI.create(authUrl));
+    Desktop.getDesktop().browse(java.net.URI.create(authUrl));
 
     String authCode = receiver.waitForCode();
     if (authCode == null || authCode.isEmpty()) {
@@ -211,6 +216,18 @@ public class FirebaseAuthentication {
 
     receiver.stop();
     return new JSONObject(Map.of("success", true, "data", resp));
+  }
+
+  public static void stopReceiver() {
+    try {
+      if (receiver != null) {
+        receiver.stop();
+      }
+    } catch (IOException e) {
+      AlertDialog.showAlert("error", "Error", "An error occurred while stopping the receiver.",
+          null);
+      e.printStackTrace();
+    }
   }
 
   public static boolean verifyPassword(String email, String password) {

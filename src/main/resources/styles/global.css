@@ -21,9 +21,10 @@
   /*-fx-bg: #18181b;*/
   /*-fx-fg: #27272a;*/
   -fx-bg: #e5e5e5;
-  -fx-fg: #d4d4d4;
-  -fx-default-btn: #cfcfcf;
-  -fx-default-btn-hover: #d0d0d0;
+  -fx-fg: #dadada;
+  -fx-fg-secondary: #d4d4d4;
+  -fx-default-btn: #e0e0e0;
+  -fx-default-btn-hover: #c0c0c0;
   /*-fx-prompt-text-fill: #3f3f46 !important;*/
   -fx-prompt-text-fill: #71717a !important;
 
@@ -32,6 +33,10 @@
   -fx-success: #10b981;
   -fx-info: #3b82f6;
   -fx-disabled: #aaaaaa;
+}
+
+*:disabled {
+  -fx-cursor: not-allowed;
 }
 
 .root {
@@ -51,10 +56,23 @@ Button {
   -fx-padding: 5 20 5 20;
   -fx-font-size: 14px;
   -fx-background-color: -fx-default-btn;
+  transition: all 0.3s;
+  -fx-border-width: 1;
+  -fx-border-color: transparent;
 }
 
-.btn:hover {
-  -fx-background-color: -fx-default-btn-hover;
+.btn.btn-default {
+  -fx-text-fill: -fx-text;
+  -fx-border-color: -fx-fg-secondary;
+}
+
+.btn.btn-default:hover, .btn.btn-default:focused {
+  -fx-text-fill: -fx-primary;
+  -fx-border-color: -fx-primary;
+}
+
+.btn:pressed {
+  -fx-scale: 0.95;
 }
 
 .btn-primary {
@@ -67,8 +85,18 @@ Button {
   -fx-text-fill: -fx-bg;
 }
 
-.btn.btn-primary:hover {
+.btn.btn-primary:hover, .btn.btn-primary:focused {
   -fx-background-color: -fx-primary-hover;
+}
+
+.btn.btn-text {
+  -fx-background-color: transparent;
+  -fx-text-fill: inherit;
+}
+
+.btn.btn-text:hover, .btn.btn-text:focused {
+  -fx-background-color: -fx-fg;
+  -fx-text-fill: -fx-primary;
 }
 
 .input {
@@ -76,11 +104,37 @@ Button {
   -fx-border-radius: 5;
   -fx-font-size: 14px;
   -fx-text-fill: -fx-text;
+  -fx-border-width: 1;
+  -fx-border-color: -fx-fg-secondary;
 }
+
+.input:selected,
+.input:focused {
+  -fx-border-color: -fx-primary;
+}
+
 .input:disabled {
   -fx-background-color: -fx-disabled;
   -fx-cursor: not-allowed;
   -fx-prompt-text-fill: -fx-muted;
+}
+
+.text-area .content {
+  -fx-background-color: -fx-fg;
+  -fx-border-radius: 5;
+  -fx-font-size: 14px;
+  -fx-text-fill: -fx-text;
+  -fx-text-box-border: transparent;
+}
+
+.text-area {
+  -fx-border-color: transparent;
+  -fx-background-color: -fx-fg;
+  -fx-border-radius: 5;
+}
+
+.text-area:focused, .text-area:selected {
+  -fx-border-color: -fx-primary;
 }
 
 .combo-box {
@@ -90,6 +144,12 @@ Button {
   -fx-padding: 0;
   -fx-font-size: 14px;
   -fx-cursor: hand;
+  -fx-border-width: 1;
+  -fx-border-color: transparent;
+}
+
+.combo-box:focused {
+  -fx-border-color: -fx-primary;
 }
 
 .check-box {
@@ -107,14 +167,19 @@ Button {
   -fx-border-radius: 3;
 }
 
+.check-box:hover .box {
+  -fx-border-color: -fx-primary;
+}
+
 .check-box:selected .box {
   -fx-background-color: -fx-primary;
-  -fx-border-color: -fx-primary-dark;
+  -fx-border-color: -fx-primary;
 }
 
 .check-box .box .mark {
   -fx-background-color: -fx-fg;
 }
+
 /*.combo-box .arrow-button {*/
 /*  -fx-background-color: -fx-primary;*/
 /*  -fx-text-fill: -fx-bg;*/
@@ -132,13 +197,14 @@ Button {
   -fx-background-color: #e0e0e080;
   -fx-padding: 2px 8px;
   -fx-border-radius: 5px;
-  -fx-background-radius: 5px;
   -fx-font-size: 12px;
 }
+
 .table-row-cell:selected .chip {
   /*-fx-background-color: #aaaaaa;*/
   /*-fx-text-fill: -fx-text;*/
 }
+
 .or-separator {
   -fx-background-color: #000;
   -fx-max-width: Infinity;
@@ -165,16 +231,21 @@ Button {
 
 .date-picker {
   -fx-background-color: -fx-fg;
-  -fx-border-width: 0;
+  -fx-border-width: 1;
   -fx-font-size: 14px;
   -fx-text-fill: -fx-text;
+  -fx-border-color: transparent;
+  -fx-border-radius: 5;
 }
-
 
 .date-picker .text-field {
   -fx-background-color: -fx-fg;
   -fx-font-size: 14px;
   -fx-text-fill: -fx-text;
+}
+
+.date-picker:focused {
+  -fx-border-color: -fx-primary;
 }
 
 .date-picker .arrow-button {
@@ -213,6 +284,10 @@ Button {
 .loading-wrapper Text {
   -fx-font-size: 20px;
   -fx-fill: -fx-bg;
+}
+
+.loading-wrapper#cancelButton {
+  -fx-text-fill: -fx-bg;
 }
 
 .footer-label {
@@ -276,6 +351,7 @@ Button {
 .tab-pane .tab-header-area .tab:selected:hover .tab-label {
   -fx-text-fill: -fx-bg;
 }
+
 .tab-pane .tab-header-area .tab:hover {
   -fx-background-color: -fx-bg;
   -fx-text-fill: -fx-primary-hover;
@@ -298,6 +374,7 @@ Button {
   -fx-border-color: -fx-primary;
   -fx-cursor: hand;
 }
+
 .profile-image-upload:hover {
   -fx-border-color: -fx-primary-hover;
 }
@@ -307,7 +384,7 @@ Button {
   -fx-border-radius: 50%;
 }
 
-.profile-image{
+.profile-image {
   -fx-border-radius: 50%;
   -fx-cursor: hand;
 }
@@ -316,7 +393,7 @@ Button {
   -fx-blend-mode: difference;
 }
 
-.vertical-separator {
+.v-separator {
   -fx-background-color: -fx-muted;
   -fx-max-height: Infinity;
   -fx-max-width: 1;
@@ -325,4 +402,15 @@ Button {
   -fx-border-color: -fx-bg;
   -fx-border-width: 0;
   -fx-scale-x: 0.5;
+}
+
+.h-separator {
+  -fx-background-color: -fx-muted;
+  -fx-max-width: Infinity;
+  -fx-max-height: 1;
+  -fx-min-height: 1;
+  -fx-fill: -fx-muted;
+  -fx-border-color: -fx-bg;
+  -fx-border-width: 0;
+  -fx-scale-y: 0.5;
 }
