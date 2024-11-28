@@ -21,7 +21,7 @@ public class CategoriesController {
   public static Document addCategory(Categories categories) {
     Document document = findCategory(categories);
     if (document != null) {
-      return document;
+      return null;
     }
     document = MongoDB.getInstance()
         .addToCollection("categories", Map.of("name", categories.getName()));
@@ -30,6 +30,10 @@ public class CategoriesController {
 
   public static boolean removeCategory(Categories categories) {
     return MongoDB.getInstance().deleteFromCollection("categories", "name", categories.getName());
+  }
+
+  public static long countCategories() {
+    return MongoDB.getInstance().countDocuments("categories");
   }
 
   public static List<Categories> getCategories(int start, int length) {

@@ -69,17 +69,16 @@ public class BookLoanController {
   }
 
   public static List<Book> getAllLentBook(String userId) {
-    MongoDB database = MongoDB.getInstance();
-    Date curDate = new Date();
-    Bson filter = Filters.and(eq("userId", userId), lte("dueDate", curDate), eq("valid", "true"));
-    Bson change = Updates.combine(Updates.set("valid", false),
-        Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis())));
-    database.updateAll("bookLoan", filter, change);
-    List<Document> documentList = database.findAllObject("bookLoan",
-        Filters.and(eq("userId", userId), eq("valid", true)));
+    List<Document> documentList = MongoDB.getInstance()
+        .findAllObject("bookLoan", Filters.and(eq("userId", userId), eq("valid", true)));
     List<Book> bookList = new ArrayList<>();
     documentList.forEach(e -> bookList.add(BookController.findBookByID(e.getString("bookId"))));
     return bookList;
+  }
+
+  public static long countLentBookOf(String userId) {
+    return MongoDB.getInstance()
+        .countDocuments("bookLoan", Filters.and(eq("userId", userId), eq("valid", true)));
   }
 
   public static int countValidLendBook(String userId) {
@@ -92,4 +91,11 @@ public class BookLoanController {
         .findAllObject("bookLoan", Filters.and(eq("userId", userId), eq("valid", false))).size();
   }
 
+  public static void refreshDatabase() {
+    Date curDate = new Date();
+    Bson filter = Filters.and(lte("dueDate", curDate), eq("valid", "true"));
+    Bson change = Updates.combine(Updates.set("valid", false),
+        Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis())));
+    MongoDB.getInstance().updateAll("bookLoan", filter, change);
+  }
 }
