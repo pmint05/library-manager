@@ -54,6 +54,9 @@ public class AvatarUtil {
   }
 
   public String getAvatarUrl(String displayName) {
+    if (displayName == null || displayName.isEmpty()) {
+      displayName = "Anonymous";
+    }
     StringBuilder url = new StringBuilder("https://ui-avatars.com/api/?name=" + displayName);
     settings.forEach((key, value) -> url.append("&").append(key).append("=").append(value));
     return url.toString();

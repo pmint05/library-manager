@@ -3,8 +3,10 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DatePickerUtil;
 import com.app.librarymanager.utils.DateUtil;
+import com.app.librarymanager.utils.DateUtil.DateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -12,6 +14,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import com.app.librarymanager.models.Book;
 import javafx.util.Callback;
@@ -61,6 +65,8 @@ public class BookModalController extends ControllerWithLoader {
   private TextField discountPriceField;
   @FXML
   private CheckBox isActiveCheckBox;
+  @FXML
+  private ImageView thumbnailPreview;
 
   private Book book;
   @Setter
@@ -106,10 +112,11 @@ public class BookModalController extends ControllerWithLoader {
       priceField.setText(String.valueOf(book.getPrice()));
       currencyCodeField.setText(book.getCurrencyCode());
       pdfLinkField.setText(book.getPdfLink());
-      publishedDateField.setValue(
-      DateUtil.parse(book.getPublishedDate(), DateUtil.DateFormat.YYYY_MM_DD));
-//      discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
-//      isActiveCheckBox.setSelected(book.getIsActive());
+      publishedDateField.setValue(LocalDate.parse(book.getPublishedDate()));
+      discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
+      isActiveCheckBox.setSelected(book.isActivated());
+
+      thumbnailPreview.setImage(new Image(book.getThumbnail()));
 
     } else {
       isEditMode = false;
@@ -120,9 +127,10 @@ public class BookModalController extends ControllerWithLoader {
   void onSubmit() {
     if (book == null) {
       book = new Book();
+    } else {
+      book.set_id(new ObjectId(_idField.getText()));
     }
     book.setId(idField.getText());
-    book.set_id(new ObjectId(_idField.getText()));
     book.setISBN(iSBNField.getText());
     book.setTitle(titleField.getText());
     book.setPublisher(publisherField.getText());
@@ -135,10 +143,9 @@ public class BookModalController extends ControllerWithLoader {
     book.setPrice(Integer.parseInt(priceField.getText()));
     book.setCurrencyCode(currencyCodeField.getText());
     book.setPdfLink(pdfLinkField.getText());
-    book.setPublishedDate(
-        DateUtil.format(publishedDateField.getValue(), DateUtil.DateFormat.YYYY_MM_DD));
-//    book.setDiscountPrice(Integer.parseInt(discountPriceField.getText()));
-//    book.setIsActive(isActiveCheckBox.isSelected());
+    book.setPublishedDate(DateUtil.format(publishedDateField.getValue(), DateFormat.YYYY_MM_DD));
+    book.setDiscountPrice(Integer.parseInt(discountPriceField.getText()));
+    book.setActivated(isActiveCheckBox.isSelected());
 
     Task<Boolean> task = new Task<Boolean>() {
       @Override
@@ -173,6 +180,12 @@ public class BookModalController extends ControllerWithLoader {
 
     new Thread(task).start();
   }
+
+  @FXML
+  private void handleUploadThumbnail() {}
+
+  @FXML
+  private void handleUploadPdf() {}
 
   @FXML
   private void onCancel() {

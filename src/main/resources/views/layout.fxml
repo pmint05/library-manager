@@ -17,6 +17,8 @@
       <Menu text="Admin" fx:id="adminMenu" styleClass="menu">
         <MenuItem text="Manage Books" onAction="#handleManageBooks"/>
         <MenuItem text="Manage Users" onAction="#handleManageUsers"/>
+        <MenuItem text="Manage Loans" onAction="#handleManageBookLoans"/>
+        <MenuItem text="Manage Categories" onAction="#handleManageCategories"/>
       </Menu>
     </MenuBar>
   </top>

@@ -1,18 +1,13 @@
 package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.interfaces.AuthStateListener;
+import com.app.librarymanager.models.User;
 import com.app.librarymanager.utils.StageManager;
-import java.util.Arrays;
-import java.util.Objects;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import org.json.JSONObject;
 
@@ -44,17 +39,18 @@ public class LayoutController implements AuthStateListener {
   @FXML
   private void initialize() {
     AuthController.getInstance().addAuthStateListener(this);
-    loadComponent("/views/search-interface.fxml");
+    AuthController.getInstance().loadSession();
+    loadComponent("/views/home.fxml");
     if (AuthController.getInstance().validateIdToken()) {
-      JSONObject claims = AuthController.getInstance().getUserClaims();
-      updateUI(true, claims);
+      User currentUser = AuthController.getInstance().getCurrentUser();
+      updateUI(true, currentUser);
     } else {
       AuthController.getInstance().logout();
-      updateUI(false, new JSONObject());
+      updateUI(false, null);
     }
   }
 
-  private void updateUI(boolean isAuthenticated, JSONObject userClaims) {
+  private void updateUI(boolean isAuthenticated, User user) {
 //    mainTabPane.getTabs().clear();
 //    System.out.println("User claims: " + userClaims);
 //    if (isAuthenticated) {
@@ -102,16 +98,29 @@ public class LayoutController implements AuthStateListener {
 
   @FXML
   public void handleManageBooks() {
+    loadComponent("/views/admin/manage-books.fxml");
   }
 
   @FXML
   public void handleManageUsers() {
-    loadComponent("/views/manage_users.fxml");
+    loadComponent("/views/admin/manage-users.fxml");
   }
+
+  @FXML
+  void handleManageBookLoans() {
+    loadComponent("/views/admin/manage-loans.fxml");
+  }
+
+  @FXML
+  public void handleManageCategories() {
+    loadComponent("/views/admin/manage-categories.fxml");
+  }
+
   @FXML
   private void onRegisterButtonClick() {
     StageManager.showRegisterWindow();
   }
+
 
   @FXML
   private void onLogoutButtonClick() {
@@ -126,7 +135,7 @@ public class LayoutController implements AuthStateListener {
 
   @Override
   public void onAuthStateChanged(boolean isAuthenticated) {
-    updateUI(isAuthenticated, AuthController.getInstance().getUserClaims());
+    updateUI(isAuthenticated, AuthController.getInstance().getCurrentUser());
   }
 
   private void loadComponent(String fxmlPath) {

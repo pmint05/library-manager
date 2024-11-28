@@ -4,46 +4,100 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<StackPane fx:id="stackPane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.librarymanager.controllers.ProfileController">
+<StackPane fx:id="stackPane" xmlns="http://javafx.com/javafx/17.0.12"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="com.app.librarymanager.controllers.ProfileController">
   <VBox spacing="10">
-    <Text styleClass="content-title" text="Your Profile" />
-    <HBox fx:id="hBox" alignment="TOP_CENTER" spacing="10">
-      <VBox spacing="10">
-        <HBox alignment="TOP_CENTER">
-          <ImageView fx:id="profileImageView" fitHeight="50.0" fitWidth="50.0" />
-        </HBox>
-        <Label text="Email:" />
-        <TextField fx:id="emailField" disable="true" editable="false" promptText="Your email here" styleClass="input" />
-        <Label text="Display Name:" />
-        <TextField fx:id="displayNameField" promptText="Display name" styleClass="input" />
-        <Label text="Phone Number:" />
-        <TextField fx:id="phoneNumberField" promptText="Phone number" styleClass="input" />
-        <Label text="Birthday:" />
-        <DatePicker fx:id="birthdayField" />
-        <Label text="Change Password:" />
-        <PasswordField fx:id="passwordField" promptText="Your new password" styleClass="input" />
-            <HBox alignment="BOTTOM_CENTER">
-               <children>
-              <Button fx:id="saveChangesButton" disable="true" onAction="#handleSaveChanges" styleClass="btn, btn-primary" text="Save Changes" HBox.hgrow="ALWAYS">
-                     <HBox.margin>
-                        <Insets />
-                     </HBox.margin></Button>
-               </children>
-               <VBox.margin>
-                  <Insets top="15.0" />
-               </VBox.margin>
+    <TabPane tabClosingPolicy="UNAVAILABLE">
+      <Tab text="Personal Info">
+        <HBox fx:id="hBox" alignment="TOP_CENTER" spacing="10">
+          <VBox spacing="10">
+            <HBox fx:id="avatarContainer" alignment="TOP_CENTER" visible="false">
+              <StackPane fx:id="imageStackPane">
+                <ImageView fx:id="profileImageView" cache="true" fitHeight="100.0" fitWidth="100.0"
+                  preserveRatio="true" styleClass="profile-image-upload"
+                  StackPane.alignment="CENTER">
+                  <clip>
+                    <Circle centerX="50.0" centerY="50.0" radius="50.0"/>
+                  </clip>
+                </ImageView>
+                <Label fx:id="changeAvatarLabel" mouseTransparent="true"
+                  styleClass="change-avatar-label" text="Change" visible="false"/>
+              </StackPane>
             </HBox>
-      </VBox>
-    </HBox>
+            <Label text="ID:"/>
+            <Text fx:id="localIdField" disable="true"/>
+            <Label text="Email:"/>
+            <Text fx:id="emailField" disable="true"/>
+            <padding>
+              <Insets bottom="10" left="10" right="10" top="10"/>
+            </padding>
+          </VBox>
+          <Separator orientation="VERTICAL" prefHeight="200.0" styleClass="vertical-separator" />
+          <VBox spacing="10">
+            <Label text="Display Name:"/>
+            <TextField fx:id="displayNameField" promptText="Display name" styleClass="input"/>
+            <Label text="Phone Number:"/>
+            <TextField fx:id="phoneNumberField" promptText="Phone number" styleClass="input"/>
+            <Label text="Birthday:"/>
+            <DatePicker fx:id="birthdayField"/>
+            <HBox alignment="BOTTOM_CENTER">
+              <VBox.margin>
+                <Insets top="15.0"/>
+              </VBox.margin>
+              <Button fx:id="saveChangesButton" disable="true" onAction="#handleSaveChanges"
+                styleClass="btn, btn-primary" text="Save Changes" HBox.hgrow="ALWAYS">
+                <HBox.margin>
+                  <Insets/>
+                </HBox.margin>
+              </Button>
+            </HBox>
+            <padding>
+              <Insets bottom="10" left="10" right="10" top="10"/>
+            </padding>
+          </VBox>
+          <opaqueInsets>
+            <Insets/>
+          </opaqueInsets>
+          <padding>
+            <Insets top="50.0"/>
+          </padding>
+        </HBox>
+      </Tab>
+      <Tab text="Security Setting">
+        <HBox alignment="TOP_CENTER" spacing="10">
+          <VBox spacing="10">
+            <Label text="Old Password:"/>
+            <PasswordField fx:id="oldPasswordField" promptText="Your old password"
+              styleClass="input"/>
+            <Label text="New Password:"/>
+            <PasswordField fx:id="newPasswordField" promptText="Your new password"
+              styleClass="input"/>
+            <HBox alignment="BOTTOM_CENTER">
+              <VBox.margin>
+                <Insets top="15.0"/>
+              </VBox.margin>
+              <Button fx:id="updatePasswordButton" disable="true" onAction="#handleUpdatePassword"
+                styleClass="btn, btn-primary" text="Update Password" HBox.hgrow="ALWAYS">
+                <HBox.margin>
+                  <Insets/>
+                </HBox.margin>
+              </Button>
+            </HBox>
+            <padding>
+              <Insets bottom="10" left="10" right="10" top="10"/>
+            </padding>
+          </VBox>
+        </HBox>
+      </Tab>
+    </TabPane>
   </VBox>
-  <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false" StackPane.alignment="CENTER">
-    <Text fx:id="loadingText" text="Loading in..." />
-    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100" />
+  <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false"
+    StackPane.alignment="CENTER">
+    <Text fx:id="loadingText" text="Loading in..."/>
+    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
   </VBox>
-
-  <padding>
-    <Insets bottom="20" left="20" right="20" top="20" />
-  </padding>
 </StackPane>
