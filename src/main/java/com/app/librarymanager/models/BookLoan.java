@@ -12,9 +12,18 @@ import lombok.Data;
 @Data
 public class BookLoan extends BookUser {
 
+  public enum Mode {
+    OFFLINE,
+    ONLINE
+  }
+//  private static final String Mode.OFFLINE = "Offline";
+//  private static final String Mode.ONLINE = "Online";
+
+
   private Date borrowDate;
   private Date dueDate;
   private boolean valid;
+  private Mode type;
   private int numCopies; // = 0 iff online
 
   public BookLoan() {
@@ -22,6 +31,7 @@ public class BookLoan extends BookUser {
     borrowDate = null;
     dueDate = null;
     valid = false;
+    type = Mode.ONLINE;
     numCopies = 0;
   }
 
@@ -30,6 +40,7 @@ public class BookLoan extends BookUser {
     this.borrowDate = null;
     this.dueDate = null;
     this.valid = false;
+    this.type = Mode.ONLINE;
     this.numCopies = 0;
   }
 
@@ -38,6 +49,7 @@ public class BookLoan extends BookUser {
     this.borrowDate = borrowDate;
     this.dueDate = dueDate;
     this.valid = true;
+    this.type = Mode.ONLINE;
     this.numCopies = 0;
   }
 
@@ -46,6 +58,7 @@ public class BookLoan extends BookUser {
     this.borrowDate = DateUtil.localDateToDate(borrowDate);
     this.dueDate = DateUtil.localDateToDate(dueDate);
     this.valid = true;
+    this.type = Mode.ONLINE;
     this.numCopies = 0;
   }
 
@@ -62,6 +75,7 @@ public class BookLoan extends BookUser {
     this.borrowDate = DateUtil.localDateToDate(DateUtil.parse(borrowDate));
     this.dueDate = DateUtil.localDateToDate(DateUtil.parse(dueDate));
     this.valid = true;
+    this.type = Mode.ONLINE;
     this.numCopies = 0;
   }
 
@@ -70,6 +84,7 @@ public class BookLoan extends BookUser {
     this.borrowDate = borrowDate;
     this.dueDate = dueDate;
     this.valid = true;
+    this.type = Mode.OFFLINE;
     this.numCopies = numCopies;
   }
 
@@ -79,6 +94,7 @@ public class BookLoan extends BookUser {
     this.borrowDate = DateUtil.localDateToDate(borrowDate);
     this.dueDate = DateUtil.localDateToDate(dueDate);
     this.valid = true;
+    this.type = Mode.OFFLINE;
     this.numCopies = numCopies;
   }
 
@@ -96,7 +112,8 @@ public class BookLoan extends BookUser {
     this.borrowDate = DateUtil.localDateToDate(DateUtil.parse(borrowDate));
     this.dueDate = DateUtil.localDateToDate(DateUtil.parse(dueDate));
     this.valid = true;
-    this.numCopies = 0;
+    this.type = Mode.OFFLINE;
+    this.numCopies = numCopies;
   }
 
   public BookLoan(Document document) {
@@ -104,6 +121,7 @@ public class BookLoan extends BookUser {
     this.borrowDate = document.getDate("borrowDate");
     this.dueDate = document.getDate("dueDate");
     this.valid = document.getBoolean("valid");
+    this.type = document.getString("type").equals("OFFLINE") ? Mode.OFFLINE : Mode.ONLINE;
     this.numCopies = document.getInteger("numCopies");
   }
 }

@@ -3,6 +3,8 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.services.MongoDB;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +30,12 @@ public class BookCopiesController {
     return document;
   }
 
+  public static boolean increaseCopy(BookCopies copies) {
+    return MongoDB.getInstance().updateAll("bookCopies", Filters.eq("bookId", copies.getBookId()),
+        Updates.combine(Updates.inc("copies", copies.getCopies()),
+            Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis()))));
+  }
+
   public static Document editCopy(BookCopies copies) {
     if (copies.getCopies() < 0) {
       return null;
@@ -48,5 +56,6 @@ public class BookCopiesController {
   }
 
   public static void main(String[] args) {
+    addCopy(new BookCopies("bookId", 0));
   }
 }
