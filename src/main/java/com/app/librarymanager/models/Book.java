@@ -1,6 +1,8 @@
 package com.app.librarymanager.models;
 
+import com.app.librarymanager.controllers.BookController;
 import com.app.librarymanager.services.MongoDB;
+import com.app.librarymanager.utils.DataValidation;
 import com.google.gson.annotations.Expose;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,8 +11,10 @@ import lombok.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import java.util.List;
+
 @Data
 public class Book {
+
   private ObjectId _id;
 
   @Expose
@@ -63,7 +67,6 @@ public class Book {
 
   private Date lastUpdated;
 
-
   public Book() {
     _id = null;
     id = "N/A";
@@ -71,14 +74,14 @@ public class Book {
     publisher = "N/A";
     publishedDate = "N/A";
     description = "N/A";
-    pageCount = -1;
+    pageCount = 0;
     categories = new ArrayList<>();
     iSBN = "N/A";
     thumbnail = "N/A";
     language = "N/A";
     authors = new ArrayList<>();
-    price = -1;
-    discountPrice = -1;
+    price = 0;
+    discountPrice = 0;
     currencyCode = "N/A";
     pdfLink = "N/A";
     activated = false;

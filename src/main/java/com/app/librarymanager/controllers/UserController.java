@@ -18,6 +18,15 @@ public class UserController {
     }
   }
 
+  public static int countTotalUser() {
+    try {
+      checkPermission();
+      return FirebaseAuthentication.countTotalUser();
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
   public static JSONObject createUser(User user) {
     try {
       checkPermission();

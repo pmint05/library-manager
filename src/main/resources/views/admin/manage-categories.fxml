@@ -15,7 +15,7 @@
       <TextField fx:id="searchField" onKeyReleased="#onSearch" promptText="Search..."
         styleClass="input"/>
 <!--      <Button text="New Category" onAction="#onCreateCategory" styleClass="btn,btn-primary"/>-->
-      <Region prefHeight="0.0" prefWidth="200.0" HBox.hgrow="ALWAYS"/>
+      <Region HBox.hgrow="ALWAYS"/>
       <Text fx:id="paginationInfo" strokeType="OUTSIDE" strokeWidth="0.0"/>
       <ComboBox fx:id="pageSize" promptText="pageSize" styleClass="combo-box">
       </ComboBox>

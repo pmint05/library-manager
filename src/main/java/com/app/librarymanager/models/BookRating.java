@@ -18,17 +18,22 @@ public class BookRating extends BookUser {
   }
 
   public BookRating(String _id, String bookId, String userId, double rate) {
-    super(_id, bookId, userId);
+    super(_id, userId, bookId);
     this.rate = rate;
   }
 
   public BookRating(ObjectId _id, String bookId, String userId, double rate) {
-    super(_id, bookId, userId);
+    super(_id, userId, bookId);
+    this.rate = rate;
+  }
+
+  public BookRating(String bookId, String userId, double rate) {
+    super(userId, bookId);
     this.rate = rate;
   }
 
   public BookRating(Book book, User user, double rate) {
-    super(book.getId(), user.getUid());
+    super(user.getUid(), book.getId());
     this.rate = rate;
   }
 

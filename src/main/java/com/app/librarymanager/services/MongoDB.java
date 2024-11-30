@@ -14,6 +14,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.sql.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.bson.BsonDocument;
 import org.bson.Document;
 import java.util.Map;
 import org.bson.conversions.Bson;
@@ -109,6 +111,15 @@ public class MongoDB {
       System.err.println("Error when trying to add " + collectionName + e.getMessage());
       return null;
     }
+  }
+
+  public long countDocuments(String collectionName) {
+    return database.getCollection(collectionName)
+        .countDocuments(new BsonDocument(), new CountOptions().hintString("_id_"));
+  }
+
+  public long countDocuments(String collectionName, Bson filter) {
+    return database.getCollection(collectionName).countDocuments(filter);
   }
 
   public List<Document> findAllObject(String collectionName, Bson filter) {

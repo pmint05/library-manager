@@ -176,18 +176,12 @@ public class ManageBooksController extends ControllerWithLoader {
       length = pageSize.getValue();
       start = 0;
       loadBooks();
-      paginationInfo.setText(
-          "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
-              + totalBooks);
+      updatePaginationInfo();
     });
 
     if (this.start == 0) {
       prevBtn.setDisable(true);
     }
-
-    paginationInfo.setText(
-        "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
-            + totalBooks);
 
     loadBooks();
     countTotalBooks();
@@ -223,7 +217,24 @@ public class ManageBooksController extends ControllerWithLoader {
   }
 
   private void countTotalBooks() {
-    this.totalBooks = 18;
+    Task<Integer> countTask = new Task<>() {
+      @Override
+      protected Integer call() {
+        return (int) BookController.numberOfBooks();
+      }
+    };
+
+    countTask.setOnSucceeded(e -> {
+      totalBooks = countTask.getValue();
+      System.out.println("Total books: " + totalBooks);
+      updatePaginationInfo();
+    });
+    countTask.setOnFailed(e -> {
+      System.out.println("Error while counting books: " + countTask.getException().getMessage());
+      AlertDialog.showAlert("error", "Error",
+          countTask.getException().getMessage(), null);
+    });
+    new Thread(countTask).start();
   }
 
   @FXML
@@ -303,6 +314,8 @@ public class ManageBooksController extends ControllerWithLoader {
               System.out.println("Book deleted: " + delRes);
               showLoading(false);
               removeBookFromTable(book);
+              totalBooks--;
+              updatePaginationInfo();
             });
             task.setOnFailed(ev -> {
               showLoading(false);
@@ -377,8 +390,12 @@ public class ManageBooksController extends ControllerWithLoader {
       controller.setBook(book);
       controller.setSaveCallback(updatedBook -> {
         if (book == null) {
-          booksList.add(updatedBook);
-          booksTable.refresh();
+          totalBooks++;
+          updatePaginationInfo();
+          if (booksList.size() < length) {
+            booksList.add(updatedBook);
+            booksTable.refresh();
+          }
         } else {
           updateBookInTable(updatedBook);
         }
@@ -414,18 +431,20 @@ public class ManageBooksController extends ControllerWithLoader {
     }
   }
 
+  private void updatePaginationInfo() {
+    paginationInfo.setText(
+        "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
+            + totalBooks);
+    prevBtn.setDisable(start == 0);
+    nextBtn.setDisable(start + length >= totalBooks);
+  }
+
   @FXML
   private void prevPage() {
     if (start >= length) {
       start -= length;
       loadBooks();
-      paginationInfo.setText(
-          "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
-              + totalBooks);
-      nextBtn.setDisable(false);
-      if (start == 0) {
-        prevBtn.setDisable(true);
-      }
+      updatePaginationInfo();
     }
   }
 
@@ -434,13 +453,7 @@ public class ManageBooksController extends ControllerWithLoader {
     if (start + length < totalBooks) {
       start += length;
       loadBooks();
-      paginationInfo.setText(
-          "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
-              + totalBooks);
-      prevBtn.setDisable(false);
-      if (start + length >= totalBooks) {
-        nextBtn.setDisable(true);
-      }
+      updatePaginationInfo();
     }
   }
 }

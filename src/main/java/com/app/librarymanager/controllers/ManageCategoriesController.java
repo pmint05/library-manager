@@ -51,7 +51,7 @@ public class ManageCategoriesController extends ControllerWithLoader {
 
   private int start = 0;
   private int length = 10;
-  private int totalBooks = 0;
+  private int totalCategories = 0;
 
   private ObservableList<Categories> categoriesList = FXCollections.observableArrayList();
 
@@ -96,6 +96,7 @@ public class ManageCategoriesController extends ControllerWithLoader {
       length = pageSize.getValue();
       start = 0;
       loadCategories();
+      updatePaginationInfo();
     });
 
     prevBtn.setDisable(true);
@@ -106,17 +107,15 @@ public class ManageCategoriesController extends ControllerWithLoader {
     Task<Integer> task = new Task<>() {
       @Override
       protected Integer call() {
-//        return CategoriesController.countCategories();
-        return 12;
+        return (int) CategoriesController.countCategories();
       }
     };
 
     task.setOnSucceeded(e -> {
       Platform.runLater(() -> {
-        totalBooks = task.getValue();
-        paginationInfo.setText(
-            "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
-                + totalBooks);
+        totalCategories = task.getValue();
+        System.out.println("Total categories: " + totalCategories);
+        updatePaginationInfo();
       });
     });
     task.setOnFailed(e -> {
@@ -196,6 +195,8 @@ public class ManageCategoriesController extends ControllerWithLoader {
         if (categoriesList.size() < length) {
           categoriesList.add(category);
           bookLoansTable.refresh();
+          totalCategories++;
+          updatePaginationInfo();
         }
         nameField.clear();
       }
@@ -237,6 +238,8 @@ public class ManageCategoriesController extends ControllerWithLoader {
               showLoading(false);
               if (delRes) {
                 removeCategoriesFromTable(category);
+                totalCategories--;
+                updatePaginationInfo();
               } else {
                 AlertDialog.showAlert("error", "Error", "Error while deleting category.", null);
               }
@@ -257,6 +260,14 @@ public class ManageCategoriesController extends ControllerWithLoader {
               .otherwise(contextMenu));
       return row;
     });
+  }
+
+  private void updatePaginationInfo() {
+    paginationInfo.setText(
+        "Showing " + (start + 1) + " to " + Math.min(start + length, totalCategories) + " of "
+            + totalCategories);
+    prevBtn.setDisable(start == 0);
+    nextBtn.setDisable(start + length >= totalCategories);
   }
 
   private void setDateCellFactory(TableColumn<Categories, Date> column) {
@@ -304,28 +315,16 @@ public class ManageCategoriesController extends ControllerWithLoader {
     if (start >= length) {
       start -= length;
       loadCategories();
-      paginationInfo.setText(
-          "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
-              + totalBooks);
-      nextBtn.setDisable(false);
-      if (start == 0) {
-        prevBtn.setDisable(true);
-      }
+      updatePaginationInfo();
     }
   }
 
   @FXML
   private void nextPage() {
-    if (start + length < totalBooks) {
+    if (start + length < totalCategories) {
       start += length;
       loadCategories();
-      paginationInfo.setText(
-          "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
-              + totalBooks);
-      prevBtn.setDisable(false);
-      if (start + length >= totalBooks) {
-        nextBtn.setDisable(true);
-      }
+      updatePaginationInfo();
     }
   }
 }

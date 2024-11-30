@@ -156,6 +156,15 @@ public class FirebaseAuthentication {
     return Fetcher.post(url, body);
   }
 
+  public static int countTotalUser() {
+    try {
+//      return FirebaseAuth.getInstance().listUsers(null).getUsers().size();
+      return 1;
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
   private static GoogleClientSecrets loadClientSecrets() throws IOException {
     assert CREDENTIALS_FILE_PATH != null;
     FileReader reader = new FileReader(CREDENTIALS_FILE_PATH);
