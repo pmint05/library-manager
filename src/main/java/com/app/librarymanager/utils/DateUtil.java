@@ -35,9 +35,19 @@ public class DateUtil {
   }
 
   public static LocalDate parse(String date) {
-    String[] parts = date.split("/");
-    return LocalDate.of(Integer.parseInt(parts[2]), Integer.parseInt(parts[1]),
-        Integer.parseInt(parts[0]));
+    try {
+      String[] parts = date.split("[/\\-]");
+      int day = parts.length > 0 && !parts[0].isEmpty() ? Integer.parseInt(parts[0]) : 1;
+      int month = parts.length > 1 && !parts[1].isEmpty() ? Integer.parseInt(parts[1]) : 1;
+      int year = parts.length > 2 ? Integer.parseInt(parts[2]) : LocalDate.now().getYear();
+      return LocalDate.of(year, month, day);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  public static LocalDate parse(String date, String format) {
+    return LocalDate.parse(date, DateTimeFormatter.ofPattern(format));
   }
 
   public static String format(LocalDate date) {
@@ -74,7 +84,6 @@ public class DateUtil {
       return false;
     }
   }
-
 
   public static boolean isBefore(String date1, String date2) {
     return parse(date1).isBefore(parse(date2));

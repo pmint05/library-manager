@@ -15,33 +15,38 @@ public class BookLoan extends BookUser {
   private Date borrowDate;
   private Date dueDate;
   private boolean valid;
+  private int numCopies; // = 0 iff online
 
   public BookLoan() {
     super();
     borrowDate = null;
     dueDate = null;
     valid = false;
+    numCopies = 0;
   }
 
   public BookLoan(String userId, String bookId) {
     super(userId, bookId);
     this.borrowDate = null;
     this.dueDate = null;
-    valid = false;
+    this.valid = false;
+    this.numCopies = 0;
   }
 
   public BookLoan(String userId, String bookId, Date borrowDate, Date dueDate) {
     super(userId, bookId);
     this.borrowDate = borrowDate;
     this.dueDate = dueDate;
-    valid = true;
+    this.valid = true;
+    this.numCopies = 0;
   }
 
   public BookLoan(String userId, String bookId, LocalDate borrowDate, LocalDate dueDate) {
     super(userId, bookId);
     this.borrowDate = DateUtil.localDateToDate(borrowDate);
     this.dueDate = DateUtil.localDateToDate(dueDate);
-    valid = true;
+    this.valid = true;
+    this.numCopies = 0;
   }
 
   /**
@@ -56,7 +61,42 @@ public class BookLoan extends BookUser {
     super(userId, bookId);
     this.borrowDate = DateUtil.localDateToDate(DateUtil.parse(borrowDate));
     this.dueDate = DateUtil.localDateToDate(DateUtil.parse(dueDate));
-    valid = true;
+    this.valid = true;
+    this.numCopies = 0;
+  }
+
+  public BookLoan(String userId, String bookId, Date borrowDate, Date dueDate, int numCopies) {
+    super(userId, bookId);
+    this.borrowDate = borrowDate;
+    this.dueDate = dueDate;
+    this.valid = true;
+    this.numCopies = numCopies;
+  }
+
+  public BookLoan(String userId, String bookId, LocalDate borrowDate, LocalDate dueDate,
+      int numCopies) {
+    super(userId, bookId);
+    this.borrowDate = DateUtil.localDateToDate(borrowDate);
+    this.dueDate = DateUtil.localDateToDate(dueDate);
+    this.valid = true;
+    this.numCopies = numCopies;
+  }
+
+  /**
+   * Constructor with date like "dd/mm/yyyy"
+   *
+   * @param userId     user id
+   * @param bookId     book id
+   * @param borrowDate borrow date
+   * @param dueDate    excepted return date
+   * @param numCopies  number of copies borrowed
+   */
+  public BookLoan(String userId, String bookId, String borrowDate, String dueDate, int numCopies) {
+    super(userId, bookId);
+    this.borrowDate = DateUtil.localDateToDate(DateUtil.parse(borrowDate));
+    this.dueDate = DateUtil.localDateToDate(DateUtil.parse(dueDate));
+    this.valid = true;
+    this.numCopies = 0;
   }
 
   public BookLoan(Document document) {
@@ -64,5 +104,6 @@ public class BookLoan extends BookUser {
     this.borrowDate = document.getDate("borrowDate");
     this.dueDate = document.getDate("dueDate");
     this.valid = document.getBoolean("valid");
+    this.numCopies = document.getInteger("numCopies");
   }
 }

@@ -2,6 +2,7 @@ package com.app.librarymanager;
 
 import com.app.librarymanager.controllers.HomeController;
 import com.app.librarymanager.services.Firebase;
+import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.StageManager;
 import java.util.Objects;
 import javafx.application.Application;
@@ -20,6 +21,7 @@ public class MainApplication extends Application {
   public void start(Stage stage) throws IOException {
     try {
       Firebase firebase = Firebase.getInstance();
+      MongoDB mongoDB = MongoDB.getInstance();
 
       StageManager.setPrimaryStage(stage);
       StageManager.showHomeWindow();

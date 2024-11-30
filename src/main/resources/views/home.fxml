@@ -3,7 +3,13 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.geometry.Insets?>
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="com.app.librarymanager.controllers.HomeController">
-  <Label fx:id="welcomeLabel" text="Welcome to Library Manager" styleClass="welcome-label" />
+  <Label fx:id="welcomeLabel" text="Welcome to Library Manager" styleClass="welcome-label"/>
+  <TextField fx:id="searchField" promptText="Search" styleClass="input"/>
+  <VBox fx:id="searchResults" styleClass="search-results"/>
+  <padding>
+    <Insets  bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+  </padding>
 </VBox>

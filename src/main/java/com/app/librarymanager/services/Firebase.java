@@ -65,7 +65,4 @@ public class Firebase {
     }
     return instance.db;
   }
-  public static String getApiKey() {
-    return apiKey;
-  }
 }

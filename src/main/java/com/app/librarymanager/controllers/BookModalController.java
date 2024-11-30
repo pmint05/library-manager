@@ -1,26 +1,44 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.services.UserService;
 import com.app.librarymanager.utils.AlertDialog;
+import com.app.librarymanager.utils.DataValidation;
 import com.app.librarymanager.utils.DatePickerUtil;
 import com.app.librarymanager.utils.DateUtil;
 import com.app.librarymanager.utils.DateUtil.DateFormat;
+import com.app.librarymanager.utils.UploadFileUtil;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import com.app.librarymanager.models.Book;
 import javafx.util.Callback;
+import javax.imageio.ImageIO;
 import lombok.Setter;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.json.JSONObject;
 
 public class BookModalController extends ControllerWithLoader {
 
@@ -41,7 +59,7 @@ public class BookModalController extends ControllerWithLoader {
   @FXML
   private TextField publisherField;
   @FXML
-  private TextField descriptionField;
+  private TextArea descriptionField;
   @FXML
   private TextField pageCountField;
   @FXML
@@ -66,6 +84,8 @@ public class BookModalController extends ControllerWithLoader {
   private CheckBox isActiveCheckBox;
   @FXML
   private ImageView thumbnailPreview;
+  @FXML
+  private Button generateIdButton;
 
   private Book book;
   @Setter
@@ -90,15 +110,23 @@ public class BookModalController extends ControllerWithLoader {
         };
       }
     });
+    initNumberField(pageCountField);
+    initNumberField(priceField);
+    initNumberField(discountPriceField);
+
   }
 
   public void setBook(Book book) {
     this.book = book;
     if (book != null) {
-      isEditMode = true;
-      _idField.setText(book.get_id().toString());
+      if (book.get_id() != null) {
+        isEditMode = true;
+        _idField.setText(book.get_id().toString());
+        iSBNField.setDisable(true);
+      }
       _idField.setDisable(true);
       idField.setText(book.getId());
+      idField.setDisable(true);
       iSBNField.setText(book.getISBN());
       titleField.setText(book.getTitle());
       publisherField.setText(book.getPublisher());
@@ -111,12 +139,13 @@ public class BookModalController extends ControllerWithLoader {
       priceField.setText(String.valueOf(book.getPrice()));
       currencyCodeField.setText(book.getCurrencyCode());
       pdfLinkField.setText(book.getPdfLink());
-      publishedDateField.setValue(LocalDate.parse(book.getPublishedDate()));
+      publishedDateField.setValue(DateUtil.parse(book.getPublishedDate(), DateFormat.YYYY_MM_DD));
       discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
       isActiveCheckBox.setSelected(book.isActivated());
-
-      thumbnailPreview.setImage(new Image(book.getThumbnail()));
-
+      thumbnailPreview.setImage(
+          book.getThumbnail() != null && !book.getThumbnail().isEmpty() ? new Image(
+              (book.getThumbnail())) : null);
+      generateIdButton.setDisable(true);
     } else {
       isEditMode = false;
     }
@@ -124,29 +153,56 @@ public class BookModalController extends ControllerWithLoader {
 
   @FXML
   void onSubmit() {
-    if (book == null) {
-      book = new Book();
-    } else {
-      System.out.println(book.toString());
-      System.out.println(_idField.getText());
-      book.set_id(new ObjectId(_idField.getText()));
+    try {
+      if (!iSBNField.getText().equals("N/A") && !DataValidation.validISBN(iSBNField.getText())) {
+        throw new Exception("ISBN " + iSBNField.getText() + " is not valid.");
+      }
+      String parsePageCount = DataValidation.checkInt("Page Count", pageCountField.getText());
+      if (!parsePageCount.isEmpty()) {
+        throw new Exception(parsePageCount);
+      }
+      String parsePrice = DataValidation.checkDouble("Price", priceField.getText());
+      if (!parsePrice.isEmpty()) {
+        throw new Exception(parsePrice);
+      }
+      String parseDiscountPrice = DataValidation.checkDouble("Discount Price",
+          discountPriceField.getText());
+      if (!parseDiscountPrice.isEmpty()) {
+        throw new Exception(parseDiscountPrice);
+      }
+
+      if (book == null) {
+        book = new Book();
+      } else {
+        System.out.println(book.toString());
+        System.out.println(_idField.getText());
+        if (!_idField.getText().isEmpty()) {
+          book.set_id(new ObjectId(_idField.getText()));
+        }
+      }
+      book.setId(idField.getText());
+      book.setISBN(iSBNField.getText());
+      book.setTitle(titleField.getText());
+      book.setPublisher(publisherField.getText());
+      book.setDescription(descriptionField.getText());
+      book.setPageCount(Integer.parseInt(pageCountField.getText()));
+
+      book.setCategories(new ArrayList<>(
+          Arrays.stream(categoriesField.getText().split(",")).map(String::trim).toList()));
+      book.setAuthors(new ArrayList<>(new ArrayList<>(
+          Arrays.stream(authorsField.getText().split(",")).map(String::trim).toList())));
+      book.setThumbnail(thumbnailField.getText());
+      book.setLanguage(languageField.getText());
+      book.setPrice(Double.parseDouble(priceField.getText()));
+      book.setCurrencyCode(currencyCodeField.getText());
+      book.setPdfLink(pdfLinkField.getText());
+      book.setPublishedDate(DateUtil.format(publishedDateField.getValue(), DateFormat.YYYY_MM_DD));
+      book.setDiscountPrice(Double.parseDouble(discountPriceField.getText()));
+      book.setActivated(isActiveCheckBox.isSelected());
+    } catch (Exception e) {
+      AlertDialog.showAlert("error", "Error", e.getMessage(), null);
+      return;
     }
-    book.setId(idField.getText());
-    book.setISBN(iSBNField.getText());
-    book.setTitle(titleField.getText());
-    book.setPublisher(publisherField.getText());
-    book.setDescription(descriptionField.getText());
-    book.setPageCount(Integer.parseInt(pageCountField.getText()));
-    book.setCategories(new ArrayList<>(List.of(categoriesField.getText().split(","))));
-    book.setAuthors(new ArrayList<>(List.of(authorsField.getText().split(","))));
-    book.setThumbnail(thumbnailField.getText());
-    book.setLanguage(languageField.getText());
-    book.setPrice(Double.parseDouble(priceField.getText()));
-    book.setCurrencyCode(currencyCodeField.getText());
-    book.setPdfLink(pdfLinkField.getText());
-    book.setPublishedDate(DateUtil.format(publishedDateField.getValue(), DateFormat.YYYY_MM_DD));
-    book.setDiscountPrice(Double.parseDouble(discountPriceField.getText()));
-    book.setActivated(isActiveCheckBox.isSelected());
 
     Task<Document> task = new Task<Document>() {
       @Override
@@ -155,6 +211,8 @@ public class BookModalController extends ControllerWithLoader {
       }
     };
 
+    setLoadingText(isEditMode ? "Updating book..." : "Adding book...");
+
     task.setOnRunning(e -> showLoading(true));
 
     task.setOnSucceeded(e -> {
@@ -162,16 +220,22 @@ public class BookModalController extends ControllerWithLoader {
       Document resp = task.getValue();
       System.out.println(resp);
       Stage stage = (Stage) idField.getScene().getWindow();
-      if (resp.getObjectId("_id") != null) {
-        AlertDialog.showAlert("success", "Success",
-            isEditMode ? "Book updated successfully." : "Book added successfully.", null);
-        stage.close();
-        book.set_id(resp.getObjectId("_id"));
-        if (saveCallback != null) {
-          saveCallback.onSave(book);
-        }
+      if (resp == null) {
+        AlertDialog.showAlert("error", "Error",
+            "Book with id = " + idField.getText() + " or ISBN = " + iSBNField.getText()
+                + " is already existed.", null);
       } else {
-        AlertDialog.showAlert("error", "Error", "An error occurred while saving the book.", null);
+        if (resp.getObjectId("_id") != null) {
+          AlertDialog.showAlert("success", "Success",
+              isEditMode ? "Book updated successfully." : "Book added successfully.", null);
+          stage.close();
+          book.set_id(resp.getObjectId("_id"));
+          if (saveCallback != null) {
+            saveCallback.onSave(book);
+          }
+        } else {
+          AlertDialog.showAlert("error", "Error", "An error occurred while saving the book.", null);
+        }
       }
     });
 
@@ -183,12 +247,119 @@ public class BookModalController extends ControllerWithLoader {
     new Thread(task).start();
   }
 
+  private void initNumberField(TextField field) {
+    field.textProperty().addListener(new ChangeListener<String>() {
+      @Override
+      public void changed(ObservableValue<? extends String> observable, String oldValue,
+          String newValue) {
+        if (!newValue.matches("\\d*(\\.\\d*)?")) {
+          field.setText(oldValue);
+        }
+      }
+    });
+  }
+
+  @FXML
+  private void syncBookByISBN() {
+    String iSBN = iSBNField.getText();
+    if (iSBN.isEmpty()) {
+      AlertDialog.showAlert("error", "Error", "ISBN field is empty.", null);
+      return;
+    }
+    Task<Book> task = new Task<Book>() {
+      @Override
+      protected Book call() {
+        return BookController.searchByISBN(iSBN);
+      }
+    };
+
+    setLoadingText("Searching book by ISBN...");
+
+    task.setOnRunning(e -> showLoading(true));
+    task.setOnSucceeded(e -> {
+      showLoading(false);
+      Book book = task.getValue();
+      if (book == null) {
+        AlertDialog.showAlert("error", "Error", "Book not found.", null);
+      } else {
+        setBook(book);
+      }
+    });
+    task.setOnFailed(e -> {
+      showLoading(false);
+      AlertDialog.showAlert("error", "Error", e.getSource().getException().getMessage(), null);
+    });
+
+    new Thread(task).start();
+  }
+
   @FXML
   private void handleUploadThumbnail() {
+    handleUploadFile(thumbnailField, thumbnailPreview, "Image Files", "*.jpg", "*.png", "*.jpeg");
   }
 
   @FXML
   private void handleUploadPdf() {
+    handleUploadFile(pdfLinkField, null, "PDF File", "*.pdf");
+  }
+
+  private void handleUploadFile(TextField field, ImageView imgPreview, String title,
+      String... type) {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(title, type));
+    File file = fileChooser.showOpenDialog(idField.getScene().getWindow());
+    if (file != null) {
+      field.setText(file.getAbsolutePath());
+      Task<JSONObject> uploadTask = new Task<JSONObject>() {
+        @Override
+        protected JSONObject call() {
+          return UploadFileUtil.uploadFile(file.getAbsolutePath(), file.getName());
+        }
+      };
+
+      uploadTask.setOnRunning(e -> field.setText("Uploading..."));
+      uploadTask.setOnSucceeded(e -> {
+        JSONObject resp = uploadTask.getValue();
+        if (resp.getBoolean("success")) {
+//          AlertDialog.showAlert("success", "Success",
+//              "File " + file.getName() + " uploaded successfully.", null);
+          String fileLink = resp.getString("longURL");
+          field.setText(fileLink);
+          if (imgPreview != null) {
+            try {
+              BufferedImage image = ImageIO.read(new File(file.getAbsolutePath()));
+              ByteArrayOutputStream baos = new ByteArrayOutputStream();
+              ImageIO.write(image, file.getName().split("\\.")[1], baos);
+              byte[] imageBytes = baos.toByteArray();
+              imgPreview.setImage(new Image(new ByteArrayInputStream(imageBytes)));
+            } catch (IOException ex) {
+              ex.printStackTrace();
+            }
+          }
+        } else {
+          AlertDialog.showAlert("error", "Error", resp.getString("message"), null);
+        }
+      });
+      uploadTask.setOnFailed(e -> {
+        field.setText("");
+        AlertDialog.showAlert("error", "Error", e.getSource().getException().getMessage(), null);
+      });
+      new Thread(uploadTask).start();
+    } else {
+//      AlertDialog.showAlert("error", "Error", "No file selected.", null);
+    }
+  }
+
+  @FXML
+  private void generateId() {
+    String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    StringBuilder salt = new StringBuilder();
+    Random rnd = new Random();
+    while (salt.length() < 12) {
+      int index = (int) (rnd.nextFloat() * CHARS.length());
+      salt.append(CHARS.charAt(index));
+    }
+    idField.setText(salt.toString());
   }
 
   @FXML

@@ -37,7 +37,7 @@
   <VBox prefHeight="200.0" prefWidth="100.0">
     <children>
       <Label text="Birthday"/>
-      <TextField fx:id="birthdayField" promptText="Birthday"
+      <DatePicker fx:id="birthdayField" promptText="Birthday"
         style="-fx-prompt-text-fill: #aaaaaa;"/>
     </children>
   </VBox>

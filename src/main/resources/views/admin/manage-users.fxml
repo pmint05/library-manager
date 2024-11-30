@@ -26,6 +26,8 @@
         </ComboBox>
       </VBox>
       <Button text="Create User" onAction="#onCreateUser" styleClass="btn,btn-primary" />
+      <Region HBox.hgrow="ALWAYS" />
+      <Text fx:id="totalUsersText" />
     </HBox>
     <TableView fx:id="usersTable" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
       <columns>

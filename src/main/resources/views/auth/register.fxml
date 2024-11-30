@@ -135,5 +135,6 @@
   <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false" StackPane.alignment="CENTER">
     <Text text="Creating your account..." fx:id="loadingText" />
     <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100" />
+    <Button text="Cancel" fx:id="cancelButton" styleClass="btn, btn-text"/>
   </VBox>
 </StackPane>
