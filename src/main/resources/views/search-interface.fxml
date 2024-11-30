@@ -1,5 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Rectangle2D?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<?import javafx.scene.control.ToolBar?>
+<BorderPane nodeOrientation="LEFT_TO_RIGHT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.librarymanager.controllers.SearchController">
+
+    <top>
+        <ToolBar BorderPane.alignment="CENTER">
+            <ImageView fitHeight="50.0" fitWidth="70.0" nodeOrientation="INHERIT" pickOnBounds="true"
+                       preserveRatio="true">
+                <Image url="@../images/logo.png"/>
+            </ImageView>
+            <Region prefHeight="37.0" HBox.hgrow="ALWAYS"/>
+            <ImageView fitHeight="47.0" fitWidth="70.0" onMouseClicked="#handleSearch" pickOnBounds="true"
+                       preserveRatio="true" style="-fx-cursor: hand;">
+                <Image url="@../images/search.png"/>
+            </ImageView>
+            <Region prefHeight="37.0" HBox.hgrow="ALWAYS"/>
+            <Button mnemonicParsing="false" text="Favorite Books"/>
+            <Button mnemonicParsing="false" text="Borrow Books"/>
+            <Button mnemonicParsing="false" text="Add Books"/>
+            <Region VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
+            <ImageView fx:id="imageView" BorderPane.alignment="TOP_RIGHT" fitHeight="47.0" fitWidth="70.0"
+                       onMouseClicked="#handleImageClick" pickOnBounds="true" preserveRatio="true"
+                       style="-fx-cursor: hand;">
+                <image>
+                    <Image url="@../images/user.png"/>
+                </image>
+                <viewport>
+                    <Rectangle2D/>
+                </viewport>
+            </ImageView>
+        </ToolBar>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS">
+            <content>
+                <VBox fx:id="contentVBox" spacing="20">
+                    <Label styleClass="label-title" text="Sách yêu thích" />
+
+                    <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER">
+                        <content>
+                            <HBox fx:id="bookRow1" spacing="10" />
+                        </content>
+                    </ScrollPane>
+
+                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 10 0 10 0;" text="Sách đề xuất" />
+
+                    <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER">
+                        <content>
+                            <HBox fx:id="bookRow2" spacing="10" />
+                        </content>
+                    </ScrollPane>
+
+                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 10 0 10 0;" text="Sách đã đọc" />
+
+                    <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER">
+                        <content>
+                            <HBox fx:id="bookRow3" spacing="10" />
+                        </content>
+                    </ScrollPane>
+                </VBox>
+=======
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
@@ -373,73 +444,6 @@
                                                                     </children>
                                                                 </VBox>
                                                                 <Region prefHeight="37.0" HBox.hgrow="ALWAYS" />
-                                                                <VBox prefHeight="200.0" HBox.hgrow="ALWAYS">
-                                                                    <children>
-                                                                        <ImageView fitHeight="150.0" fitWidth="141.0" pickOnBounds="true" preserveRatio="true">
-                                                                            <image>
-                                                                                <Image url="@../images/login.jpg" />
-                                                                            </image>
-                                                                        </ImageView>
-                                                                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="106.13674926757812" />
-                                                                    </children>
-                                                                </VBox>
-                                                                <Region prefHeight="37.0" HBox.hgrow="ALWAYS" />
-                                                                <VBox prefHeight="200.0" HBox.hgrow="ALWAYS">
-                                                                    <children>
-                                                                        <ImageView fitHeight="150.0" fitWidth="141.0" pickOnBounds="true" preserveRatio="true" VBox.vgrow="ALWAYS">
-                                                                            <image>
-                                                                                <Image url="@../images/login.jpg" />
-                                                                            </image>
-                                                                        </ImageView>
-                                                                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="105.33668518066406" />
-                                                                    </children>
-                                                                </VBox>
-                                                                <Region prefHeight="37.0" HBox.hgrow="ALWAYS" />
-                                                                <VBox prefHeight="200.0" HBox.hgrow="ALWAYS">
-                                                                    <children>
-                                                                        <ImageView fitHeight="150.0" fitWidth="141.0" pickOnBounds="true" preserveRatio="true" VBox.vgrow="ALWAYS">
-                                                                            <image>
-                                                                                <Image url="@../images/login.jpg" />
-                                                                            </image>
-                                                                        </ImageView>
-                                                                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="103.73673248291016" />
-                                                                    </children>
-                                                                </VBox>
-                                                                <Region prefHeight="37.0" HBox.hgrow="ALWAYS" />
-                                                                <VBox prefHeight="200.0" HBox.hgrow="ALWAYS">
-                                                                    <children>
-                                                                        <ImageView fitHeight="150.0" fitWidth="141.0" pickOnBounds="true" preserveRatio="true">
-                                                                            <image>
-                                                                                <Image url="@../images/login.jpg" />
-                                                                            </image>
-                                                                        </ImageView>
-                                                                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="106.13674926757812" />
-                                                                    </children>
-                                                                </VBox>
-                                                                <Region prefHeight="37.0" HBox.hgrow="ALWAYS" />
-                                                                <VBox prefHeight="200.0" HBox.hgrow="ALWAYS">
-                                                                    <children>
-                                                                        <ImageView fitHeight="150.0" fitWidth="141.0" pickOnBounds="true" preserveRatio="true">
-                                                                            <image>
-                                                                                <Image url="@../images/login.jpg" />
-                                                                            </image>
-                                                                        </ImageView>
-                                                                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="106.13674926757812" />
-                                                                    </children>
-                                                                </VBox>
-                                                            </children>
-                                                        </HBox>
-                                                    </children>
-                                                </AnchorPane>
-                                            </content>
-                                        </ScrollPane>
-                                    </children>
-                                </VBox>
-                                <Region prefHeight="0.0" prefWidth="800.0" />
-                            </children>
-                        </VBox>
-                    </children>
-                </AnchorPane>
             </content>
         </ScrollPane>
     </center>
