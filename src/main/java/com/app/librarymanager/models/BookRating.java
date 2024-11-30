@@ -2,9 +2,11 @@ package com.app.librarymanager.models;
 
 import com.google.cloud.Timestamp;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class BookRating extends BookUser {
 
@@ -16,17 +18,22 @@ public class BookRating extends BookUser {
   }
 
   public BookRating(String _id, String bookId, String userId, double rate) {
-    super(_id, bookId, userId);
+    super(_id, userId, bookId);
     this.rate = rate;
   }
 
   public BookRating(ObjectId _id, String bookId, String userId, double rate) {
-    super(_id, bookId, userId);
+    super(_id, userId, bookId);
+    this.rate = rate;
+  }
+
+  public BookRating(String bookId, String userId, double rate) {
+    super(userId, bookId);
     this.rate = rate;
   }
 
   public BookRating(Book book, User user, double rate) {
-    super(book.getId(), user.getId());
+    super(user.getUid(), book.getId());
     this.rate = rate;
   }
 
@@ -35,4 +42,3 @@ public class BookRating extends BookUser {
     this.rate = document.getDouble("rate");
   }
 }
-

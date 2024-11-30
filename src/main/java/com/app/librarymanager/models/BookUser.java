@@ -1,17 +1,11 @@
 package com.app.librarymanager.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.sql.Timestamp;
 import java.util.Date;
 import lombok.Data;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.json.JSONObject;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true) // Bỏ qua các trường không được ánh xạ
 public class BookUser {
 
   private ObjectId _id;
@@ -49,7 +43,7 @@ public class BookUser {
 
   public BookUser(User user, Book book) {
     this._id = null;
-    this.userId = user.getId();
+    this.userId = user.getUid();
     this.bookId = book.getId();
     this.lastUpdated = null;
   }

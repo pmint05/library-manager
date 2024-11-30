@@ -1,12 +1,16 @@
 package com.app.librarymanager.models;
 
+import com.app.librarymanager.controllers.BookController;
 import com.app.librarymanager.services.MongoDB;
+import com.app.librarymanager.utils.DataValidation;
 import com.google.gson.annotations.Expose;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import lombok.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import java.util.List;
 
 @Data
 public class Book {
@@ -47,7 +51,10 @@ public class Book {
   private ArrayList<String> authors;
 
   @Expose
-  private int price;
+  private double price;
+
+  @Expose
+  private double discountPrice;
 
   @Expose
   private String currencyCode;
@@ -55,8 +62,10 @@ public class Book {
   @Expose
   private String pdfLink;
 
-  private Date lastUpdated;
+  @Expose
+  private boolean activated;
 
+  private Date lastUpdated;
 
   public Book() {
     _id = null;
@@ -65,21 +74,23 @@ public class Book {
     publisher = "N/A";
     publishedDate = "N/A";
     description = "N/A";
-    pageCount = -1;
+    pageCount = 0;
     categories = new ArrayList<>();
     iSBN = "N/A";
     thumbnail = "N/A";
     language = "N/A";
     authors = new ArrayList<>();
-    price = -1;
+    price = 0;
+    discountPrice = 0;
     currencyCode = "N/A";
     pdfLink = "N/A";
+    activated = false;
     lastUpdated = null;
   }
 
   public Book(String id, String title, String publisher, String publishedDate, String description,
       int pageCount, ArrayList<String> categories, String iSBN, String thumbnail, String language,
-      ArrayList<String> authors, int price, String currencyCode, String pdfLink) {
+      ArrayList<String> authors, double price, String currencyCode, String pdfLink) {
     this.id = id;
     this.title = title;
     this.publisher = publisher;
@@ -92,14 +103,17 @@ public class Book {
     this.language = language;
     this.authors = authors;
     this.price = price;
+    this.discountPrice = price;
     this.currencyCode = currencyCode;
     this.pdfLink = pdfLink;
+    this.activated = true;
   }
 
   public Book(ObjectId _id, String id, String title, String publisher, String publishedDate,
       String description, int pageCount, ArrayList<String> categories, String iSBN,
-      String thumbnail, String language, ArrayList<String> authors, int price, String currencyCode,
-      String pdfLink, Date lastUpdated) {
+      String thumbnail, String language, ArrayList<String> authors, double price,
+      double discountPrice, String currencyCode,
+      String pdfLink, boolean activated, Date lastUpdated) {
     this._id = _id;
     this.id = id;
     this.title = title;
@@ -113,8 +127,11 @@ public class Book {
     this.language = language;
     this.authors = authors;
     this.price = price;
+    this.discountPrice = discountPrice;
     this.currencyCode = currencyCode;
     this.pdfLink = pdfLink;
+    this.activated = activated;
     this.lastUpdated = lastUpdated;
   }
+
 }

@@ -10,12 +10,15 @@ import java.util.Objects;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.cloud.firestore.Firestore;
+import lombok.Getter;
 
 public class Firebase {
 
   private static Firebase instance;
   private static final Dotenv dotenv = Dotenv.load();
+  @Getter
   private static final String apiKey = dotenv.get("FIREBASE_API_KEY");
+  @Getter
   private static final String authDomain = dotenv.get("FIREBASE_AUTH_DOMAIN");
   private static final String databaseURL = dotenv.get("FIREBASE_DATABASE_URL");
   private static final String projectId = dotenv.get("FIREBASE_PROJECT_ID");
@@ -61,9 +64,5 @@ public class Firebase {
       instance = new Firebase();
     }
     return instance.db;
-  }
-
-  public static String getApiKey() {
-    return apiKey;
   }
 }

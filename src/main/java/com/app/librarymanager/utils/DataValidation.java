@@ -74,6 +74,30 @@ public class DataValidation {
     return expectedLastDigit;
   }
 
+  public static String checkInt(String name, String s) {
+    try {
+      int x = Integer.parseInt(s);
+      if (x < 0) {
+        throw new Exception("is a negative number");
+      }
+      return "";
+    } catch (Exception e) {
+      return "Fail when trying to read " + name + ": " + e.getMessage() + ".";
+    }
+  }
+
+  public static String checkDouble(String name, String s) {
+    try {
+      double x = Double.parseDouble(s);
+      if (x < 0) {
+        throw new Exception("is a negative number");
+      }
+      return "";
+    } catch (Exception e) {
+      return "Fail when trying to read " + name + ": " + e.getMessage() + ".";
+    }
+  }
+
   public static boolean validEmail(String email) {
     JSONObject js = Fetcher.get("https://verifyemail.vercel.app/api/" + email);
     assert js != null;

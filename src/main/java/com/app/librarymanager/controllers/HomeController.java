@@ -1,13 +1,23 @@
 package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.interfaces.AuthStateListener;
-import com.app.librarymanager.utils.StageManager;
+
+import com.app.librarymanager.models.Book;
+import com.app.librarymanager.models.User;
+import com.app.librarymanager.utils.AlertDialog;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.*;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
+import javafx.util.Duration;
 import org.json.JSONObject;
 
 public class HomeController implements AuthStateListener {
@@ -22,119 +32,117 @@ public class HomeController implements AuthStateListener {
   }
 
   @FXML
-  private Button loginButton;
-  @FXML
-  private Button registerButton;
-  // UI elements
-  @FXML
-  private MenuItem loginMenuItem;
-  @FXML
-  private MenuItem registerMenuItem;
-  @FXML
-  private MenuItem logoutMenuItem;
-  @FXML
-  private MenuItem profileMenuItem;
-  @FXML
-  private TabPane mainTabPane;
-  @FXML
-  private Tab unauthUserTab;
-  @FXML
-  private Tab authUserTab;
-  @FXML
-  private Tab adminTab;
-  @FXML
   private Label welcomeLabel;
+  @FXML
+  private StackPane contentPane;
+  @FXML
+  private TextField searchField;
+  @FXML
+  private VBox searchResults;
+  private Timer debounceTimer;
+  private PauseTransition pauseTransition;
+
 
   @FXML
   private void initialize() {
     AuthController.getInstance().addAuthStateListener(this);
-    boolean isAuthenticated = AuthController.getInstance().isAuthenticated();
-    JSONObject claims = AuthController.getInstance().getUserClaims();
-    updateUI(isAuthenticated, claims);
+    updateUI(AuthController.getInstance().isAuthenticated(),
+        AuthController.getInstance().getCurrentUser());
+    searchField.setOnKeyPressed(keyEvent -> {
+      if (keyEvent.getCode().toString().equals("ENTER")) {
+        searchBooks();
+      }
+    });
+    pauseTransition = new PauseTransition(Duration.millis(200));
+    pauseTransition.setOnFinished(event -> searchBooks());
   }
 
-  private void updateUI(boolean isAuthenticated, JSONObject userClaims) {
-    mainTabPane.getTabs().clear();
+  private void updateUI(boolean isAuthenticated, User user) {
     if (isAuthenticated) {
-      if (!userClaims.isEmpty()) {
-        String email = userClaims.getString("email");
-        welcomeLabel.setText("Welcome, " + email);
-        if (userClaims.has("role")) {
-          String role = userClaims.getString("role");
-          if (role.equals("admin")) {
-            mainTabPane.getTabs().add(adminTab);
-          } else {
-            authUserTab.setDisable(false);
-            mainTabPane.getTabs().add(authUserTab);
-          }
-        } else {
-          authUserTab.setDisable(false);
-          mainTabPane.getTabs().add(authUserTab);
-        }
-      }  else {
-        AuthController.getInstance().logout();
-      }
+      welcomeLabel.setText("Welcome, " + user.getEmail());
+//      loadComponent("/fxml/ManageBookLoans.fxml");
     } else {
-      mainTabPane.getTabs().add(unauthUserTab);
+      welcomeLabel.setText("Welcome, Guest");
+//      loadComponent("/fxml/Login.fxml");
+    }
+    searchField.setOnKeyReleased(keyEvent -> {
+      if (keyEvent.getCode().toString().equals("ENTER")) {
+        searchBooks();
+      } else {
+        pauseTransition.playFromStart();
+      }
+    });
+  }
+
+  private void searchBooks() {
+    String searchQuery = searchField.getText();
+    if (searchQuery.isEmpty()) {
+      searchResults.getChildren().clear();
+      return;
+    }
+    Task<List<Book>> searchTask = new Task<List<Book>>() {
+      @Override
+      protected List<Book> call() {
+        return BookController.findBookByKeyword(searchQuery, 0, 100);
+      }
+    };
+    searchTask.setOnSucceeded(workerStateEvent -> {
+      List<Book> books = searchTask.getValue();
+      updateSearchResults(books);
+    });
+    searchTask.setOnFailed(e -> {
+      e.getSource().getException().printStackTrace();
+      AlertDialog.showAlert("error", "Search failed", "An error occurred while searching for books",
+          null);
+    });
+    new Thread(searchTask).start();
+  }
+
+  private void updateSearchResults(List<Book> books) {
+    searchResults.getChildren().clear();
+    if (books.isEmpty()) {
+      searchResults.getChildren().add(new Label("No results found"));
+      return;
+    }
+    for (Book book : books) {
+      searchResults.getChildren().add(new Label(book.getTitle()));
     }
   }
 
 
-
-  @FXML
-  private void onLoginButtonClick() {
-    StageManager.showLoginWindow();
-  }
-
-  @FXML
-  public void handleSearch() {
-    // Implement search functionality for unauthenticated user
-  }
-
-  @FXML
-  public void handleAuthSearch() {
-    // Implement search functionality for authenticated user
-  }
-
-  @FXML
-  public void handleViewBookDetails() {
-    // Show book details for selected book
-  }
-
-  @FXML
-  public void handleProfileSettings() {
-    // Open user profile settings
-  }
-
-  @FXML
-  public void handleManageBooks() {
-    // Open admin manage books view
-  }
-
-  @FXML
-  public void handleManageUsers() {
-    // Open admin manage users view
-  }
-
-
-  @FXML
-  private void onRegisterButtonClick() {
-    StageManager.showRegisterWindow();
-  }
-
-  @FXML
-  private void onLogoutButtonClick() {
-    AuthController.getInstance().logout();
-  }
-
-  @FXML
-  public void closeLoginWindow() {
-
+  private void debounceSearch() {
+    if (debounceTimer != null) {
+      debounceTimer.cancel();
+    }
+    debounceTimer = new Timer();
+    debounceTimer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        Platform.runLater(() -> searchBooks());
+      }
+    }, 100);
   }
 
   @Override
-  public void onAuthStateChanged(boolean isAuthenticated, JSONObject userClaims) {
-    updateUI(isAuthenticated, userClaims);
+  public void onAuthStateChanged(boolean isAuthenticated) {
+    updateUI(isAuthenticated, AuthController.getInstance().getCurrentUser());
+  }
+
+  private void loadComponent(String fxmlPath) {
+    try {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+      Parent component = loader.load();
+      contentPane.getChildren().clear();
+      contentPane.getChildren().add(component);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void handleImageClick(MouseEvent mouseEvent) {
+  }
+
+  public void handleSearch(MouseEvent mouseEvent) {
   }
 }
 

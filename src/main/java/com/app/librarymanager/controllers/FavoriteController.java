@@ -3,6 +3,7 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookUser;
 import com.app.librarymanager.services.MongoDB;
+import com.mongodb.client.model.Filters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,12 @@ public class FavoriteController {
     return favoriteBook;
   }
 
+  public static long countFavoriteBookOf(String userId) {
+    return MongoDB.getInstance().countDocuments("favorite", Filters.eq("userId", userId));
+  }
+
   public static void main(String[] args) {
+//    System.out.println(countFavoriteBookOf("ngu1"));
+//    System.out.println(countFavoriteBookOf("test2"));
   }
 }

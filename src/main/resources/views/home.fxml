@@ -1,69 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:id="rootPane"
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="com.app.librarymanager.controllers.HomeController">
-
-  <!-- Top Menu Bar -->
-  <top>
-    <MenuBar fx:id="menuBar" styleClass="menu-bar">
-      <Menu text="Account" styleClass="menu">
-        <MenuItem text="Login" onAction="#onLoginButtonClick" fx:id="loginMenuItem"/>
-        <MenuItem text="Register" onAction="#onRegisterButtonClick" fx:id="registerMenuItem"/>
-        <MenuItem text="Profile" onAction="#handleProfileSettings" fx:id="profileMenuItem"/>
-        <MenuItem text="Logout" onAction="#onLogoutButtonClick" fx:id="logoutMenuItem"/>
-      </Menu>
-      <Menu text="Admin" fx:id="adminMenu" styleClass="menu">
-        <MenuItem text="Manage Books" onAction="#handleManageBooks"/>
-        <MenuItem text="Manage Users" onAction="#handleManageUsers"/>
-      </Menu>
-    </MenuBar>
-  </top>
-
-  <!-- Main Content -->
-  <center>
-    <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE">
-      <Tab text="Unauthenticated User" fx:id="unauthUserTab">
-        <VBox spacing="20" alignment="CENTER" styleClass="content-vbox">
-          <Label text="Welcome to the Library Manager" styleClass="title-label"/>
-          <Button text="Search Books" onAction="#handleSearch" styleClass="btn-search"/>
-          <Label text="Log in to view more details and borrow books" styleClass="hint-label"/>
-        </VBox>
-      </Tab>
-
-      <Tab text="Authenticated User" fx:id="authUserTab">
-        <VBox spacing="20" alignment="CENTER" styleClass="content-vbox">
-          <Label text="Hello, [User Name]" fx:id="welcomeLabel" styleClass="title-label"/>
-          <Button text="Search Books" onAction="#handleAuthSearch" styleClass="btn-search"/>
-          <Button text="View Book Details" onAction="#handleViewBookDetails"
-            styleClass="btn-details"/>
-        </VBox>
-      </Tab>
-
-      <Tab text="Admin Panel" fx:id="adminTab">
-        <VBox spacing="20" alignment="CENTER" styleClass="content-vbox">
-          <Label text="Admin Dashboard" styleClass="title-label"/>
-          <Button text="Manage Books" onAction="#handleManageBooks" styleClass="btn-admin"/>
-          <Button text="Manage Users" onAction="#handleManageUsers" styleClass="btn-admin"/>
-        </VBox>
-      </Tab>
-    </TabPane>
-  </center>
-
-  <!-- Footer (Optional) -->
-  <bottom>
-    <Label text="Library Manager © 2024" styleClass="footer-label" alignment="CENTER"/>
-  </bottom>
-
-</BorderPane>
+  <Label fx:id="welcomeLabel" text="Welcome to Library Manager" styleClass="welcome-label"/>
+  <TextField fx:id="searchField" promptText="Search" styleClass="input"/>
+  <VBox fx:id="searchResults" styleClass="search-results"/>
+  <padding>
+    <Insets  bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+  </padding>
+</VBox>

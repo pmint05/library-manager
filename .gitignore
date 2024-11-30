@@ -37,3 +37,5 @@ build/
 .env
 .env.local
 src/main/resources/serviceAccountKey.json
+src/main/resources/client_secret.json
+src/main/java/com/app/librarymanager/CreateAdmin.java

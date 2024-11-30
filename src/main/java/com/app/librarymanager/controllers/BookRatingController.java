@@ -1,15 +1,11 @@
 package com.app.librarymanager.controllers;
 
-import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookRating;
-import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.MongoDB;
-import java.util.HashMap;
-import java.util.List;
+import com.mongodb.client.model.Filters;
 import java.util.Map;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.json.JSONObject;
 
 public class BookRatingController {
 
@@ -40,14 +36,23 @@ public class BookRatingController {
         .deleteFromCollection("bookRating", "_id", idInDatabase);
   }
 
-  public static double calculateRating(String bookId) {
+  public static double averageRating(String bookId) {
     return MongoDB.getInstance()
         .findAllObject("bookRating", "bookId", bookId)
         .stream().mapToDouble(doc -> doc.getDouble("rate"))
         .average().orElse(0.0);
   }
 
+  public static long numRating(String bookId) {
+    return MongoDB.getInstance().countDocuments("bookRating", Filters.eq("bookId", bookId));
+  }
+
   public static void main(String[] args) {
-    System.out.println(calculateRating("\' or 1=1"));
+    System.out.println(numRating("aaaa"));
+    System.out.println(numRating("bbbb"));
+    addRating(new BookRating("test1", "test2", 6.9));
+    addRating(new BookRating("test1", "test3", 9.6));
+    System.out.println(numRating("test1"));
+//    System.out.println(averageRating("\' or 1=1"));
   }
 }
