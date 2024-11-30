@@ -1,8 +1,10 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookRating;
 import com.app.librarymanager.services.MongoDB;
 import com.mongodb.client.model.Filters;
+import java.util.List;
 import java.util.Map;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -47,12 +49,17 @@ public class BookRatingController {
     return MongoDB.getInstance().countDocuments("bookRating", Filters.eq("bookId", bookId));
   }
 
+  public static List<Document> getTopRatingBook(int start, int length) {
+    return MongoDB.getInstance()
+        .getAggregate("bookRating", List.of(
+            new Document("$group", new Document("_id", "$bookId")
+                .append("average", new Document("$avg", "$rate"))),
+            new Document("$sort", new Document("average", -1)),
+            new Document("$skip", start),
+            new Document("$limit", length)
+        ));
+  }
+
   public static void main(String[] args) {
-    System.out.println(numRating("aaaa"));
-    System.out.println(numRating("bbbb"));
-    addRating(new BookRating("test1", "test2", 6.9));
-    addRating(new BookRating("test1", "test3", 9.6));
-    System.out.println(numRating("test1"));
-//    System.out.println(averageRating("\' or 1=1"));
   }
 }

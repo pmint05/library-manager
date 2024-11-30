@@ -36,4 +36,8 @@ public class Categories {
     this.name = document.getString("name");
     this.lastUpdated = document.getDate("lastUpdated");
   }
+
+  public Document toDocument() {
+    return new Document("name", name);
+  }
 }

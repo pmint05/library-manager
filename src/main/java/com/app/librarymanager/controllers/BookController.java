@@ -3,8 +3,10 @@ package com.app.librarymanager.controllers;
 import static com.mongodb.client.model.Filters.eq;
 
 import com.app.librarymanager.models.Book;
+import com.app.librarymanager.models.Categories;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.Fetcher;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.util.List;
@@ -61,7 +63,7 @@ public class BookController {
         String publisher = volumeInfo.optString("publisher", "N/A");
         String publishedDate = volumeInfo.optString("publishedDate", "N/A");
         String description = volumeInfo.optString("description", "N/A");
-        int pageCount = volumeInfo.optInt("pageCount", -1);
+        int pageCount = volumeInfo.optInt("pageCount", 0);
 
         ArrayList<String> categories = getAllString("categories", volumeInfo);
 
@@ -191,8 +193,9 @@ public class BookController {
     if (isAvailable(book)) {
       return null;
     }
-    MongoDB database = MongoDB.getInstance();
-    return database.addToCollection("books", MongoDB.objectToMap(book));
+    CategoriesController.addCategoryList(
+        book.getCategories().stream().map(Categories::new).toList());
+    return MongoDB.getInstance().addToCollection("books", MongoDB.objectToMap(book));
   }
 
   public static boolean deleteBook(Book book) {
@@ -219,6 +222,9 @@ public class BookController {
     if (document == null || !document.getObjectId("_id").equals(book.get_id())) {
       return null;
     }
+
+    CategoriesController.addCategoryList(
+        book.getCategories().stream().map(Categories::new).toList());
     document = database.updateData("books", "id", book.getId(), MongoDB.objectToMap(book));
     return document;
   }

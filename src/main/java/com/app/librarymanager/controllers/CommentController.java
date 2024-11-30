@@ -47,11 +47,18 @@ public class CommentController {
     return comments;
   }
 
+  public static List<Document> getMostCommentedBooks(int start, int length) {
+    return MongoDB.getInstance()
+        .getAggregate("comment", List.of(
+            new Document("$group", new Document("_id", "$bookId")
+                .append("count", new Document("$sum", 1))),
+            new Document("$sort", new Document("count", -1)),
+            new Document("$skip", start),
+            new Document("$limit", length)
+        ));
+  }
 
   public static void main(String[] args) {
-    addComment(new Comment("userId_example", "nhu mot con cho", "ccccc"));
-    addComment(new Comment("cmmb", "aaaa", "defefefdfd"));
-    System.out.println(getAllCommentOfBook("aaaa"));
-    System.out.println(getAllCommentOfUser("userId_example"));
+    System.out.println(getMostCommentedBooks(0, 100000));
   }
 }
