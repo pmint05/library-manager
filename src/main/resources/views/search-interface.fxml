@@ -16,32 +16,30 @@
 
     <top>
         <ToolBar BorderPane.alignment="CENTER">
-            <items>
-                <ImageView fitHeight="50.0" fitWidth="70.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true">
-                    <image>
-                        <Image url="@../images/logo.png" />
-                    </image>
-                </ImageView>
-                <Region prefHeight="37.0" HBox.hgrow="ALWAYS"/>
-                <ImageView fitHeight="47.0" fitWidth="70.0" onMouseClicked="#handleSearch" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
-                    <image>
-                        <Image url="@../images/search.png" />
-                    </image>
-                </ImageView>
-                <Region prefHeight="37.0" HBox.hgrow="ALWAYS"/>
-                <Button mnemonicParsing="false" text="Favorite Books" />
-                <Button mnemonicParsing="false" text="Borrow Books" />
-                <Button mnemonicParsing="false" text="Add Books" />
-                <Region VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS" />
-                <ImageView fx:id="imageView" BorderPane.alignment="TOP_RIGHT" fitHeight="47.0" fitWidth="70.0" onMouseClicked="#handleImageClick" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
-                    <image>
-                        <Image url="@../images/user.png" />
-                    </image>
-                    <viewport>
-                        <Rectangle2D />
-                    </viewport>
-                </ImageView>
-            </items>
+            <ImageView fitHeight="50.0" fitWidth="70.0" nodeOrientation="INHERIT" pickOnBounds="true"
+                       preserveRatio="true">
+                <Image url="@../images/logo.png"/>
+            </ImageView>
+            <Region prefHeight="37.0" HBox.hgrow="ALWAYS"/>
+            <ImageView fitHeight="47.0" fitWidth="70.0" onMouseClicked="#handleSearch" pickOnBounds="true"
+                       preserveRatio="true" style="-fx-cursor: hand;">
+                <Image url="@../images/search.png"/>
+            </ImageView>
+            <Region prefHeight="37.0" HBox.hgrow="ALWAYS"/>
+            <Button mnemonicParsing="false" text="Favorite Books"/>
+            <Button mnemonicParsing="false" text="Borrow Books"/>
+            <Button mnemonicParsing="false" text="Add Books"/>
+            <Region VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
+            <ImageView fx:id="imageView" BorderPane.alignment="TOP_RIGHT" fitHeight="47.0" fitWidth="70.0"
+                       onMouseClicked="#handleImageClick" pickOnBounds="true" preserveRatio="true"
+                       style="-fx-cursor: hand;">
+                <image>
+                    <Image url="@../images/user.png"/>
+                </image>
+                <viewport>
+                    <Rectangle2D/>
+                </viewport>
+            </ImageView>
         </ToolBar>
     </top>
     <center>
@@ -52,7 +50,7 @@
 
                     <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER">
                         <content>
-                            <HBox fx:id="bookRow1" alignment="TOP_LEFT" spacing="10" />
+                            <HBox fx:id="bookRow1" spacing="10" />
                         </content>
                     </ScrollPane>
 
@@ -60,7 +58,7 @@
 
                     <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER">
                         <content>
-                            <HBox fx:id="bookRow2" alignment="TOP_LEFT" spacing="10" />
+                            <HBox fx:id="bookRow2" spacing="10" />
                         </content>
                     </ScrollPane>
 
@@ -68,7 +66,7 @@
 
                     <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER">
                         <content>
-                            <HBox fx:id="bookRow3" alignment="TOP_LEFT" spacing="10" />
+                            <HBox fx:id="bookRow3" spacing="10" />
                         </content>
                     </ScrollPane>
                 </VBox>
