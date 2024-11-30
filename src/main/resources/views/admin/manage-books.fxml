@@ -1,31 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-  xmlns:fx="http://javafx.com/fxml"
+<AnchorPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="com.app.librarymanager.controllers.ManageBooksController">
-  <VBox spacing="10" AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="10.0"
-    AnchorPane.rightAnchor="10.0" AnchorPane.bottomAnchor="10.0">
+  <VBox spacing="10" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"
+    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
     <Text styleClass="content-title" text="Manage Books"/>
     <HBox alignment="BOTTOM_LEFT" spacing="10">
       <TextField fx:id="searchField" onKeyReleased="#onSearch" promptText="Search..."
         styleClass="input"/>
       <VBox alignment="BOTTOM_LEFT" spacing="5">
         <Label text="Active:"/>
-        <ComboBox fx:id="activeFilter" promptText="Active" styleClass="combo-box">
-        </ComboBox>
+        <ComboBox fx:id="activeFilter" promptText="Active" styleClass="combo-box"></ComboBox>
       </VBox>
-      <Button text="New Book" onAction="#onCreateBook" styleClass="btn,btn-primary"/>
+      <Button onAction="#onCreateBook" styleClass="btn,btn-primary" text="New Book"/>
+      <Region HBox.hgrow="ALWAYS"/>
+      <Text fx:id="paginationInfo" strokeType="OUTSIDE" strokeWidth="0.0"/>
+      <ComboBox fx:id="pageSize" promptText="pageSize" styleClass="combo-box">
+      </ComboBox>
+      <Button mnemonicParsing="false" text="Previous" onAction="#prevPage" fx:id="prevBtn"
+        styleClass="btn, btn-default"/>
+      <Button mnemonicParsing="false" text="Next" onAction="#nextPage" fx:id="nextBtn"
+        styleClass="btn, btn-default"/>
     </HBox>
     <TableView fx:id="booksTable" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
       <columns>
-        <TableColumn fx:id="_idColumn" editable="false" visible="false" text="_id"/>
+        <TableColumn fx:id="_idColumn" editable="false" text="_id" visible="false"/>
         <TableColumn fx:id="idColumn" editable="false" text="ID"/>
         <TableColumn fx:id="iSBNColumn" text="ISBN"/>
         <TableColumn fx:id="thumbnailColumn" text="Thumbnail"/>
@@ -45,9 +48,9 @@
     </TableView>
   </VBox>
   <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false"
-    AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-    AnchorPane.rightAnchor="0.0">
+    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+    AnchorPane.topAnchor="0.0">
     <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
-    <Text text="Loading..." fx:id="loadingText"/>
+    <Text fx:id="loadingText" text="Loading..."/>
   </VBox>
 </AnchorPane>

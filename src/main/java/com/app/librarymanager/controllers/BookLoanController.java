@@ -103,6 +103,7 @@ public class BookLoanController {
         .map(BookLoan::new).toList();
   }
 
+
   public static List<BookLoan> getRecentLoan(int start, int length) {
     return MongoDB.getInstance().findSortedObject("bookLoan", Filters.eq("valid", true),
             Sorts.orderBy(Sorts.descending("lastUpdated")), start, length).stream().map(BookLoan::new)
@@ -153,6 +154,5 @@ public class BookLoanController {
   }
 
   public static void main(String[] args) {
-    System.out.println(getTopLentBook(0, 1000000));
   }
 }

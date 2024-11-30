@@ -211,7 +211,8 @@ public class BookController {
     MongoDB database = MongoDB.getInstance();
 
     List<Document> relatedBook = database.findAllObject("books",
-        Filters.or(Filters.eq("iSBN", book.getISBN()), Filters.eq("id", book.getId())));
+        Filters.or(Filters.and(Filters.ne("iSBN", "N/A"), Filters.eq("iSBN", book.getISBN())),
+            Filters.eq("id", book.getId())));
 
     if (relatedBook.size() != 1) {
       return null;

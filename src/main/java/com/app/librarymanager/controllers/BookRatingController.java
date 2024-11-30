@@ -61,6 +61,5 @@ public class BookRatingController {
   }
 
   public static void main(String[] args) {
-    System.out.println(getTopRatingBook(0, 100000));
   }
 }

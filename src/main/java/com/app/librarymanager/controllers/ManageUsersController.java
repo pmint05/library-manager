@@ -2,6 +2,7 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.utils.AlertDialog;
 import java.util.Date;
+import java.util.HashMap;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -64,6 +65,11 @@ public class ManageUsersController extends ControllerWithLoader {
   @FXML
   private ComboBox<String> disabledFilter;
 
+  @FXML
+  private Text totalUsersText;
+
+  private HashMap<String, Image> imageCache = new HashMap<>();
+
   private ObservableList<User> usersList = FXCollections.observableArrayList();
 
   public synchronized static ManageUsersController getInstance() {
@@ -99,19 +105,24 @@ public class ManageUsersController extends ControllerWithLoader {
         if (empty || item == null || item.isEmpty()) {
           setGraphic(null);
         } else {
-          try {
-            Image image = new Image(item, true);
-            image.errorProperty().addListener((observable, oldValue, newValue) -> {
-              if (newValue) {
-                setGraphic(null);
-              }
-            });
-            imageView.setImage(image);
-            imageView.setFitHeight(40);
-            imageView.setFitWidth(40);
-            setGraphic(imageView);
-          } catch (Exception e) {
-            setGraphic(null);
+          if (imageCache.containsKey(item)) {
+            imageView.setImage(imageCache.get(item));
+          } else {
+            try {
+              Image image = new Image(item, true);
+              image.errorProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue) {
+                  setGraphic(null);
+                }
+              });
+              imageCache.put(item, image);
+              imageView.setImage(image);
+              imageView.setFitHeight(40);
+              imageView.setFitWidth(40);
+              setGraphic(imageView);
+            } catch (Exception e) {
+              setGraphic(null);
+            }
           }
         }
       }
@@ -191,6 +202,7 @@ public class ManageUsersController extends ControllerWithLoader {
       usersTable.setItems(usersList);
       System.out.println("Users loaded successfully. Total: " + usersList.size());
       showLoading(false);
+      totalUsersText.setText("Total Users: " + usersList.size());
     });
     task.setOnFailed(e -> {
       System.out.println("Error while fetching users: " + task.getException().getMessage());
@@ -253,23 +265,6 @@ public class ManageUsersController extends ControllerWithLoader {
     usersTable.setItems(filteredList);
   }
 
-  private void setColumnWidthsToFitContent() {
-    usersTable.getColumns().forEach(column -> {
-      Text text = new Text(column.getText());
-      double maxWidth = text.getLayoutBounds().getWidth();
-      for (int i = 0; i < usersTable.getItems().size(); i++) {
-        if (column.getCellData(i) != null) {
-          text = new Text(column.getCellData(i).toString());
-          double width = text.getLayoutBounds().getWidth();
-          if (width > maxWidth) {
-            maxWidth = width;
-          }
-        }
-      }
-      column.setPrefWidth(maxWidth + 20);
-    });
-  }
-
   private void setRowContextMenu() {
     usersTable.setRowFactory(tableView -> {
       final TableRow<User> row = new TableRow<>();
@@ -305,6 +300,8 @@ public class ManageUsersController extends ControllerWithLoader {
               showLoading(false);
 //              loadUsers();
               removeUserFromTable(user);
+              usersList.remove(user);
+              totalUsersText.setText("Total Users: " + usersList.size());
             });
             task.setOnFailed(ev -> {
               showLoading(false);

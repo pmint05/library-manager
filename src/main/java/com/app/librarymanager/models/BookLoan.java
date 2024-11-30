@@ -16,9 +16,6 @@ public class BookLoan extends BookUser {
     OFFLINE,
     ONLINE
   }
-//  private static final String Mode.OFFLINE = "Offline";
-//  private static final String Mode.ONLINE = "Online";
-
 
   private Date borrowDate;
   private Date dueDate;
@@ -112,6 +109,7 @@ public class BookLoan extends BookUser {
     this.borrowDate = DateUtil.localDateToDate(DateUtil.parse(borrowDate));
     this.dueDate = DateUtil.localDateToDate(DateUtil.parse(dueDate));
     this.valid = true;
+    this.numCopies = 0;
     this.type = Mode.OFFLINE;
     this.numCopies = numCopies;
   }

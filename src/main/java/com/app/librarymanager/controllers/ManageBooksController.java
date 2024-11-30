@@ -20,6 +20,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import com.app.librarymanager.models.Book;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -62,16 +63,25 @@ public class ManageBooksController extends ControllerWithLoader {
   private TableColumn<Book, String> thumbnailColumn;
   @FXML
   private TableColumn<Book, Boolean> isActiveColumn;
+  @FXML
+  private Text paginationInfo;
 
   @FXML
   private TextField searchField;
 
   @FXML
   private ComboBox<String> activeFilter;
+  @FXML
+  private ComboBox<Integer> pageSize;
+  @FXML
+  private Button prevBtn;
+  @FXML
+  private Button nextBtn;
 
 
   private int start = 0;
-  private int limit = 10;
+  private int length = 10;
+  private int totalBooks = 0;
 
 
   private ObservableList<Book> booksList = FXCollections.observableArrayList();
@@ -159,7 +169,22 @@ public class ManageBooksController extends ControllerWithLoader {
 
     activeFilter.setOnAction(e -> onFilter());
 
+    pageSize.getItems().addAll(10, 20, 50, 100);
+    pageSize.setValue(length);
+
+    pageSize.setOnAction(e -> {
+      length = pageSize.getValue();
+      start = 0;
+      loadBooks();
+      updatePaginationInfo();
+    });
+
+    if (this.start == 0) {
+      prevBtn.setDisable(true);
+    }
+
     loadBooks();
+    countTotalBooks();
     setRowContextMenu();
   }
 
@@ -168,7 +193,7 @@ public class ManageBooksController extends ControllerWithLoader {
       @Override
       protected ObservableList<Book> call() {
         ObservableList<Book> books = FXCollections.observableArrayList();
-        List<Book> bookList = BookController.findBookByKeyword("", start, limit);
+        List<Book> bookList = BookController.findBookByKeyword("", start, length);
         books.addAll(bookList);
         return books;
       }
@@ -183,10 +208,33 @@ public class ManageBooksController extends ControllerWithLoader {
     });
     task.setOnFailed(e -> {
       System.out.println("Error while fetching books: " + task.getException().getMessage());
+      AlertDialog.showAlert("error", "Error",
+          task.getException().getMessage(), null);
       showLoading(false);
     });
 
     new Thread(task).start();
+  }
+
+  private void countTotalBooks() {
+    Task<Integer> countTask = new Task<>() {
+      @Override
+      protected Integer call() {
+        return (int) BookController.numberOfBooks();
+      }
+    };
+
+    countTask.setOnSucceeded(e -> {
+      totalBooks = countTask.getValue();
+      System.out.println("Total books: " + totalBooks);
+      updatePaginationInfo();
+    });
+    countTask.setOnFailed(e -> {
+      System.out.println("Error while counting books: " + countTask.getException().getMessage());
+      AlertDialog.showAlert("error", "Error",
+          countTask.getException().getMessage(), null);
+    });
+    new Thread(countTask).start();
   }
 
   @FXML
@@ -224,7 +272,7 @@ public class ManageBooksController extends ControllerWithLoader {
               || book.getCategories().toString().toLowerCase().contains(searchText)
               || book.getDescription().toLowerCase().contains(searchText);
 
-      if (matchesSearch && (activeFilterValue.equals("All") || activeFilterValue
+      if (matchesSearch && (activeFilterValue.equals("All") || activeFilterValue.toLowerCase()
           .equals(String.valueOf(book.isActivated())))) {
         filteredList.add(book);
       }
@@ -236,15 +284,8 @@ public class ManageBooksController extends ControllerWithLoader {
     booksTable.setRowFactory(tableView -> {
       final TableRow<Book> row = new TableRow<>();
       final ContextMenu contextMenu = new ContextMenu();
-      final MenuItem viewMenuItem = new MenuItem("View Book Details");
       final MenuItem editMenuItem = new MenuItem("Edit Book");
       final MenuItem deleteMenuItem = new MenuItem("Delete Book");
-
-      viewMenuItem.setOnAction(event -> {
-        Book book = row.getItem();
-        System.out.println("View book: " + book.get_id());
-        openBookModal(book);
-      });
 
       editMenuItem.setOnAction(event -> {
         Book book = row.getItem();
@@ -273,6 +314,8 @@ public class ManageBooksController extends ControllerWithLoader {
               System.out.println("Book deleted: " + delRes);
               showLoading(false);
               removeBookFromTable(book);
+              totalBooks--;
+              updatePaginationInfo();
             });
             task.setOnFailed(ev -> {
               showLoading(false);
@@ -283,7 +326,7 @@ public class ManageBooksController extends ControllerWithLoader {
         });
       });
 
-      contextMenu.getItems().addAll(viewMenuItem, editMenuItem, deleteMenuItem);
+      contextMenu.getItems().addAll(editMenuItem, deleteMenuItem);
       row.contextMenuProperty().bind(
           javafx.beans.binding.Bindings.when(row.emptyProperty()).then((ContextMenu) null)
               .otherwise(contextMenu));
@@ -314,13 +357,14 @@ public class ManageBooksController extends ControllerWithLoader {
           setText(null);
           setGraphic(null);
         } else {
-          HBox hBox = new HBox(5);
+          VBox vBox = new VBox(5);
+          vBox.setPadding(new javafx.geometry.Insets(3, 0, 3, 0));
           for (String item : items) {
-            Label chip = new Label(item);
+            Label chip = new Label(item.trim());
             chip.getStyleClass().add("chip");
-            hBox.getChildren().add(chip);
+            vBox.getChildren().add(chip);
           }
-          setGraphic(hBox);
+          setGraphic(vBox);
           setText(null);
         }
       }
@@ -346,8 +390,12 @@ public class ManageBooksController extends ControllerWithLoader {
       controller.setBook(book);
       controller.setSaveCallback(updatedBook -> {
         if (book == null) {
-          booksList.add(updatedBook);
-          booksTable.refresh();
+          totalBooks++;
+          updatePaginationInfo();
+          if (booksList.size() < length) {
+            booksList.add(updatedBook);
+            booksTable.refresh();
+          }
         } else {
           updateBookInTable(updatedBook);
         }
@@ -372,7 +420,7 @@ public class ManageBooksController extends ControllerWithLoader {
         event.consume();
       });
       Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelButtonType);
-      cancelButton.getStyleClass().add("btn");
+      cancelButton.getStyleClass().addAll("btn", "btn-text");
       cancelButton.addEventFilter(ActionEvent.ACTION, event -> dialog.close());
 
       dialog.setResultConverter(dialogButton -> null);
@@ -380,6 +428,32 @@ public class ManageBooksController extends ControllerWithLoader {
       dialog.showAndWait();
     } catch (Exception e) {
       e.printStackTrace();
+    }
+  }
+
+  private void updatePaginationInfo() {
+    paginationInfo.setText(
+        "Showing " + (start + 1) + " to " + Math.min(start + length, totalBooks) + " of "
+            + totalBooks);
+    prevBtn.setDisable(start == 0);
+    nextBtn.setDisable(start + length >= totalBooks);
+  }
+
+  @FXML
+  private void prevPage() {
+    if (start >= length) {
+      start -= length;
+      loadBooks();
+      updatePaginationInfo();
+    }
+  }
+
+  @FXML
+  private void nextPage() {
+    if (start + length < totalBooks) {
+      start += length;
+      loadBooks();
+      updatePaginationInfo();
     }
   }
 }
