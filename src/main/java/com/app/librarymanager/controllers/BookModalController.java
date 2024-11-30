@@ -94,22 +94,12 @@ public class BookModalController extends ControllerWithLoader {
 
   @FXML
   private void initialize() {
-    DatePickerUtil.setDatePickerFormat(publishedDateField);
-    publishedDateField.setDayCellFactory(new Callback<DatePicker, DateCell>() {
-      @Override
-      public DateCell call(DatePicker param) {
-        return new DateCell() {
-          @Override
-          public void updateItem(LocalDate item, boolean empty) {
-            super.updateItem(item, empty);
-            if (item.isAfter(LocalDate.now())) {
-              setDisable(true);
-              setStyle("-fx-opacity: 0.5;");
-            }
-          }
-        };
-      }
+    publishedDateField.getEditor().setOnMouseClicked(event -> {
+      publishedDateField.show();
     });
+    DatePickerUtil.disableFutureDates(publishedDateField);
+    DatePickerUtil.setDatePickerFormat(publishedDateField);
+    DatePickerUtil.disableEditor(publishedDateField);
     initNumberField(pageCountField);
     initNumberField(priceField);
     initNumberField(discountPriceField);

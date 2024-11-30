@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+  xmlns:fx="http://javafx.com/fxml"
+  fx:controller="com.app.librarymanager.controllers.MyFavoriteBooksController"
+  prefHeight="400.0" prefWidth="600.0">
+  <children>
+    <ListView fx:id="favoriteBooksListView" layoutX="20.0" layoutY="60.0" prefHeight="300.0"
+      prefWidth="200.0"/>
+    <TextField fx:id="searchField" layoutX="240.0" layoutY="20.0" prefWidth="200.0"/>
+    <Button fx:id="searchButton" layoutX="460.0" layoutY="20.0" text="Search"/>
+  </children>
+</AnchorPane>

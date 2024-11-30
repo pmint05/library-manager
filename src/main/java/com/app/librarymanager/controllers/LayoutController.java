@@ -186,6 +186,9 @@ public class LayoutController implements AuthStateListener {
   }
 
   private void handleChangeActiveButton(Event e) {
+    if (!(e.getSource() instanceof Button)) {
+      return;
+    }
     adminToolBar.getItems().stream()
         .filter(node -> node instanceof Button)
         .map(node -> (Button) node)

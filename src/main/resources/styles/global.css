@@ -101,7 +101,7 @@ Button {
 }
 
 .btn.btn-text:hover, .btn.btn-text:focused {
-  -fx-background-color: -fx-fg-50;
+  -fx-background-color: -fx-fg-secondary;
   /*-fx-text-fill: -fx-primary;*/
 }
 
@@ -267,14 +267,16 @@ Button {
   -fx-border-width: 1;
   -fx-font-size: 14px;
   -fx-text-fill: -fx-text;
-  -fx-border-color: transparent;
+  -fx-border-color: -fx-fg-secondary;
   -fx-border-radius: 5;
 }
 
-.date-picker .text-field {
-  -fx-background-color: -fx-fg;
+.date-picker .text-field, .date-picker .text-field:disabled, .date-picker .input, .date-picker .input:disabled {
+  -fx-background-color: -fx-fg !important;
   -fx-font-size: 14px;
-  -fx-text-fill: -fx-text;
+  -fx-text-fill: -fx-text !important;
+  -fx-cursor: hand !important;
+  -fx-prompt-text-fill: -fx-prompt-text-fill;
 }
 
 .date-picker:focused {
@@ -292,6 +294,7 @@ Button {
   -fx-background-color: -fx-bg;
   -fx-border-color: -fx-fg;
   -fx-border-radius: 5;
+  -fx-background-radius: 5;
 }
 
 .custom-alert {

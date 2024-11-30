@@ -106,7 +106,10 @@ public class ManageUsersController extends ControllerWithLoader {
           setGraphic(null);
         } else {
           if (imageCache.containsKey(item)) {
+            imageView.setFitHeight(40);
+            imageView.setFitWidth(40);
             imageView.setImage(imageCache.get(item));
+            setGraphic(imageView);
           } else {
             try {
               Image image = new Image(item, true);
