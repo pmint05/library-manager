@@ -5,12 +5,9 @@ import com.app.librarymanager.models.Categories;
 import com.app.librarymanager.services.MongoDB;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.text.WordUtils;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 public class CategoriesController {
 
