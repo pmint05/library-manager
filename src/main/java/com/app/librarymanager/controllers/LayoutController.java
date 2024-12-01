@@ -2,6 +2,7 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.interfaces.AuthStateListener;
 import com.app.librarymanager.models.User;
+import com.app.librarymanager.utils.AvatarUtil;
 import com.app.librarymanager.utils.StageManager;
 import java.util.HashMap;
 import java.util.List;
@@ -9,17 +10,20 @@ import java.util.Map;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import org.json.JSONObject;
+import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
 
 public class LayoutController implements AuthStateListener {
 
-  private static HomeController instance;
+  private static LayoutController instance;
 
   private final List<String> ADMIN_ROUTES = List.of(
       "/views/admin/dashboard.fxml",
@@ -33,26 +37,35 @@ public class LayoutController implements AuthStateListener {
       "/views/home.fxml",
       "/views/profile.fxml"
   );
+  @FXML
+  private Button homeNavBtn;
+  @FXML
+  private Button categoriesNavBtn;
+  @FXML
+  private Button loansNavBtn;
+  @FXML
+  private Button favoritesNavBtn;
 
-  public static synchronized HomeController getInstance() {
+  public static synchronized LayoutController getInstance() {
     if (instance == null) {
-      instance = new HomeController();
+      instance = new LayoutController();
     }
     return instance;
   }
 
   @FXML
-  private MenuItem loginMenuItem;
-  @FXML
-  private MenuItem registerMenuItem;
-  @FXML
-  private MenuItem logoutMenuItem;
-  @FXML
-  private MenuItem profileMenuItem;
-  @FXML
   private ToolBar adminToolBar;
   @FXML
+  private ToolBar navBar;
+  @FXML
   private StackPane contentPane;
+  @FXML
+  private ImageView avatarImageView;
+  @FXML
+  private TextField searchField;
+
+
+  private Popup popup;
 
 
   private final Map<String, Parent> componentCache = new HashMap<>();
@@ -62,16 +75,48 @@ public class LayoutController implements AuthStateListener {
     AuthController.getInstance().addAuthStateListener(this);
     AuthController.getInstance().loadSession();
 
+    popup = new Popup();
+    popup.setAutoHide(true);
+
     if (AuthController.getInstance().validateIdToken()) {
       User currentUser = AuthController.getInstance().getCurrentUser();
 //      preloadComponents(currentUser);
       updateUI(true, currentUser);
+      if (currentUser.isAdmin()) {
+        loadComponent("/views/admin/dashboard.fxml");
+
+      } else {
+        loadComponent("/views/home.fxml");
+      }
     } else {
       AuthController.getInstance().logout();
 //      preloadComponents(null);
       updateUI(false, null);
+      loadComponent("/views/home.fxml");
     }
-    loadComponent("/views/home.fxml");
+    searchField.setOnAction(event -> handleSearch());
+
+    homeNavBtn.setOnAction(event -> loadComponent("/views/home.fxml"));
+    categoriesNavBtn.setOnAction(event -> loadComponent("/views/categories.fxml"));
+    loansNavBtn.setOnAction(event -> loadComponent("/views/loans.fxml"));
+    favoritesNavBtn.setOnAction(event -> loadComponent("/views/favorite-books.fxml"));
+  }
+
+  @FXML
+  public void handleImageClick() {
+    if (popup.isShowing()) {
+      popup.hide();
+    } else {
+      Bounds boundsInScreen = avatarImageView.localToScreen(avatarImageView.getBoundsInLocal());
+      popup.setOnShown(event -> {
+        double popupX =
+            boundsInScreen.getMinX() + (boundsInScreen.getWidth()) - (popup.getWidth());
+        double popupY = boundsInScreen.getMaxY();
+        popup.setX(popupX);
+        popup.setY(popupY);
+      });
+      popup.show(avatarImageView, popup.getX(), popup.getY());
+    }
   }
 
   private void preloadComponents(User user) {
@@ -97,13 +142,42 @@ public class LayoutController implements AuthStateListener {
   }
 
   private void updateUI(boolean isAuthenticated, User user) {
-    loginMenuItem.setVisible(!isAuthenticated);
-    registerMenuItem.setVisible(!isAuthenticated);
-    logoutMenuItem.setVisible(isAuthenticated);
-    profileMenuItem.setVisible(isAuthenticated);
     adminToolBar.setVisible(isAuthenticated && user.isAdmin());
+    adminToolBar.setManaged(isAuthenticated && user.isAdmin());
     if (isAuthenticated) {
+      if (user.getAvatar() != null) {
+        avatarImageView.setImage(user.getAvatar());
+      } else if (user.getPhotoUrl() != null) {
+        avatarImageView.setImage(new ImageView(user.getPhotoUrl()).getImage());
+      }
+      VBox popupContent = new VBox(0);
+      popupContent.getStyleClass().add("popup-container");
+      Button profileButton = new Button("Profile");
+      profileButton.setOnAction(event -> handleProfileSettings());
+      Button logoutButton = new Button("Logout");
+      logoutButton.getStyleClass().add("danger");
+      logoutButton.setOnAction(event -> onLogoutButtonClick());
+
+      popupContent.getChildren().addAll(profileButton, logoutButton);
+      popup.getContent().clear();
+      popup.getContent().add(popupContent);
+
     } else {
+      VBox popupContent = new VBox(0);
+      popupContent.getStyleClass().add("popup-container");
+      Button loginButton = new Button("Login");
+      loginButton.setOnAction(event -> onLoginButtonClick());
+
+      Button registerButton = new Button("Register");
+      registerButton.setOnAction(event -> onRegisterButtonClick());
+
+      popupContent.getChildren().addAll(loginButton, registerButton);
+
+      popup.getContent().clear();
+      popup.getContent().add(popupContent);
+
+      avatarImageView.setImage(
+          new ImageView(new AvatarUtil().getAvatarUrl("Anonymous")).getImage());
     }
   }
 
@@ -112,14 +186,25 @@ public class LayoutController implements AuthStateListener {
     StageManager.showLoginWindow();
   }
 
-  @FXML
-  public void handleSearch() {
-    // Implement search functionality for unauthenticated user
-  }
+  private boolean isSearchComponentLoaded = false;
 
-  @FXML
-  public void handleAuthSearch() {
-    // Implement search functionality for authenticated user
+  private void handleSearch() {
+    String keyword = searchField.getText().trim();
+    if (keyword.isEmpty()) {
+      return;
+    }
+    try {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/search.fxml"));
+      Parent searchComponent = loader.load();
+      SearchController searchController = loader.getController();
+      searchController.setKeyword(keyword);
+      contentPane.getChildren().clear();
+      contentPane.getChildren().add(searchComponent);
+      navBar.getItems().removeIf(item -> item instanceof TextField);
+      isSearchComponentLoaded = true;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @FXML
@@ -130,6 +215,7 @@ public class LayoutController implements AuthStateListener {
   @FXML
   public void handleProfileSettings() {
     loadComponent("/views/profile.fxml");
+    popup.hide();
   }
 
   @FXML
@@ -171,8 +257,20 @@ public class LayoutController implements AuthStateListener {
 
   @FXML
   private void onLogoutButtonClick() {
-    AuthController.getInstance().logout();
+    popup.hide();
     loadComponent("/views/home.fxml");
+    if (isSearchComponentLoaded) {
+      navBar.getItems().add(2, searchField);
+      isSearchComponentLoaded = false;
+    }
+    if (AuthController.getInstance().getCurrentUser().isAdmin()) {
+      adminToolBar.getItems().stream()
+          .filter(node -> node instanceof Button)
+          .map(node -> (Button) node)
+          .filter(button -> button.getStyleClass().contains("active"))
+          .forEach(button -> button.getStyleClass().remove("active"));
+    }
+    AuthController.getInstance().logout();
   }
 
   @FXML
@@ -186,13 +284,15 @@ public class LayoutController implements AuthStateListener {
   }
 
   private void handleChangeActiveButton(Event e) {
+    if (!(e.getSource() instanceof Button clickedButton)) {
+      return;
+    }
     adminToolBar.getItems().stream()
         .filter(node -> node instanceof Button)
         .map(node -> (Button) node)
         .filter(button -> button.getStyleClass().contains("active"))
         .forEach(button -> button.getStyleClass().remove("active"));
 
-    Button clickedButton = (Button) e.getSource();
     clickedButton.getStyleClass().add("active");
   }
 
@@ -204,8 +304,21 @@ public class LayoutController implements AuthStateListener {
       }
       contentPane.getChildren().clear();
       contentPane.getChildren().add(component);
+      if (isSearchComponentLoaded) {
+        navBar.getItems().add(2, searchField);
+        isSearchComponentLoaded = false;
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
+
+  public double getContentPaneWidth() {
+    return contentPane.getWidth();
+  }
+
+  public double getContentPaneHeight() {
+    return contentPane.getHeight();
+  }
+
 }

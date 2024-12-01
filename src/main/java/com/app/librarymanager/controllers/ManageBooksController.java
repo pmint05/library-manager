@@ -6,7 +6,10 @@ import com.app.librarymanager.utils.DateUtil.DateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -22,6 +25,7 @@ import com.app.librarymanager.models.Book;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -78,6 +82,9 @@ public class ManageBooksController extends ControllerWithLoader {
   @FXML
   private Button nextBtn;
 
+  private PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
+
+  private Map<String, Image> imageCache = new HashMap<>();
 
   private int start = 0;
   private int length = 10;
@@ -123,19 +130,27 @@ public class ManageBooksController extends ControllerWithLoader {
         if (empty || item == null || item.isEmpty()) {
           setGraphic(null);
         } else {
-          try {
-            Image image = new Image(item, true);
-            image.errorProperty().addListener((observable, oldValue, newValue) -> {
-              if (newValue) {
-                setGraphic(null);
-              }
-            });
-            imageView.setImage(image);
+          if (imageCache.containsKey(item)) {
+            imageView.setImage(imageCache.get(item));
             imageView.setFitHeight(50);
             imageView.setPreserveRatio(true);
             setGraphic(imageView);
-          } catch (Exception e) {
-            setGraphic(null);
+          } else {
+            try {
+              Image image = new Image(item, true);
+              image.errorProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue) {
+                  setGraphic(null);
+                }
+              });
+              imageView.setImage(image);
+              imageView.setFitHeight(50);
+              imageView.setPreserveRatio(true);
+              imageCache.put(item, image);
+              setGraphic(imageView);
+            } catch (Exception e) {
+              setGraphic(null);
+            }
           }
         }
       }
@@ -244,18 +259,33 @@ public class ManageBooksController extends ControllerWithLoader {
 
   @FXML
   private void onSearch() {
-    String searchText = searchField.getText().toLowerCase();
-    ObservableList<Book> filteredList = FXCollections.observableArrayList();
-    for (Book book : booksList) {
-      if (book.getTitle().toLowerCase().contains(searchText) || book.getAuthors().toString()
-          .toLowerCase()
-          .contains(searchText) || book.getISBN().toLowerCase().contains(searchText)
-          || book.getCategories().toString().toLowerCase().contains(searchText)
-          || book.getDescription().toLowerCase().contains(searchText)) {
-        filteredList.add(book);
-      }
-    }
-    booksTable.setItems(filteredList);
+    pause.setOnFinished(event -> {
+      String searchText = searchField.getText().toLowerCase();
+      Task<ObservableList<Book>> task = new Task<>() {
+        @Override
+        protected ObservableList<Book> call() {
+          List<Book> bookList = BookController.findBookByKeyword(searchText, 0, length);
+          return FXCollections.observableArrayList(bookList);
+        }
+      };
+
+//      task.setOnRunning(e -> showLoading(true));
+      task.setOnSucceeded(e -> {
+        booksList.setAll(task.getValue());
+        booksTable.setItems(booksList);
+//        showLoading(false);
+      });
+      task.setOnFailed(e -> {
+//        showLoading(false);
+        AlertDialog.showAlert("error", "Error",
+            task.getException().getMessage(), null);
+        System.out.println("Error while searching books: " + task.getException().getMessage());
+      });
+
+      new Thread(task).start();
+    });
+
+    pause.playFromStart();
   }
 
   @FXML
