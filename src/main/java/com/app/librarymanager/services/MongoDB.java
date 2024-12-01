@@ -1,6 +1,7 @@
 package com.app.librarymanager.services;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.geoWithinCenter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -16,6 +17,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -148,6 +150,32 @@ public class MongoDB {
     }
   }
 
+  public List<Document> findSortedObject(String collectionName, Bson filter, Bson order, int start,
+      int length) {
+    try {
+      List<Document> result = new ArrayList<>();
+      MongoCollection<Document> collection = database.getCollection(collectionName);
+      collection.find(filter).sort(order).skip(start).limit(length).forEach(result::add);
+      return result;
+    } catch (Exception e) {
+      System.out.println(
+          "Fail when trying to crawl " + collectionName + " start " + start + " length " + length);
+      return null;
+    }
+  }
+
+  public List<Document> getAggregate(String collectionName, List<Document> pipeline) {
+    try {
+      MongoCollection<Document> collection = database.getCollection(collectionName);
+      List<Document> documents = new ArrayList<>();
+      collection.aggregate(pipeline).forEach(documents::add);
+      return documents;
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      return null;
+    }
+  }
+
   public List<Document> findAllObject(String collectionName, String criteriaName, String regex) {
     // i: intensive, which doesn't separate from lower and uppercase
     return findAllObject(collectionName, Filters.regex(criteriaName, regex, "i"));
@@ -155,8 +183,7 @@ public class MongoDB {
 
   public Document findAnObject(String collectionName, Bson filter) {
     try {
-      MongoCollection<Document> collection = database.getCollection(collectionName);
-      return collection.find(filter).first();
+      return database.getCollection(collectionName).find(filter).first();
     } catch (Exception e) {
       System.err.println("Fail when finding: " + e.getMessage());
       return null;

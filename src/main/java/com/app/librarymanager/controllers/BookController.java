@@ -3,11 +3,16 @@ package com.app.librarymanager.controllers;
 import static com.mongodb.client.model.Filters.eq;
 
 import com.app.librarymanager.models.Book;
+import com.app.librarymanager.models.BookCopies;
+import com.app.librarymanager.models.Categories;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.Fetcher;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.bson.Document;
 import org.json.JSONArray;
@@ -41,6 +46,14 @@ public class BookController {
     }
   }
 
+  private static int numBookInUrl(String searchUrl) {
+    JSONObject jsonObject = Fetcher.get(searchUrl);
+    if (jsonObject == null) {
+      return 0;
+    }
+    return jsonObject.optInt("totalItems");
+  }
+
   private static List<Book> getBookInURL(String searchUrl) {
     try {
       List<Book> bookList = new ArrayList<>();
@@ -61,7 +74,7 @@ public class BookController {
         String publisher = volumeInfo.optString("publisher", "N/A");
         String publishedDate = volumeInfo.optString("publishedDate", "N/A");
         String description = volumeInfo.optString("description", "N/A");
-        int pageCount = volumeInfo.optInt("pageCount", -1);
+        int pageCount = volumeInfo.optInt("pageCount", 0);
 
         ArrayList<String> categories = getAllString("categories", volumeInfo);
 
@@ -89,18 +102,19 @@ public class BookController {
         ArrayList<String> authors = getAllString("authors", volumeInfo);
 
         JSONObject saleInfo = curBook.getJSONObject("saleInfo");
-        if (saleInfo.getString("saleability").equals("NOT_FOR_SALE")) {
-          continue;
-        }
-        JSONObject retailPrice = saleInfo.optJSONObject("retailPrice");
-        double price;
-        String currencyCode;
-        if (retailPrice == null) {
-          price = 0;
-          currencyCode = "N/A";
-        } else {
-          price = retailPrice.getInt("amount");
-          currencyCode = retailPrice.getString("currencyCode");
+        double price = 0;
+        String currencyCode = "N/A";
+
+        if (!saleInfo.getString("saleability").equals("NOT_FOR_SALE")) {
+          JSONObject retailPrice = saleInfo.optJSONObject("retailPrice");
+
+          if (retailPrice == null) {
+            price = 0;
+            currencyCode = "N/A";
+          } else {
+            price = retailPrice.getInt("amount");
+            currencyCode = retailPrice.getString("currencyCode");
+          }
         }
 
         JSONObject accessInfo = curBook.optJSONObject("accessInfo");
@@ -125,9 +139,18 @@ public class BookController {
 
   }
 
-  public static List<Book> searchByKeyword(String keyword) {
+  public static int numBookWithKeyword(String keyword) {
     String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
     String searchUrl = SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY");
+    return numBookInUrl(searchUrl);
+  }
+
+  public static List<Book> searchByKeyword(String keyword, int start, int length) {
+    String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
+    String searchUrl =
+        SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY") + "&maxResults="
+            + length + "&startIndex=" + start;
+//    System.out.println(searchUrl);
     return getBookInURL(searchUrl);
   }
 
@@ -135,7 +158,7 @@ public class BookController {
     String searchUrl = SEARCH_URL + "isbn:" + iSBN + "&key=" + dotenv.get("GBOOKS_API_KEY");
 //    System.out.println(searchUrl);
     List<Book> bookList = getBookInURL(searchUrl);
-    System.out.println(bookList.size());
+//    System.out.println(bookList.size());
     if (bookList.size() != 1) {
       return null;
     }
@@ -183,6 +206,10 @@ public class BookController {
     return result;
   }
 
+  public static List<Document> findBookByListID(List<String> bookId) {
+    return MongoDB.getInstance().findAllObject("books", Filters.in("id", bookId));
+  }
+
   public static long numberOfBooks() {
     return MongoDB.getInstance().countDocuments("books");
   }
@@ -191,8 +218,9 @@ public class BookController {
     if (isAvailable(book)) {
       return null;
     }
-    MongoDB database = MongoDB.getInstance();
-    return database.addToCollection("books", MongoDB.objectToMap(book));
+    CategoriesController.addCategoryList(
+        book.getCategories().stream().map(Categories::new).toList());
+    return MongoDB.getInstance().addToCollection("books", MongoDB.objectToMap(book));
   }
 
   public static boolean deleteBook(Book book) {
@@ -219,15 +247,15 @@ public class BookController {
     if (document == null || !document.getObjectId("_id").equals(book.get_id())) {
       return null;
     }
+
+    CategoriesController.addCategoryList(
+        book.getCategories().stream().map(Categories::new).toList());
     document = database.updateData("books", "id", book.getId(), MongoDB.objectToMap(book));
     return document;
   }
 
   public static void main(String[] args) {
-//    System.out.println(searchByISBN("9386551276"));
-//    List<Book> list = searchByKeyword("physics");
-//    for (int i = 0; i < 5; i++) {
-//      System.out.println(list.get(i));
-//    }
+//    System.out.println(searchByKeyword("python",0, 5));
+//    System.out.println(searchByKeyword("python",5, 5));
   }
 }
