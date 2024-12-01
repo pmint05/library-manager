@@ -7,9 +7,8 @@
   xmlns:fx="http://javafx.com/fxml"
   fx:controller="com.app.librarymanager.controllers.MyLoansController"
   prefHeight="400.0" prefWidth="600.0">
-  <children>
-    <ListView fx:id="loansListView" layoutX="20.0" layoutY="20.0" prefHeight="300.0" prefWidth="200.0"/>
-    <Button fx:id="returnBookButton" layoutX="240.0" layoutY="20.0" text="Return Book"/>
-    <Label fx:id="statusLabel" layoutX="240.0" layoutY="60.0" text="Status"/>
-  </children>
+  <ListView fx:id="loansListView" layoutX="20.0" layoutY="20.0" prefHeight="300.0"
+    prefWidth="200.0"/>
+  <Button fx:id="returnBookButton" layoutX="240.0" layoutY="20.0" text="Return Book"/>
+  <Label fx:id="statusLabel" layoutX="240.0" layoutY="60.0" text="Status"/>
 </AnchorPane>
