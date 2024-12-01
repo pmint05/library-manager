@@ -63,7 +63,7 @@ public class MongoDB {
   }
 
 
-  public static MongoDB getInstance() {
+  public static synchronized MongoDB getInstance() {
     if (instance == null) {
       instance = new MongoDB();
     }

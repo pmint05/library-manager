@@ -1,8 +1,5 @@
 package com.app.librarymanager.controllers;
 
-import com.app.librarymanager.controllers.BookLoanController.ReturnBookLoan;
-import com.app.librarymanager.models.Book;
-import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.models.BookRating;
 import com.app.librarymanager.services.MongoDB;
 import com.mongodb.client.model.Filters;
@@ -15,9 +12,13 @@ import org.bson.types.ObjectId;
 
 public class BookRatingController {
 
-  public static ObjectId findIdRating(BookRating rating) {
-    Document document = MongoDB.getInstance().findAnObject("bookRating",
+  public static Document findRating(BookRating rating) {
+    return MongoDB.getInstance().findAnObject("bookRating",
         Map.of("userId", rating.getUserId(), "bookId", rating.getBookId()));
+  }
+
+  public static ObjectId findIdRating(BookRating rating) {
+    Document document = findRating(rating);
     if (document == null) {
       return null;
     }
@@ -102,6 +103,6 @@ public class BookRatingController {
 
 
   public static void main(String[] args) {
-    System.out.println(getTopRatingBook(0, 1000000).get(0).getBookRating().getBookId());
+//    System.out.println(getTopRatingBook(0, 1000000).get(0).getBookRating().getBookId());
   }
 }

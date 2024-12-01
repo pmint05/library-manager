@@ -1,24 +1,17 @@
 package com.app.librarymanager.controllers;
 
-import static com.mongodb.client.model.Filters.all;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.gt;
-import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lte;
 
-import com.app.librarymanager.controllers.BookRatingController.ReturnRating;
-import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.models.BookLoan.Mode;
-import com.app.librarymanager.models.BookRating;
 import com.app.librarymanager.services.MongoDB;
 
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -66,19 +59,6 @@ public class BookLoanController {
     return bookLoan.getType() == Mode.OFFLINE ? addOfflineLoan(bookLoan) : addOnlineLoan(bookLoan);
   }
 
-  //  public static Document findLoan(BookLoan bookLoan) {
-//    return MongoDB.getInstance().findAnObject("bookLoan", bookLoanToMap(bookLoan));
-//  }
-//
-//  public static boolean canView(BookLoan bookLoan) {
-//    Document currentLoan = findLoan(bookLoan);
-//    if (currentLoan == null) {
-//      return false;
-//    }
-//    Date dueDate = currentLoan.getDate("dueDate");
-//    return dueDate.after(new Date());
-//  }
-//
   public static Document returnBook(BookLoan bookLoan) {
     if (bookLoan.getType() == Mode.OFFLINE) {
       BookCopiesController.increaseCopy(
@@ -182,17 +162,5 @@ public class BookLoanController {
   }
 
   public static void main(String[] args) {
-//    for (ReturnBookLoan x : getAllLentBookOf("bb", 0, 1000000)) {
-//      System.out.println("======");
-//      System.out.println(
-//          "BookLoan = " + x.getBookLoan().getBookId() + " " + x.getBookLoan().getUserId() + " "
-//              + x.getBookLoan().getBorrowDate() + " " + x.getBookLoan().getDueDate()
-//              + x.getBookLoan().isValid() + " " + x.getBookLoan().getType()
-//              + x.getBookLoan().getNumCopies());
-//      System.out.println("titleBook = " + x.getTitleBook());
-//      System.out.println("thumbnailBook = " + x.getThumbnailBook());
-//      System.out.println("Time = " + x.getBookLoan().getLastUpdated());
-//    }
-//    System.out.println(getRecentLoan(0, 1000000));
   }
 }

@@ -1,13 +1,6 @@
 package com.app.librarymanager.utils;
 
-//import org.apache.commons.validator.routines.*;
-
-import java.io.Closeable;
-import java.util.Arrays;
-import java.util.Scanner;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import java.util.TreeSet;
 
 public class DataValidation {
 
@@ -111,6 +104,5 @@ public class DataValidation {
   }
 
   public static void main(String[] args) {
-    System.out.println(checkInt("value", "-2.345"));
   }
 }

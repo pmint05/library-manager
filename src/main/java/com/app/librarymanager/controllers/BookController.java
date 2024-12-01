@@ -1,18 +1,12 @@
 package com.app.librarymanager.controllers;
 
-import static com.mongodb.client.model.Filters.eq;
-
 import com.app.librarymanager.models.Book;
-import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.models.Categories;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.Fetcher;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.bson.Document;
 import org.json.JSONArray;
@@ -214,6 +208,10 @@ public class BookController {
     return MongoDB.getInstance().countDocuments("books");
   }
 
+  public static long numberOfActiveBooks() {
+    return MongoDB.getInstance().countDocuments("books", Filters.eq("activated", true));
+  }
+
   public static Document addBook(Book book) {
     if (isAvailable(book)) {
       return null;
@@ -255,7 +253,5 @@ public class BookController {
   }
 
   public static void main(String[] args) {
-//    System.out.println(searchByKeyword("python",0, 5));
-//    System.out.println(searchByKeyword("python",5, 5));
   }
 }
