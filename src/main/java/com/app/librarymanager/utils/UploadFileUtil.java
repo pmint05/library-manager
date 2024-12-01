@@ -92,9 +92,23 @@ public class UploadFileUtil {
 
   public static BufferedImage cropImage(File file, int size) throws IOException {
     BufferedImage originalImage = ImageIO.read(file);
-    return originalImage.getSubimage(
-        (originalImage.getWidth() - size) / 2,
-        (originalImage.getHeight() - size) / 2,
+    int width = originalImage.getWidth();
+    int height = originalImage.getHeight();
+
+    if (width > height) {
+      height = size;
+      width = (int) ((double) originalImage.getWidth() / originalImage.getHeight() * size);
+    } else {
+      width = size;
+      height = (int) ((double) originalImage.getHeight() / originalImage.getWidth() * size);
+    }
+
+    BufferedImage resizedImage = new BufferedImage(width, height, originalImage.getType());
+    resizedImage.getGraphics().drawImage(originalImage, 0, 0, width, height, null);
+
+    return resizedImage.getSubimage(
+        (width - size) / 2,
+        (height - size) / 2,
         size,
         size
     );

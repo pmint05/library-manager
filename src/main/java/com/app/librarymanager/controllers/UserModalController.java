@@ -80,22 +80,12 @@ public class UserModalController extends ControllerWithLoader {
 
   @FXML
   private void initialize() {
-    DatePickerUtil.setDatePickerFormat(birthdayField);
-    birthdayField.setDayCellFactory(new Callback<DatePicker, DateCell>() {
-      @Override
-      public DateCell call(DatePicker param) {
-        return new DateCell() {
-          @Override
-          public void updateItem(LocalDate item, boolean empty) {
-            super.updateItem(item, empty);
-            if (item.isAfter(LocalDate.now())) {
-              setDisable(true);
-              setStyle("-fx-opacity: 0.5;");
-            }
-          }
-        };
-      }
+    birthdayField.getEditor().setOnMouseClicked(event -> {
+      birthdayField.show();
     });
+    DatePickerUtil.setDatePickerFormat(birthdayField);
+    DatePickerUtil.disableFutureDates(birthdayField);
+    DatePickerUtil.disableEditor(birthdayField);
     profileImageView.setOnMouseClicked(event -> {
       FileChooser fileChooser = new FileChooser();
       fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png",

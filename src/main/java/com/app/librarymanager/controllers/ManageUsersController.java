@@ -3,6 +3,7 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.utils.AlertDialog;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -15,7 +16,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import com.app.librarymanager.models.User;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -106,7 +106,10 @@ public class ManageUsersController extends ControllerWithLoader {
           setGraphic(null);
         } else {
           if (imageCache.containsKey(item)) {
+            imageView.setFitHeight(40);
+            imageView.setFitWidth(40);
             imageView.setImage(imageCache.get(item));
+            setGraphic(imageView);
           } else {
             try {
               Image image = new Image(item, true);
@@ -169,29 +172,12 @@ public class ManageUsersController extends ControllerWithLoader {
       @Override
       protected ObservableList<User> call() {
         ObservableList<User> users = FXCollections.observableArrayList();
-        JSONObject response = UserController.listUsers();
-        if (response.getBoolean("success")) {
-          JSONArray usersArray = response.getJSONArray("data");
-          for (int i = 0; i < usersArray.length(); i++) {
-            JSONObject userJson = usersArray.getJSONObject(i);
-            User user = new User(userJson.getString("uid"), userJson.getString("email"),
-                userJson.optString("password", ""), userJson.optString("displayName", ""),
-                userJson.optJSONObject("customClaims").optString("birthday", ""),
-                userJson.optString("phoneNumber", ""), userJson.optString("photoUrl", ""),
-                String.valueOf(
-                    userJson.getJSONObject("userMetadata").optLong("creationTimestamp", 0L)),
-                String.valueOf(
-                    userJson.getJSONObject("userMetadata").optLong("lastModifiedAt", 0L)),
-                String.valueOf(
-                    userJson.getJSONObject("userMetadata").optLong("lastSignInTimestamp", 0L)),
-                userJson.optString("providerId", ""),
-                userJson.optJSONObject("customClaims").optBoolean("admin", false),
-                userJson.getBoolean("emailVerified"), userJson.getBoolean("disabled"));
-            users.add(user);
-          }
-        } else {
-          AlertDialog.showAlert("error", "Error", response.getString("message"), null);
+        List<User> response = UserController.listUsers();
+        if (response == null) {
+          AlertDialog.showAlert("error", "Error", "Failed to load users", null);
+          return users;
         }
+        users.addAll(response);
         return users;
       }
     };
@@ -334,42 +320,6 @@ public class ManageUsersController extends ControllerWithLoader {
     });
   }
 
-  private void openEditUserModal(User user) {
-    try {
-      FXMLLoader loader = new FXMLLoader(
-          getClass().getResource("/views/components/user-modal.fxml"));
-      Parent parent = loader.load();
-
-      UserModalController controller = loader.getController();
-      controller.setUser(user);
-      controller.setSaveCallback(this::updateUserInTable);
-
-      Dialog<Void> dialog = new Dialog<>();
-      dialog.setTitle("Edit User");
-      dialog.initOwner(usersTable.getScene().getWindow());
-      dialog.getDialogPane().setContent(parent);
-
-      String saveButtonText = user != null ? "Save & Update" : "Create";
-
-      ButtonType saveButtonType = new ButtonType(saveButtonText, ButtonBar.ButtonData.OK_DONE);
-      ButtonType cancelButtonType = ButtonType.CANCEL;
-      dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
-      Button saveButton = (Button) dialog.getDialogPane().lookupButton(saveButtonType);
-      saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-        controller.onSubmit();
-        event.consume();
-      });
-      Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelButtonType);
-      cancelButton.addEventFilter(ActionEvent.ACTION, event -> dialog.close());
-
-      dialog.setResultConverter(dialogButton -> null);
-
-      dialog.showAndWait();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
   public void updateUserInTable(User updatedUser) {
     usersList.replaceAll(user -> user.getUid().equals(updatedUser.getUid()) ? updatedUser : user);
     usersTable.refresh();
@@ -408,11 +358,13 @@ public class ManageUsersController extends ControllerWithLoader {
       ButtonType cancelButtonType = ButtonType.CANCEL;
       dialog.getDialogPane().getButtonTypes().addAll(okButtonType, cancelButtonType);
       Button saveButton = (Button) dialog.getDialogPane().lookupButton(okButtonType);
+      saveButton.getStyleClass().addAll("btn", "btn-primary");
       saveButton.addEventFilter(ActionEvent.ACTION, event -> {
         controller.onSubmit();
         event.consume();
       });
       Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelButtonType);
+      cancelButton.getStyleClass().addAll("btn", "btn-text");
       cancelButton.addEventFilter(ActionEvent.ACTION, event -> dialog.close());
 
       dialog.setResultConverter(dialogButton -> null);

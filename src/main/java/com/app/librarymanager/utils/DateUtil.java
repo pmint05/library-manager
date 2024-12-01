@@ -60,7 +60,12 @@ public class DateUtil {
       return parts[2] + "/" + parts[1] + "/" + parts[0];
 
     } catch (ArrayIndexOutOfBoundsException e) {
-      return date;
+      try {
+        String[] parts = date.split("-");
+        return parts[1] + "/" + parts[0];
+      } catch (ArrayIndexOutOfBoundsException e1) {
+        return date;
+      }
     }
   }
 

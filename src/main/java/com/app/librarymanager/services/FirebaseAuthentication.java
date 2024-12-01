@@ -13,6 +13,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.firebase.auth.ExportedUserRecord;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.StreamSupport;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -158,8 +160,8 @@ public class FirebaseAuthentication {
 
   public static int countTotalUser() {
     try {
-//      return FirebaseAuth.getInstance().listUsers(null).getUsers().size();
-      return 1;
+      Iterable<ExportedUserRecord> users = FirebaseAuth.getInstance().listUsers(null).getValues();
+      return (int) StreamSupport.stream(users.spliterator(), false).count();
     } catch (Exception e) {
       return 0;
     }

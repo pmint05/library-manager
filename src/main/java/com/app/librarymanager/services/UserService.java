@@ -13,7 +13,7 @@ import org.json.JSONObject;
 
 public class UserService {
 
-  public static final String initialDirectory = System.getProperty("user.home" + "/Pictures");
+  public static final String initialDirectory = System.getProperty("user.home");
 
   private static UserService instance;
 

@@ -1,6 +1,7 @@
 package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.models.User;
+import com.app.librarymanager.services.FirebaseAuthentication;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DatePickerUtil;
 import com.app.librarymanager.utils.StageManager;
@@ -37,8 +38,6 @@ public class RegisterController extends ControllerWithLoader {
   private DatePicker birthdayField;
   @FXML
   private TextField fullNameField;
-//  @FXML
-//  private TextField phoneNumberField;
 
   @FXML
   private VBox loadingOverlay;
@@ -48,28 +47,18 @@ public class RegisterController extends ControllerWithLoader {
 
   @FXML
   private void initialize() {
-//    birthdayField.getEditor().setOnMouseClicked(event -> {
-//      birthdayField.show();
-//    });
+
+    birthdayField.getEditor().setOnMouseClicked(event -> {
+      birthdayField.show();
+    });
+
     setLoadingText("Registering your account...");
     Platform.runLater(() -> emailField.requestFocus());
 
     DatePickerUtil.setDatePickerFormat(birthdayField);
-    birthdayField.setDayCellFactory(new Callback<DatePicker, DateCell>() {
-      @Override
-      public DateCell call(DatePicker param) {
-        return new DateCell() {
-          @Override
-          public void updateItem(LocalDate item, boolean empty) {
-            super.updateItem(item, empty);
-            if (item.isAfter(LocalDate.now())) {
-              setDisable(true);
-              setStyle("-fx-opacity: 0.5;");
-            }
-          }
-        };
-      }
-    });
+    DatePickerUtil.disableFutureDates(birthdayField);
+    DatePickerUtil.disableEditor(birthdayField);
+    birthdayField.getEditor().setEditable(false);
   }
 
   @FXML
@@ -78,7 +67,6 @@ public class RegisterController extends ControllerWithLoader {
     String password = passwordField.getText().trim();
     String confirmPassword = confirmPasswordField.getText().trim();
     String fullName = fullNameField.getText().trim();
-//    String phoneNumber = phoneNumberField.getText().trim();
     String birthday = birthdayField.getEditor().getText().trim();
 
     if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || fullName.isEmpty()
@@ -95,12 +83,6 @@ public class RegisterController extends ControllerWithLoader {
       AlertDialog.showAlert("error", "Password Mismatch", "Passwords do not match.", null);
       return;
     }
-
-//    if (!phoneNumber.matches("\\d{10}")) {
-//      AlertDialog.showAlert("error", "Invalid Phone Number",
-//          "Please enter a valid 10-digit phone number.", null);
-//      return;
-//    }
 
     User newUser = new User(email, password, fullName, birthday, "", false);
     Task<JSONObject> registerTask = getTask(newUser);
@@ -152,6 +134,15 @@ public class RegisterController extends ControllerWithLoader {
         AuthController.getInstance().onRegisterFailure(response.getString("code"));
       }
     });
+
+    setCancelLoadingAction(e -> {
+      googleLoginTask.cancel();
+      FirebaseAuthentication.stopReceiver();
+      showLoading(false);
+      return e;
+    });
+    showCancel(true);
+
     new Thread(googleLoginTask).start();
   }
 

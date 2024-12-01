@@ -103,23 +103,14 @@ public class ProfileController extends ControllerWithLoader {
     task.setOnSucceeded(event -> showLoading(false));
     task.setOnFailed(event -> showLoading(false));
     new Thread(task).start();
-//    hBox.prefWidthProperty().bind(stackPane.widthProperty());
-    DatePickerUtil.setDatePickerFormat(birthdayField);
-    birthdayField.setDayCellFactory(new Callback<DatePicker, DateCell>() {
-      @Override
-      public DateCell call(DatePicker param) {
-        return new DateCell() {
-          @Override
-          public void updateItem(LocalDate item, boolean empty) {
-            super.updateItem(item, empty);
-            if (item.isAfter(LocalDate.now())) {
-              setDisable(true);
-              setStyle("-fx-opacity: 0.5;");
-            }
-          }
-        };
-      }
+
+    birthdayField.getEditor().setOnMouseClicked(event -> {
+      birthdayField.show();
     });
+
+    DatePickerUtil.setDatePickerFormat(birthdayField);
+    DatePickerUtil.disableFutureDates(birthdayField);
+    DatePickerUtil.disableEditor(birthdayField);
     profileImageView.setOnMouseClicked(event -> {
       FileChooser fileChooser = new FileChooser();
       fileChooser.getExtensionFilters()
@@ -246,6 +237,7 @@ public class ProfileController extends ControllerWithLoader {
         initialBirthday = birthday;
         saveChangesButton.setDisable(true);
         AlertDialog.showAlert("success", "Success", resp.getString("message"), null);
+        AuthController.getInstance().getNewUserClaims();
       } else {
         AlertDialog.showAlert("error", "Error", resp.getString("message"), null);
       }

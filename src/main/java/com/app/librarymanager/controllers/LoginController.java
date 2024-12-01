@@ -75,7 +75,7 @@ public class LoginController extends ControllerWithLoader {
       return true;
     }
 
-    if (password.isEmpty() || password.length() < 6) {
+    if (password.length() < 6) {
       AlertDialog.showAlert("error", "Invalid Password",
           "Password must be at least 6 characters long.", null);
       return true;
