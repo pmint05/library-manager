@@ -6,10 +6,12 @@ import static com.mongodb.client.model.Filters.gt;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lte;
 
+import com.app.librarymanager.controllers.BookRatingController.ReturnRating;
 import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.models.BookLoan.Mode;
+import com.app.librarymanager.models.BookRating;
 import com.app.librarymanager.services.MongoDB;
 
 import com.mongodb.client.model.Filters;
@@ -21,6 +23,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.stream.Collectors;
+import lombok.Data;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -84,12 +88,44 @@ public class BookLoanController {
         .updateData("bookLoan", "_id", bookLoan.get_id(), new HashMap<>(Map.of("valid", false)));
   }
 
-  public static List<Book> getAllLentBook(String userId) {
-    List<Document> documentList = MongoDB.getInstance()
-        .findAllObject("bookLoan", Filters.and(eq("userId", userId), eq("valid", true)));
-    List<Book> bookList = new ArrayList<>();
-    documentList.forEach(e -> bookList.add(BookController.findBookByID(e.getString("bookId"))));
-    return bookList;
+  @Data
+  public static class ReturnBookLoan {
+
+    BookLoan bookLoan;
+    String titleBook;
+    String thumbnailBook;
+
+    public ReturnBookLoan(BookLoan bookLoan, String titleBook, String thumbnailBook) {
+      this.bookLoan = bookLoan;
+      this.thumbnailBook = thumbnailBook;
+      this.titleBook = titleBook;
+    }
+  }
+
+  private static List<ReturnBookLoan> bookLoanFromDocument(List<Document> documents) {
+    try {
+      Map<String, Document> bookDocs = BookController.findBookByListID(
+              documents.stream().map(doc -> doc.getString("bookId")).toList()).stream()
+          .collect(Collectors.toMap(doc -> doc.getString("id"), doc -> doc));
+      return documents.stream().map(doc -> {
+        Document bookDoc = bookDocs.get(doc.getString("bookId"));
+        return new ReturnBookLoan(new BookLoan(doc), bookDoc.getString("title"),
+            bookDoc.getString("thumbnail"));
+      }).toList();
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  public static List<ReturnBookLoan> getAllLentBook(int start, int length) {
+    return bookLoanFromDocument(
+        MongoDB.getInstance().findAllObject("bookLoan", Filters.eq("valid", true), start, length));
+  }
+
+  public static List<ReturnBookLoan> getAllLentBookOf(String userId, int start, int length) {
+    return bookLoanFromDocument(MongoDB.getInstance()
+        .findAllObject("bookLoan", Filters.and(eq("userId", userId), eq("valid", true)), start,
+            length));
   }
 
   public static long countLentBookOf(String userId) {
@@ -97,28 +133,32 @@ public class BookLoanController {
         .countDocuments("bookLoan", Filters.and(eq("userId", userId), eq("valid", true)));
   }
 
-  public static List<BookLoan> getValidLentBook(String userId) {
-    return MongoDB.getInstance()
-        .findAllObject("bookLoan", Filters.and(eq("userId", userId), eq("valid", true))).stream()
-        .map(BookLoan::new).toList();
+  public static List<ReturnBookLoan> getRecentLoan(int start, int length) {
+    return bookLoanFromDocument(MongoDB.getInstance()
+        .findSortedObject("bookLoan", Filters.eq("valid", true),
+            Sorts.orderBy(Sorts.descending("lastUpdated")), start, length));
   }
 
-
-  public static List<BookLoan> getRecentLoan(int start, int length) {
-    return MongoDB.getInstance().findSortedObject("bookLoan", Filters.eq("valid", true),
-            Sorts.orderBy(Sorts.descending("lastUpdated")), start, length).stream().map(BookLoan::new)
-        .toList();
-  }
-
-  public static List<Document> getTopLentBook(int start, int length) {
-    return MongoDB.getInstance()
-        .getAggregate("bookLoan", List.of(
-            new Document("$group", new Document("_id", "$bookId")
-                .append("count", new Document("$sum", 1))),
-            new Document("$sort", new Document("count", -1)),
-            new Document("$skip", start),
-            new Document("$limit", length)
-        ));
+  public static List<ReturnBookLoan> getTopLentBook(int start, int length) {
+    try {
+      List<Document> documents = MongoDB.getInstance().getAggregate("bookLoan", List.of(
+          new Document("$group",
+              new Document("_id", "$bookId").append("count", new Document("$sum", 1))),
+          new Document("$sort", new Document("count", -1)), new Document("$skip", start),
+          new Document("$limit", length)));
+      Map<String, Document> bookDocs = BookController.findBookByListID(
+              documents.stream().map(doc -> doc.getString("_id")).toList()).stream()
+          .collect(Collectors.toMap(doc -> doc.getString("id"), doc -> doc));
+      return documents.stream().map(doc -> {
+        Document bookDoc = bookDocs.get(doc.getString("_id"));
+        return new ReturnBookLoan(
+            new BookLoan("", doc.getString("_id"), new Date(), new Date(), doc.getInteger("count")),
+            bookDoc.getString("title"), bookDoc.getString("thumbnail"));
+      }).toList();
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      return null;
+    }
   }
 
   public static long numberOfRecords() {
@@ -128,18 +168,6 @@ public class BookLoanController {
   public static long countLentBook() {
     return MongoDB.getInstance().countDocuments("bookLoan", Filters.eq("valid", true));
   }
-
-  public static List<BookLoan> getLentBook() {
-    List<BookLoan> bookLoanList = new ArrayList<>();
-    MongoDB.getInstance().findAllObject("bookLoan", Filters.eq("valid", true))
-        .forEach(e -> bookLoanList.add(new BookLoan(e)));
-    return bookLoanList;
-  }
-
-//  public static int countInvalidLendBook(String userId) {
-//    return MongoDB.getInstance()
-//        .findAllObject("bookLoan", Filters.and(eq("userId", userId), eq("valid", false))).size();
-//  }
 
   public static boolean refreshDatabase() {
     Date curDate = new Date();
@@ -154,5 +182,17 @@ public class BookLoanController {
   }
 
   public static void main(String[] args) {
+//    for (ReturnBookLoan x : getAllLentBookOf("bb", 0, 1000000)) {
+//      System.out.println("======");
+//      System.out.println(
+//          "BookLoan = " + x.getBookLoan().getBookId() + " " + x.getBookLoan().getUserId() + " "
+//              + x.getBookLoan().getBorrowDate() + " " + x.getBookLoan().getDueDate()
+//              + x.getBookLoan().isValid() + " " + x.getBookLoan().getType()
+//              + x.getBookLoan().getNumCopies());
+//      System.out.println("titleBook = " + x.getTitleBook());
+//      System.out.println("thumbnailBook = " + x.getThumbnailBook());
+//      System.out.println("Time = " + x.getBookLoan().getLastUpdated());
+//    }
+//    System.out.println(getRecentLoan(0, 1000000));
   }
 }

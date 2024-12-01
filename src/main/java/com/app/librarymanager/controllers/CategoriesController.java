@@ -68,6 +68,11 @@ public class CategoriesController {
         .toList();
   }
 
+  public static long countBookOfCategory(Categories categories) {
+    return MongoDB.getInstance().countDocuments("books",
+        Filters.regex("categories", categories.getName().toLowerCase(), "i"));
+  }
+
   public static void main(String[] args) {
   }
 }
