@@ -1,38 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.text.Text?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+<?import org.kordamp.ikonli.javafx.*?>
 
-<?import javafx.geometry.Insets?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.control.Separator?>
-<BorderPane fx:id="rootPane" xmlns="http://javafx.com/javafx/null"
+<BorderPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.12"
   xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="com.app.librarymanager.controllers.LayoutController">
   <left>
     <ToolBar fx:id="adminToolBar" nodeOrientation="LEFT_TO_RIGHT" orientation="VERTICAL"
-      BorderPane.alignment="TOP_LEFT" styleClass="toolbar">
-      <HBox alignment="CENTER">
-        <padding>
-          <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-        </padding>
-        <ImageView fitHeight="40" preserveRatio="true">
-          <Image url="@../images/logo-dark.png"/>
-        </ImageView>
-      </HBox>
-      <Separator styleClass="h-separator"/>
-      <Button mnemonicParsing="false" styleClass="btn, btn-toolbar, active" maxWidth="Infinity"
-        onAction="#handleShowDashboard">
+      styleClass="toolbar" BorderPane.alignment="TOP_LEFT">
+      <!--      <HBox alignment="CENTER">-->
+      <!--        <padding>-->
+      <!--          <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>-->
+      <!--        </padding>-->
+      <!--        <ImageView fitHeight="40" preserveRatio="true">-->
+      <!--          <Image url="@../images/logo-dark.png"/>-->
+      <!--        </ImageView>-->
+      <!--      </HBox>-->
+      <!--      <Separator styleClass="h-separator"/>-->
+      <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#handleShowDashboard"
+        styleClass="btn, btn-toolbar, active">
         <graphic>
           <HBox alignment="CENTER_LEFT" spacing="8" HBox.hgrow="ALWAYS">
             <FontIcon iconLiteral="anto-home" iconSize="16" styleClass="toolbar-icon"/>
@@ -40,8 +32,8 @@
           </HBox>
         </graphic>
       </Button>
-      <Button mnemonicParsing="false" styleClass="btn, btn-toolbar" maxWidth="Infinity"
-        onAction="#handleManageBooks">
+      <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#handleManageBooks"
+        styleClass="btn, btn-toolbar">
         <graphic>
           <HBox alignment="CENTER_LEFT" spacing="8" HBox.hgrow="ALWAYS">
             <FontIcon iconLiteral="anto-read" iconSize="16" styleClass="toolbar-icon"/>
@@ -49,8 +41,8 @@
           </HBox>
         </graphic>
       </Button>
-      <Button mnemonicParsing="false" styleClass="btn, btn-toolbar" maxWidth="Infinity"
-        onAction="#handleManageBookLoans">
+      <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#handleManageBookLoans"
+        styleClass="btn, btn-toolbar">
         <graphic>
           <HBox alignment="CENTER_LEFT" spacing="8" HBox.hgrow="ALWAYS">
             <FontIcon iconLiteral="anto-solution" iconSize="16" styleClass="toolbar-icon"/>
@@ -58,8 +50,8 @@
           </HBox>
         </graphic>
       </Button>
-      <Button mnemonicParsing="false" styleClass="btn, btn-toolbar" maxWidth="Infinity"
-        onAction="#handleManageUsers">
+      <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#handleManageUsers"
+        styleClass="btn, btn-toolbar">
         <graphic>
           <HBox alignment="CENTER_LEFT" spacing="8" HBox.hgrow="ALWAYS">
             <FontIcon iconLiteral="anto-team" iconSize="16" styleClass="toolbar-icon"/>
@@ -67,8 +59,8 @@
           </HBox>
         </graphic>
       </Button>
-      <Button mnemonicParsing="false" styleClass="btn, btn-toolbar" maxWidth="Infinity"
-        onAction="#handleManageCategories">
+      <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#handleManageCategories"
+        styleClass="btn, btn-toolbar">
         <graphic>
           <HBox alignment="CENTER_LEFT" spacing="8" HBox.hgrow="ALWAYS">
             <FontIcon iconLiteral="anto-apartment" iconSize="16" styleClass="toolbar-icon"/>
@@ -79,21 +71,31 @@
     </ToolBar>
   </left>
   <top>
-    <MenuBar fx:id="menuBar" styleClass="menu-bar">
-      <Menu styleClass="menu" text="Account">
-        <MenuItem fx:id="loginMenuItem" onAction="#onLoginButtonClick" text="Login"/>
-        <MenuItem fx:id="registerMenuItem" onAction="#onRegisterButtonClick" text="Register"/>
-        <MenuItem fx:id="profileMenuItem" onAction="#handleProfileSettings" text="Profile"/>
-        <MenuItem fx:id="logoutMenuItem" onAction="#onLogoutButtonClick" text="Logout"/>
-      </Menu>
-      <Menu fx:id="adminMenu" styleClass="menu" text="Admin">
-        <MenuItem onAction="#handleShowDashboard" text="Dashboard"/>
-        <MenuItem onAction="#handleManageBooks" text="Manage Books"/>
-        <MenuItem onAction="#handleManageUsers" text="Manage Users"/>
-        <MenuItem onAction="#handleManageBookLoans" text="Manage Loans"/>
-        <MenuItem onAction="#handleManageCategories" text="Manage Categories"/>
-      </Menu>
-    </MenuBar>
+    <ToolBar fx:id="navBar" prefHeight="40" styleClass="nav-bar" BorderPane.alignment="CENTER">
+      <ImageView fitHeight="32.0" nodeOrientation="INHERIT" pickOnBounds="true"
+        preserveRatio="true">
+        <Image url="@../images/logo-dark.png"/>
+      </ImageView>
+      <Region HBox.hgrow="ALWAYS" minWidth="50"/>
+      <TextField fx:id="searchField" promptText="Search book..." styleClass="input" prefWidth="250"
+        maxWidth="300"/>
+      <Region HBox.hgrow="ALWAYS" prefWidth="10" maxWidth="30"/>
+      <Button fx:id="homeNavBtn" mnemonicParsing="false" styleClass="btn, btn-nav" text="Home"/>
+      <Button fx:id="categoriesNavBtn" mnemonicParsing="false" styleClass="btn, btn-nav"
+        text="Categories"/>
+      <Button fx:id="loansNavBtn" mnemonicParsing="false" styleClass="btn, btn-nav"
+        text="My Loans"/>
+      <Button fx:id="favoritesNavBtn" mnemonicParsing="false" styleClass="btn, btn-nav"
+        text="My Favorites"/>
+      <Region HBox.hgrow="ALWAYS" prefWidth="10" maxWidth="10"/>
+      <ImageView fx:id="avatarImageView" fitHeight="32.0" onMouseClicked="#handleImageClick"
+        pickOnBounds="true" preserveRatio="true">
+        <Image url="@../images/user.png"/>
+        <clip>
+          <Circle centerX="16.0" centerY="16.0" radius="16.0"/>
+        </clip>
+      </ImageView>
+    </ToolBar>
   </top>
   <center>
     <StackPane fx:id="contentPane"/>

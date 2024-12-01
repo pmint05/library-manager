@@ -11,23 +11,24 @@ import org.bson.Document;
 
 public class FavoriteController {
 
-  public static boolean isFavorite(BookUser favorite) {
+  public static Document findFavorite(BookUser favorite) {
     return MongoDB.getInstance().findAnObject("favorite",
-        Map.of("userId", favorite.getUserId(), "bookId", favorite.getBookId())) != null;
+        Map.of("userId", favorite.getUserId(), "bookId", favorite.getBookId()));
   }
 
   public static Document addToFavorite(BookUser favorite) {
-    if (isFavorite(favorite)) {
+    if (findFavorite(favorite) != null) {
       return null;
     }
     return MongoDB.getInstance().addToCollection("favorite", MongoDB.objectToMap(favorite));
   }
 
   public static boolean removeFromFavorite(BookUser favorite) {
-    if (!isFavorite(favorite)) {
+    Document favDoc = findFavorite(favorite);
+    if (favDoc == null) {
       return false;
     }
-    return MongoDB.getInstance().deleteFromCollection("favorite", "_id", favorite.get_id());
+    return MongoDB.getInstance().deleteFromCollection("favorite", "_id", favDoc.getObjectId("_id"));
   }
 
   public static List<Book> getFavoriteBookOfUser(String userId) {
@@ -43,7 +44,5 @@ public class FavoriteController {
   }
 
   public static void main(String[] args) {
-//    System.out.println(countFavoriteBookOf("ngu1"));
-//    System.out.println(countFavoriteBookOf("test2"));
   }
 }

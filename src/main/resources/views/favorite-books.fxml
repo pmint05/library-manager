@@ -3,14 +3,25 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-  xmlns:fx="http://javafx.com/fxml"
-  fx:controller="com.app.librarymanager.controllers.MyFavoriteBooksController"
-  prefHeight="400.0" prefWidth="600.0">
-  <children>
-    <ListView fx:id="favoriteBooksListView" layoutX="20.0" layoutY="60.0" prefHeight="300.0"
-      prefWidth="200.0"/>
-    <TextField fx:id="searchField" layoutX="240.0" layoutY="20.0" prefWidth="200.0"/>
-    <Button fx:id="searchButton" layoutX="460.0" layoutY="20.0" text="Search"/>
-  </children>
-</AnchorPane>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+<StackPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="com.app.librarymanager.controllers.MyFavoriteBooksController">
+  <VBox spacing="10">
+    <padding>
+      <Insets bottom="20" left="20" right="20" top="20"/>
+    </padding>
+    <Text styleClass="content-title" text="My Favorite Books"/>
+    <TextField fx:id="searchField" styleClass="input" promptText="Search Favorite Books..." />
+    <ScrollPane fx:id="favoriteScrollPane" hbarPolicy="NEVER" styleClass="scroll-pane"
+      maxWidth="Infinity">
+      <FlowPane fx:id="favoriteBooksFlowPane" styleClass="flow-pane" vgap="10" hgap="10"/>
+    </ScrollPane>
+  </VBox>
+  <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false"
+    StackPane.alignment="CENTER">
+    <Text fx:id="loadingText" text="Loading..."/>
+    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
+    <Button fx:id="cancelButton" styleClass="btn, btn-text" text="Cancel"/>
+  </VBox>
+</StackPane>

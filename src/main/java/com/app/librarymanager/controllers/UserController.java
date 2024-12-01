@@ -2,9 +2,16 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.FirebaseAuthentication;
+import com.app.librarymanager.utils.UploadFileUtil;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.UserIdentifier;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.auth.UserRecord.UpdateRequest;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,11 +34,37 @@ public class UserController {
     }
   }
 
+  private static User jsonToUser(JSONObject jsonUser) {
+    return new User(jsonUser.getString("uid"), jsonUser.getString("email"),
+        jsonUser.optString("password", ""), jsonUser.optString("displayName", ""),
+        jsonUser.optJSONObject("customClaims").optString("birthday", ""),
+        jsonUser.optString("phoneNumber", ""), jsonUser.optString("photoUrl", ""),
+        String.valueOf(
+            jsonUser.getJSONObject("userMetadata").optLong("creationTimestamp", 0L)),
+        String.valueOf(
+            jsonUser.getJSONObject("userMetadata").optLong("lastModifiedAt", 0L)),
+        String.valueOf(
+            jsonUser.getJSONObject("userMetadata").optLong("lastSignInTimestamp", 0L)),
+        jsonUser.optString("providerId", ""),
+        jsonUser.optJSONObject("customClaims").optBoolean("admin", false),
+        jsonUser.getBoolean("emailVerified"), jsonUser.getBoolean("disabled"));
+  }
+
+  public static User getUser(String userId) {
+    try {
+      checkPermission();
+      JSONObject jsonUser = new JSONObject(FirebaseAuth.getInstance().getUser(userId));
+      return jsonToUser(jsonUser);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
   public static JSONObject createUser(User user) {
     try {
       checkPermission();
       return new JSONObject().put("success",
-              FirebaseAuthentication.createAccountWithEmailAndPassword(user))
+              (FirebaseAuthentication.createAccountWithEmailAndPassword(user)).getBoolean("success"))
           .put("message", "User created successfully.");
     } catch (Exception e) {
       return new JSONObject().put("success", false).put("message", e.getMessage());
@@ -41,8 +74,24 @@ public class UserController {
   public static JSONObject updateUser(User user) {
     try {
       checkPermission();
+      String newPhotoUrl = "";
+      if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
+        JSONObject resp = UploadFileUtil.uploadImage(user.getPhotoUrl(), user.getUid(), 96);
+        if (resp.getBoolean("success")) {
+          newPhotoUrl = resp.getString("longURL");
+        } else {
+          return resp;
+        }
+      }
+      if (newPhotoUrl != null && !newPhotoUrl.isEmpty()) {
+        user.setPhotoUrl(newPhotoUrl);
+      }
       UpdateRequest userUpdate = getUpdateRequest(user);
       UserRecord updatedUser = FirebaseAuth.getInstance().updateUser(userUpdate);
+      Map<String, Object> claims = new HashMap<>();
+      claims.put("admin", user.isAdmin());
+      claims.put("birthday", user.getBirthday());
+      FirebaseAuth.getInstance().setCustomUserClaims(user.getUid(), claims);
       return new JSONObject().put("success", true).put("data", new JSONObject(updatedUser))
           .put("message", "User updated successfully.");
     } catch (Exception e) {
@@ -87,22 +136,43 @@ public class UserController {
     }
   }
 
-  public JSONObject getUser(String userId) {
+  public static List<User> listUsers() {
     try {
-      UserRecord user = FirebaseAuth.getInstance().getUser(userId);
-      return new JSONObject().put("success", true).put("data", user);
+      checkPermission();
+      JSONArray jsonUsers = new JSONArray(FirebaseAuth.getInstance().listUsers(null).getValues());
+      List<User> users = new ArrayList<>();
+      for (int i = 0; i < jsonUsers.length(); i++) {
+        JSONObject userJson = jsonUsers.getJSONObject(i);
+        User user = jsonToUser(userJson);
+        users.add(user);
+      }
+      return users;
     } catch (Exception e) {
-      return new JSONObject().put("success", false).put("message", e.getMessage());
+      System.err.println(e.getMessage());
+      return null;
     }
   }
 
-  public static JSONObject listUsers() {
+  public static List<User> listUsers(List<String> ids) {
     try {
-      checkPermission();
-      return new JSONObject().put("success", true)
-          .put("data", new JSONArray(FirebaseAuth.getInstance().listUsers(null).getValues()));
+      List<User> users = new ArrayList<>();
+      for (String id : ids) {
+        if (id == null || id.isEmpty()) {
+          continue;
+        }
+
+        UserRecord userRecord = FirebaseAuth.getInstance().getUser(id);
+        if (userRecord == null) {
+          continue;
+        }
+
+        User user = jsonToUser(new JSONObject(userRecord));
+        users.add(user);
+      }
+      return users;
     } catch (Exception e) {
-      return new JSONObject().put("success", false).put("message", e.getMessage());
+      System.err.println(e.getMessage());
+      return null;
     }
   }
 }

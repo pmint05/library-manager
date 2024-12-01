@@ -1,6 +1,5 @@
 package com.app.librarymanager.controllers;
 
-import com.app.librarymanager.services.UserService;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DataValidation;
 import com.app.librarymanager.utils.DatePickerUtil;
@@ -12,28 +11,33 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import com.app.librarymanager.models.Book;
-import javafx.util.Callback;
 import javax.imageio.ImageIO;
 import lombok.Setter;
 import org.bson.Document;
@@ -86,11 +90,19 @@ public class BookModalController extends ControllerWithLoader {
   private ImageView thumbnailPreview;
   @FXML
   private Button generateIdButton;
+  @FXML
+  private HBox searchGoogleBooksContainer;
+  @FXML
+  private TextField searchGoogleBooksField;
 
   private Book book;
   @Setter
   private SaveCallback saveCallback;
+  private Popup searchResultsPopup = new Popup();
+
   private boolean isEditMode = false;
+
+  private List<Book> searchResults = new ArrayList<>();
 
   @FXML
   private void initialize() {
@@ -103,39 +115,71 @@ public class BookModalController extends ControllerWithLoader {
     initNumberField(pageCountField);
     initNumberField(priceField);
     initNumberField(discountPriceField);
-
+    Bounds boundsInScreen = searchGoogleBooksField.localToScreen(
+        searchGoogleBooksField.getBoundsInLocal());
+    if (boundsInScreen != null) {
+      searchResultsPopup.setOnShown(event -> {
+        double popupX = boundsInScreen.getMinX();
+        double popupY = boundsInScreen.getMaxY();
+        searchResultsPopup.setX(popupX - 10);
+        searchResultsPopup.setY(popupY);
+      });
+    }
+    searchGoogleBooksField.setOnMouseClicked(event -> {
+      if (!searchResults.isEmpty()) {
+        searchResultsPopup.show(searchGoogleBooksContainer.getScene().getWindow());
+      }
+    });
+    searchResultsPopup.setAutoHide(true);
+    searchGoogleBooksField.setOnAction(event -> searchGoogleBooks());
   }
 
   public void setBook(Book book) {
     this.book = book;
     if (book != null) {
-      if (book.get_id() != null) {
-        isEditMode = true;
-        _idField.setText(book.get_id().toString());
-        iSBNField.setDisable(true);
-      }
-      _idField.setDisable(true);
-      idField.setText(book.getId());
-      idField.setDisable(true);
-      iSBNField.setText(book.getISBN());
-      titleField.setText(book.getTitle());
-      publisherField.setText(book.getPublisher());
-      descriptionField.setText(book.getDescription());
-      pageCountField.setText(String.valueOf(book.getPageCount()));
-      categoriesField.setText(book.getCategories().toString().replace("[", "").replace("]", ""));
-      authorsField.setText(book.getAuthors().toString().replace("[", "").replace("]", ""));
-      thumbnailField.setText(book.getThumbnail());
-      languageField.setText(book.getLanguage());
-      priceField.setText(String.valueOf(book.getPrice()));
-      currencyCodeField.setText(book.getCurrencyCode());
-      pdfLinkField.setText(book.getPdfLink());
-      publishedDateField.setValue(DateUtil.parse(book.getPublishedDate(), DateFormat.YYYY_MM_DD));
-      discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
-      isActiveCheckBox.setSelected(book.isActivated());
-      thumbnailPreview.setImage(
-          book.getThumbnail() != null && !book.getThumbnail().isEmpty() ? new Image(
-              (book.getThumbnail())) : null);
-      generateIdButton.setDisable(true);
+      Task<Void> task = new Task<Void>() {
+        @Override
+        protected Void call() {
+          if (book.get_id() != null) {
+            isEditMode = true;
+            _idField.setText(book.get_id().toString());
+            iSBNField.setDisable(true);
+          }
+          _idField.setDisable(true);
+          idField.setText(book.getId());
+          idField.setDisable(true);
+          iSBNField.setText(book.getISBN());
+          titleField.setText(book.getTitle());
+          publisherField.setText(book.getPublisher());
+          descriptionField.setText(book.getDescription());
+          pageCountField.setText(String.valueOf(book.getPageCount()));
+          categoriesField.setText(
+              book.getCategories().toString().replace("[", "").replace("]", ""));
+          authorsField.setText(book.getAuthors().toString().replace("[", "").replace("]", ""));
+          thumbnailField.setText(book.getThumbnail());
+          languageField.setText(book.getLanguage());
+          priceField.setText(String.valueOf(book.getPrice()));
+          currencyCodeField.setText(book.getCurrencyCode());
+          pdfLinkField.setText(book.getPdfLink());
+          publishedDateField.setValue(DateUtil.parse(book.getPublishedDate()));
+          discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
+          isActiveCheckBox.setSelected(book.isActivated());
+          thumbnailPreview.setImage(
+              book.getThumbnail() != null && !book.getThumbnail().isEmpty() ? new Image(
+                  (book.getThumbnail())) : null);
+          generateIdButton.setDisable(true);
+          searchGoogleBooksContainer.setVisible(!searchGoogleBooksField.getText().isEmpty());
+          return null;
+        }
+      };
+
+      task.setOnSucceeded(e -> {
+        Platform.runLater(() -> {
+          showLoading(false);
+        });
+      });
+
+      new Thread(task).start();
     } else {
       isEditMode = false;
     }
@@ -284,6 +328,87 @@ public class BookModalController extends ControllerWithLoader {
   }
 
   @FXML
+  private void searchGoogleBooks() {
+    String keyword = searchGoogleBooksField.getText().trim();
+    if (keyword.isEmpty()) {
+      AlertDialog.showAlert("error", "Error", "Search field is empty.", null);
+      return;
+    }
+
+    Task<List<Book>> task = new Task<List<Book>>() {
+      @Override
+      protected List<Book> call() {
+        return BookController.searchByKeyword(keyword, 0, 5);
+      }
+    };
+
+    setLoadingText("Searching books from Google Books...");
+
+    task.setOnRunning(e -> showLoading(true));
+    task.setOnSucceeded(e -> {
+
+      showLoading(false);
+      List<Book> newResults = task.getValue();
+      if (newResults.isEmpty()) {
+        AlertDialog.showAlert("error", "Error", "No books found.", null);
+      } else {
+        VBox vbox = new VBox(5);
+        vbox.getStyleClass().add("popup-list-view");
+
+        AtomicReference<Book> selectedBook = new AtomicReference<>();
+        vbox.setOnMouseClicked(event -> {
+          Node clickedNode = event.getPickResult().getIntersectedNode();
+          while (clickedNode != null && !(clickedNode instanceof HBox)) {
+            clickedNode = clickedNode.getParent();
+          }
+          if (clickedNode != null) {
+            int selectedIndex = vbox.getChildren().indexOf(clickedNode);
+            if (selectedIndex >= 0) {
+              selectedBook.set(searchResults.get(selectedIndex));
+              searchResultsPopup.hide();
+            }
+          }
+        });
+        for (Book book : newResults) {
+          HBox hBox = new HBox(5);
+          hBox.getStyleClass().add("popup-list-item");
+          ImageView imageView = new ImageView(book.getThumbnail());
+          imageView.setPreserveRatio(true);
+          imageView.setFitHeight(60);
+          hBox.getChildren().add(imageView);
+          VBox vBox = new VBox(5);
+          Label titleLabel = new Label(book.getTitle());
+          titleLabel.setWrapText(true);
+          vBox.getChildren().add(titleLabel);
+          Label authorsLabel = new Label(book.getAuthors().toString().replaceAll("[\\[\\]]", ""));
+          authorsLabel.setWrapText(true);
+          vBox.getChildren().add(authorsLabel);
+          hBox.getChildren().add(vBox);
+          vbox.getChildren().add(hBox);
+        }
+
+        searchResultsPopup.getContent().clear();
+        searchResultsPopup.getContent().add(vbox);
+
+        searchResultsPopup.show(searchGoogleBooksContainer.getScene().getWindow());
+
+        searchResultsPopup.setOnHidden(event -> {
+          if (selectedBook.get() != null) {
+            setBook(selectedBook.get());
+          }
+        });
+      }
+    });
+    task.setOnFailed(e -> {
+      showLoading(false);
+      AlertDialog.showAlert("error", "Error", e.getSource().getException().getMessage(), null);
+    });
+
+    new Thread(task).start();
+
+  }
+
+  @FXML
   private void handleUploadThumbnail() {
     handleUploadFile(thumbnailField, thumbnailPreview, "Image Files", "*.jpg", "*.png", "*.jpeg");
   }
@@ -296,7 +421,7 @@ public class BookModalController extends ControllerWithLoader {
   private void handleUploadFile(TextField field, ImageView imgPreview, String title,
       String... type) {
     FileChooser fileChooser = new FileChooser();
-    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(title, type));
+    fileChooser.getExtensionFilters().add(new ExtensionFilter(title, type));
     File file = fileChooser.showOpenDialog(idField.getScene().getWindow());
     if (file != null) {
       field.setText(file.getAbsolutePath());
