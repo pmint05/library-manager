@@ -16,16 +16,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -114,45 +115,71 @@ public class BookModalController extends ControllerWithLoader {
     initNumberField(pageCountField);
     initNumberField(priceField);
     initNumberField(discountPriceField);
+    Bounds boundsInScreen = searchGoogleBooksField.localToScreen(
+        searchGoogleBooksField.getBoundsInLocal());
+    if (boundsInScreen != null) {
+      searchResultsPopup.setOnShown(event -> {
+        double popupX = boundsInScreen.getMinX();
+        double popupY = boundsInScreen.getMaxY();
+        searchResultsPopup.setX(popupX - 10);
+        searchResultsPopup.setY(popupY);
+      });
+    }
     searchGoogleBooksField.setOnMouseClicked(event -> {
-      if (!searchResults.isEmpty() && !searchResultsPopup.isShowing()) {
+      if (!searchResults.isEmpty()) {
         searchResultsPopup.show(searchGoogleBooksContainer.getScene().getWindow());
       }
     });
     searchResultsPopup.setAutoHide(true);
+    searchGoogleBooksField.setOnAction(event -> searchGoogleBooks());
   }
 
   public void setBook(Book book) {
     this.book = book;
     if (book != null) {
-      if (book.get_id() != null) {
-        isEditMode = true;
-        _idField.setText(book.get_id().toString());
-        iSBNField.setDisable(true);
-      }
-      _idField.setDisable(true);
-      idField.setText(book.getId());
-      idField.setDisable(true);
-      iSBNField.setText(book.getISBN());
-      titleField.setText(book.getTitle());
-      publisherField.setText(book.getPublisher());
-      descriptionField.setText(book.getDescription());
-      pageCountField.setText(String.valueOf(book.getPageCount()));
-      categoriesField.setText(book.getCategories().toString().replace("[", "").replace("]", ""));
-      authorsField.setText(book.getAuthors().toString().replace("[", "").replace("]", ""));
-      thumbnailField.setText(book.getThumbnail());
-      languageField.setText(book.getLanguage());
-      priceField.setText(String.valueOf(book.getPrice()));
-      currencyCodeField.setText(book.getCurrencyCode());
-      pdfLinkField.setText(book.getPdfLink());
-      publishedDateField.setValue(DateUtil.parse(book.getPublishedDate()));
-      discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
-      isActiveCheckBox.setSelected(book.isActivated());
-      thumbnailPreview.setImage(
-          book.getThumbnail() != null && !book.getThumbnail().isEmpty() ? new Image(
-              (book.getThumbnail())) : null);
-      generateIdButton.setDisable(true);
-      searchGoogleBooksContainer.setVisible(!searchGoogleBooksField.getText().isEmpty());
+      Task<Void> task = new Task<Void>() {
+        @Override
+        protected Void call() {
+          if (book.get_id() != null) {
+            isEditMode = true;
+            _idField.setText(book.get_id().toString());
+            iSBNField.setDisable(true);
+          }
+          _idField.setDisable(true);
+          idField.setText(book.getId());
+          idField.setDisable(true);
+          iSBNField.setText(book.getISBN());
+          titleField.setText(book.getTitle());
+          publisherField.setText(book.getPublisher());
+          descriptionField.setText(book.getDescription());
+          pageCountField.setText(String.valueOf(book.getPageCount()));
+          categoriesField.setText(
+              book.getCategories().toString().replace("[", "").replace("]", ""));
+          authorsField.setText(book.getAuthors().toString().replace("[", "").replace("]", ""));
+          thumbnailField.setText(book.getThumbnail());
+          languageField.setText(book.getLanguage());
+          priceField.setText(String.valueOf(book.getPrice()));
+          currencyCodeField.setText(book.getCurrencyCode());
+          pdfLinkField.setText(book.getPdfLink());
+          publishedDateField.setValue(DateUtil.parse(book.getPublishedDate()));
+          discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
+          isActiveCheckBox.setSelected(book.isActivated());
+          thumbnailPreview.setImage(
+              book.getThumbnail() != null && !book.getThumbnail().isEmpty() ? new Image(
+                  (book.getThumbnail())) : null);
+          generateIdButton.setDisable(true);
+          searchGoogleBooksContainer.setVisible(!searchGoogleBooksField.getText().isEmpty());
+          return null;
+        }
+      };
+
+      task.setOnSucceeded(e -> {
+        Platform.runLater(() -> {
+          showLoading(false);
+        });
+      });
+
+      new Thread(task).start();
     } else {
       isEditMode = false;
     }
@@ -307,10 +334,11 @@ public class BookModalController extends ControllerWithLoader {
       AlertDialog.showAlert("error", "Error", "Search field is empty.", null);
       return;
     }
+
     Task<List<Book>> task = new Task<List<Book>>() {
       @Override
       protected List<Book> call() {
-        return BookController.searchByKeyword(keyword);
+        return BookController.searchByKeyword(keyword, 0, 5);
       }
     };
 
@@ -319,18 +347,30 @@ public class BookModalController extends ControllerWithLoader {
     task.setOnRunning(e -> showLoading(true));
     task.setOnSucceeded(e -> {
       showLoading(false);
-      searchResults = task.getValue();
-      if (searchResults.isEmpty()) {
+      List<Book> newResults = task.getValue();
+      if (newResults.isEmpty()) {
         AlertDialog.showAlert("error", "Error", "No books found.", null);
       } else {
+        VBox vbox = new VBox(5);
+        vbox.getStyleClass().add("popup-list-view");
+
         AtomicReference<Book> selectedBook = new AtomicReference<>();
-
-        ListView<HBox> listView = new ListView<>();
-        listView.getStyleClass().add("popup-list-view");
-
-        for (Book book : searchResults) {
+        vbox.setOnMouseClicked(event -> {
+          Node clickedNode = event.getPickResult().getIntersectedNode();
+          while (clickedNode != null && !(clickedNode instanceof HBox)) {
+            clickedNode = clickedNode.getParent();
+          }
+          if (clickedNode != null) {
+            int selectedIndex = vbox.getChildren().indexOf(clickedNode);
+            if (selectedIndex >= 0) {
+              selectedBook.set(searchResults.get(selectedIndex));
+              searchResultsPopup.hide();
+            }
+          }
+        });
+        for (Book book : newResults) {
           HBox hBox = new HBox(5);
-          hBox.setStyle("-fx-padding: 5px; -fx-cursor: hand;");
+          hBox.getStyleClass().add("popup-list-item");
           ImageView imageView = new ImageView(book.getThumbnail());
           imageView.setPreserveRatio(true);
           imageView.setFitHeight(60);
@@ -343,30 +383,11 @@ public class BookModalController extends ControllerWithLoader {
           authorsLabel.setWrapText(true);
           vBox.getChildren().add(authorsLabel);
           hBox.getChildren().add(vBox);
-
-          listView.getItems().add(hBox);
+          vbox.getChildren().add(hBox);
         }
-        listView.setOnMouseClicked(event -> {
-          int selectedIndex = listView.getSelectionModel().getSelectedIndex();
-          if (selectedIndex >= 0) {
-            selectedBook.set(searchResults.get(selectedIndex));
-            searchResultsPopup.hide();
-          }
-        });
+
         searchResultsPopup.getContent().clear();
-        searchResultsPopup.getContent().add(listView);
-
-        Bounds boundsInScreen = searchGoogleBooksField.localToScreen(
-            searchGoogleBooksField.getBoundsInLocal());
-        if (boundsInScreen != null) {
-          searchResultsPopup.setOnShown(event -> {
-            double popupX = boundsInScreen.getMinX();
-            double popupY = boundsInScreen.getMaxY();
-            searchResultsPopup.setX(popupX);
-            searchResultsPopup.setY(popupY);
-            searchResultsPopup.setWidth(boundsInScreen.getWidth());
-          });
-        }
+        searchResultsPopup.getContent().add(vbox);
 
         searchResultsPopup.show(searchGoogleBooksContainer.getScene().getWindow());
 

@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 public class BookLoan extends BookUser {
 
-  public enum Mode {
+  public  enum Mode {
     OFFLINE,
     ONLINE
   }

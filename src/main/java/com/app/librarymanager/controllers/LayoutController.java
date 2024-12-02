@@ -7,6 +7,8 @@ import com.app.librarymanager.utils.StageManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -297,20 +299,31 @@ public class LayoutController implements AuthStateListener {
   }
 
   private void loadComponent(String fxmlPath) {
-    try {
-      Parent component = componentCache.get(fxmlPath);
-      if (component == null) {
-        component = loadFXML(fxmlPath);
+    Task<Parent> loadTask = new Task<>() {
+      @Override
+      protected Parent call() throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+        return loader.load();
       }
-      contentPane.getChildren().clear();
-      contentPane.getChildren().add(component);
-      if (isSearchComponentLoaded) {
-        navBar.getItems().add(2, searchField);
-        isSearchComponentLoaded = false;
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    };
+
+    loadTask.setOnSucceeded(event -> {
+      Platform.runLater(() -> {
+        Parent component = loadTask.getValue();
+        contentPane.getChildren().clear();
+        contentPane.getChildren().add(component);
+        if (isSearchComponentLoaded) {
+          navBar.getItems().add(2, searchField);
+          isSearchComponentLoaded = false;
+        }
+      });
+    });
+
+    loadTask.setOnFailed(event -> {
+      loadTask.getException().printStackTrace();
+    });
+
+    new Thread(loadTask).start();
   }
 
   public double getContentPaneWidth() {
