@@ -88,8 +88,8 @@ public class BookDetailController extends ControllerWithLoader {
       protected Map<String, Object> call() {
         Book b = BookController.findBookByID(id);
         Document cp = BookCopiesController.findCopy(new BookCopies(id));
-        boolean isFavorite = FavoriteController.isFavorite(
-            new BookUser(AuthController.getInstance().getCurrentUser().getUid(), id));
+        boolean isFavorite = FavoriteController.findFavorite(
+            new BookUser(AuthController.getInstance().getCurrentUser().getUid(), id)) != null;
         BookCopies copies = null;
         double avgRating = BookRatingController.averageRating(id);
         if (cp != null) {
@@ -132,7 +132,7 @@ public class BookDetailController extends ControllerWithLoader {
         bookDescription.setText(book.getDescription());
         for (String category : book.getCategories()) {
           Label label = new Label(category);
-          label.getStyleClass().addAll("chip", "blue");
+          label.getStyleClass().addAll("chip", "info");
           bookCategories.getChildren().add(label);
         }
         bookLanguage.setText(book.getLanguage());
@@ -241,6 +241,7 @@ public class BookDetailController extends ControllerWithLoader {
       addToFavorite.setGraphic(
           isFavorite ? new FontIcon("antf-heart") : new FontIcon("anto-heart"));
       addToFavorite.getStyleClass().add(isFavorite ? "on" : "off");
+      addToFavorite.getStyleClass().removeAll(isFavorite ? "off" : "on");
     } else {
       AlertDialog.showAlert("error", "Failed to add to favorite",
           "An error occurred while adding the book to favorite",
