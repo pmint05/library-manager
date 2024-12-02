@@ -346,7 +346,6 @@ public class BookModalController extends ControllerWithLoader {
 
     task.setOnRunning(e -> showLoading(true));
     task.setOnSucceeded(e -> {
-
       showLoading(false);
       List<Book> newResults = task.getValue();
       if (newResults.isEmpty()) {
@@ -405,7 +404,6 @@ public class BookModalController extends ControllerWithLoader {
     });
 
     new Thread(task).start();
-
   }
 
   @FXML
