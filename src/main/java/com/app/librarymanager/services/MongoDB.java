@@ -248,34 +248,4 @@ public class MongoDB {
       return false;
     }
   }
-
-//  public boolean appendToArray(String collectionName, String fieldName, String nameArray,
-//      Object newElement) {
-//    try {
-//      MongoCollection<Document> collection = database.getCollection(collectionName);
-//      Bson updates = Updates.combine(Updates.push(nameArray, newElement),
-//          Updates.currentTimestamp("lastUpdated"));
-//      collection.updateOne(Filters.eq("id", fieldName), updates);
-//      return true;
-//    } catch (Exception e) {
-//      System.err.println(
-//          "Fail when pushing: " + newElement + " into " + nameArray + " at " + fieldName);
-//      return false;
-//    }
-//  }
-//
-//  public boolean removeFromArray(String collectionName, String fieldName, String nameArray,
-//      Object newElement) {
-//    try {
-//      MongoCollection<Document> collection = database.getCollection(collectionName);
-//      Bson updates = Updates.combine(Updates.pull(nameArray, newElement),
-//          Updates.currentTimestamp("lastUpdated"));
-//      collection.updateOne(Filters.eq("id", fieldName), updates);
-//      return true;
-//    } catch (Exception e) {
-//      System.err.println(
-//          "Fail when pushing: " + newElement + " into " + nameArray + " at " + fieldName);
-//      return false;
-//    }
-//  }
 }
