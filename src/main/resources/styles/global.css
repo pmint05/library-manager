@@ -59,7 +59,6 @@
   -fx-background-color: -fx-bg;
   -fx-text-fill: -fx-text;
 }
-
 Label.bold, Text.bold {
   -fx-font-weight: bold;
 }

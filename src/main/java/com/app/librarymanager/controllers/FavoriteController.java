@@ -32,11 +32,15 @@ public class FavoriteController {
   }
 
   public static List<Book> getFavoriteBookOfUser(String userId) {
-    List<Document> documents = MongoDB.getInstance().findAllObject("favorite", "userId", userId);
-    List<Book> favoriteBook = new ArrayList<>();
-    documents.forEach(
-        document -> favoriteBook.add(BookController.findBookByID(document.getString("bookId"))));
-    return favoriteBook;
+    try {
+      List<Document> documents = MongoDB.getInstance().findAllObject("favorite", "userId", userId);
+      List<Book> favoriteBook = new ArrayList<>();
+      documents.forEach(
+          document -> favoriteBook.add(BookController.findBookByID(document.getString("bookId"))));
+      return favoriteBook;
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   public static long countFavoriteBookOf(String userId) {
