@@ -1,7 +1,9 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.controllers.BookLoanController.ReturnBookLoan;
 import com.app.librarymanager.utils.AlertDialog;
 import java.util.Date;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -48,6 +50,11 @@ public class ManageBookLoansController extends ControllerWithLoader {
   private TableColumn<BookLoan, String> lastUpdatedColumn;
   @FXML
   private TableColumn<BookLoan, Void> actionColumn;
+
+  private int currentPage = 0;
+  private int pageSize = 10;
+  private int totalRecords = 0;
+
 
   @FXML
   private TextField searchField;
@@ -108,29 +115,17 @@ public class ManageBookLoansController extends ControllerWithLoader {
   }
 
   private void loadBookLoans() {
-    Task<ObservableList<BookLoan>> task = new Task<>() {
+    Task<List<ReturnBookLoan>> task = new Task<>() {
       @Override
-      protected ObservableList<BookLoan> call() {
-        ObservableList<BookLoan> bookLoans = FXCollections.observableArrayList();
-        // JSONObject response = BookLoanController.listBookLoans();
-        JSONObject response = new JSONObject();
-        if (response.getBoolean("success")) {
-          // JSONArray bookLoansArray = response.getJSONArray("data");
-          // for (int i = 0; i < bookLoansArray.length(); i++) {
-          //   JSONObject bookLoanJson = bookLoansArray.getJSONObject(i);
-          //   BookLoan bookLoan = new BookLoan(bookLoanJson);
-          //   bookLoans.add(bookLoan);
-          // }
-        } else {
-          AlertDialog.showAlert("error", "Error", response.getString("message"), null);
-        }
+      protected List<ReturnBookLoan> call() {
+        List<ReturnBookLoan> bookLoans = BookLoanController.getAllLentBook(currentPage, pageSize);
         return bookLoans;
       }
     };
 
     task.setOnRunning(e -> showLoading(true));
     task.setOnSucceeded(e -> {
-      bookLoansList.setAll(task.getValue());
+      bookLoansList.clear();
       bookLoansTable.setItems(bookLoansList);
       System.out.println("Book loans loaded successfully. Total: " + bookLoansList.size());
       showLoading(false);

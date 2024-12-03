@@ -3,15 +3,19 @@ package com.app.librarymanager.controllers;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.lte;
 
+import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.models.BookLoan.Mode;
+import com.app.librarymanager.models.User;
+import com.app.librarymanager.services.Firebase;
 import com.app.librarymanager.services.MongoDB;
 
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -71,9 +75,9 @@ public class BookLoanController {
   @Data
   public static class ReturnBookLoan {
 
-    BookLoan bookLoan;
-    String titleBook;
-    String thumbnailBook;
+    private BookLoan bookLoan;
+    private String titleBook;
+    private String thumbnailBook;
 
     public ReturnBookLoan(BookLoan bookLoan, String titleBook, String thumbnailBook) {
       this.bookLoan = bookLoan;
@@ -97,15 +101,43 @@ public class BookLoanController {
     }
   }
 
-  public static List<ReturnBookLoan> getAllLentBook(int start, int length) {
-    return bookLoanFromDocument(
-        MongoDB.getInstance().findAllObject("bookLoan", Filters.eq("valid", true), start, length));
+  @Data
+  public static class BookLoanUser {
+
+    User user;
+    Book book;
+    BookLoan bookLoan;
+
+    public BookLoanUser(User user, Book book, BookLoan bookLoan) {
+      this.user = user;
+      this.book = book;
+      this.bookLoan = bookLoan;
+    }
+  }
+
+  public static List<BookLoanUser> getAllLentBook(int start, int length) {
+    try {
+      List<Document> bookLoanDocs = MongoDB.getInstance()
+          .findAllObject("bookLoan", Filters.empty(), start, length);
+      Map<String, User> relatedUser = UserController.listUsers(
+          bookLoanDocs.stream().map(doc -> doc.getString("userId")).toList()).stream().collect(
+          Collectors.toMap(User::getUid, user -> user, (existing, replacement) -> existing));
+      Map<String, Book> relatedBook = BookController.listDocsToListBook(
+          BookController.findBookByListID(
+              bookLoanDocs.stream().map(doc -> doc.getString("bookId")).toList())).stream().collect(
+          Collectors.toMap(Book::getId, book -> book));
+      return bookLoanDocs.stream().map(
+          doc -> new BookLoanUser(relatedUser.get(doc.getString("userId")),
+              relatedBook.get(doc.getString("bookId")), new BookLoan(doc))).toList();
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      return null;
+    }
   }
 
   public static List<ReturnBookLoan> getAllLentBookOf(String userId, int start, int length) {
     return bookLoanFromDocument(MongoDB.getInstance()
-        .findAllObject("bookLoan", Filters.and(eq("userId", userId), eq("valid", true)), start,
-            length));
+        .findAllObject("bookLoan", Filters.and(eq("userId", userId)), start, length));
   }
 
   public static long countLentBookOf(String userId) {
@@ -141,6 +173,63 @@ public class BookLoanController {
     }
   }
 
+  private static Bson getFilter(boolean isValid, boolean isNotValid, boolean isOnline,
+      boolean isOffline) {
+    List<Bson> validConditions = new ArrayList<>();
+    if (isValid) {
+      validConditions.add(Filters.eq("valid", true));
+    }
+    if (isNotValid) {
+      validConditions.add(Filters.eq("valid", false));
+    }
+    List<Bson> onlineConditions = new ArrayList<>();
+    if (isOnline) {
+      onlineConditions.add(Filters.eq("type", Mode.ONLINE.toString()));
+    }
+    if (isOffline) {
+      onlineConditions.add(Filters.eq("type", Mode.OFFLINE.toString()));
+    }
+    Bson filters = Filters.empty();
+    if (!validConditions.isEmpty()) {
+      filters = Filters.and(filters, Filters.or(validConditions.toArray(Bson[]::new)));
+    } else {
+      return Filters.expr(false);
+    }
+    if (!onlineConditions.isEmpty()) {
+      filters = Filters.and(filters, Filters.or(onlineConditions.toArray(Bson[]::new)));
+    } else {
+      return Filters.expr(false);
+    }
+    return filters;
+  }
+
+  public static List<ReturnBookLoan> getLoanWithFilter(boolean isValid, boolean isNotValid,
+      boolean isOnline, boolean isOffline, int start, int length) {
+    return bookLoanFromDocument(MongoDB.getInstance()
+        .findAllObject("bookLoan", getFilter(isValid, isNotValid, isOnline, isOffline), start,
+            length));
+  }
+
+  public static long countLoanWithFilter(boolean isValid, boolean isNotValid, boolean isOnline,
+      boolean isOffline) {
+    return MongoDB.getInstance()
+        .countDocuments("bookLoan", getFilter(isValid, isNotValid, isOnline, isOffline));
+  }
+
+  public static List<ReturnBookLoan> getLoanWithFilterOfUser(String userId, boolean isValid,
+      boolean isNotValid, boolean isOnline, boolean isOffline, int start, int length) {
+    return bookLoanFromDocument(MongoDB.getInstance().findAllObject("bookLoan",
+        Filters.and(Filters.eq("userId", userId),
+            getFilter(isValid, isNotValid, isOnline, isOffline)), start, length));
+  }
+
+  public static long countLoanWithFilterOfUser(String userId, boolean isValid, boolean isNotValid,
+      boolean isOnline, boolean isOffline) {
+    return MongoDB.getInstance().countDocuments("bookLoan",
+        Filters.and(Filters.eq("userId", userId),
+            getFilter(isValid, isNotValid, isOnline, isOffline)));
+  }
+
   public static long numberOfRecords() {
     return MongoDB.getInstance().countDocuments("bookLoan");
   }
@@ -150,17 +239,33 @@ public class BookLoanController {
   }
 
   public static boolean refreshDatabase() {
-    Date curDate = new Date();
-    Bson filterDate = Filters.and(lte("dueDate", curDate), eq("valid", true));
-    Bson filterOffline = Filters.and(filterDate, eq("type", Mode.OFFLINE.name()));
-    MongoDB.getInstance().findAllObject("bookLoan", filterOffline).forEach(
-        e -> BookCopiesController.increaseCopy(
-            new BookCopies(e.getString("bookId"), e.getInteger("numCopies"))));
-    return MongoDB.getInstance().updateAll("bookLoan", filterDate,
-        Updates.combine(Updates.set("valid", false),
-            Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis()))));
+    try {
+      Date curDate = new Date();
+      Bson filterDate = Filters.and(lte("dueDate", curDate), eq("valid", true));
+      Bson filterOffline = Filters.and(filterDate, eq("type", Mode.OFFLINE.name()));
+      MongoDB.getInstance().findAllObject("bookLoan", filterOffline).forEach(
+          e -> BookCopiesController.increaseCopy(
+              new BookCopies(e.getString("bookId"), e.getInteger("numCopies"))));
+      return MongoDB.getInstance().updateAll("bookLoan", filterDate,
+          Updates.combine(Updates.set("valid", false),
+              Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis()))));
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   public static void main(String[] args) {
+//    Firebase firebase = Firebase.getInstance();
+//    MongoDB mongoDB = MongoDB.getInstance();
+////    System.out.println(getAllLentBook(0, 1000000).size());
+//    for (BookLoanUser b : getAllLentBook(0, 1000000)) {
+//      System.out.println("=======");
+//      System.out.println("Book:");
+//      System.out.println(b.getBook());
+//      System.out.println("User");
+//      System.out.println(b.getUser());
+//      System.out.println("Loan:");
+//      System.out.println(b.getBookLoan() + " " + b.getBookLoan().getLastUpdated());
+//    }
   }
 }

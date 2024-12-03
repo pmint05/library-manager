@@ -37,6 +37,7 @@ public class SearchController {
   @FXML
   private Text searchStatus;
   private Task<List<Book>> searchTask;
+  private List<Task<VBox>> renderTasks = new ArrayList<>();
 
 
   @FXML
@@ -45,21 +46,20 @@ public class SearchController {
         .addListener((observable, oldValue, newValue) -> {
           searchResultsPane.setPrefWidth(newValue.getWidth());
         });
-    pauseTransition = new PauseTransition(Duration.millis(200));
+    pauseTransition = new PauseTransition(Duration.millis(250));
     pauseTransition.setOnFinished(event -> searchBooks());
 
     searchInput.textProperty().addListener((observable, oldValue, newValue) -> {
       keyword = newValue.trim();
       searchResultsPane.getChildren().clear();
-        pauseTransition.playFromStart();
+      pauseTransition.playFromStart();
       if (keyword.isEmpty()) {
         searchStatus.setText("Enter a keyword to search");
       }
     });
-    Platform.runLater(() -> searchInput.requestFocus());
 
     searchResultsScrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
-      double deltaY = event.getDeltaY() * 3; // Adjust multiplier to increase scroll speed
+      double deltaY = event.getDeltaY() * 3;
       searchResultsScrollPane.setVvalue(
           searchResultsScrollPane.getVvalue() - deltaY / searchResultsScrollPane.getContent()
               .getBoundsInLocal().getHeight());
@@ -69,29 +69,44 @@ public class SearchController {
 
   private void searchBooks() {
     if (searchTask != null && searchTask.isRunning()) {
-      return;
+      searchTask.cancel();
     }
+
+    renderTasks.forEach(task -> {
+      if (task.isRunning()) {
+        task.cancel();
+      }
+    });
+    renderTasks.clear();
+
     String searchQuery = searchInput.getText().trim();
     searchStatus.setText("Searching...");
     searchResultsPane.getChildren().clear();
+
     searchTask = new Task<List<Book>>() {
       @Override
       protected List<Book> call() {
-        return BookController.findBookByKeyword(searchQuery, 0, 100);
+        return BookController.findBookByKeyword(searchQuery, 0, 10);
       }
     };
+
     searchTask.setOnSucceeded(workerStateEvent -> {
       List<Book> books = searchTask.getValue();
-      searchStatus.setText(books.size() + " results found");
-      updateSearchResults(books);
+      if (searchQuery.equals(searchInput.getText().trim())) {
+        searchStatus.setText(books.size() + " results found");
+        updateSearchResults(books);
+      }
     });
+
     searchTask.setOnFailed(e -> {
       e.getSource().getException().printStackTrace();
       AlertDialog.showAlert("error", "Search failed", "An error occurred while searching for books",
           null);
     });
+
     new Thread(searchTask).start();
   }
+
 
   private void updateSearchResults(List<Book> books) {
     searchResultsPane.getChildren().clear();
@@ -121,7 +136,7 @@ public class SearchController {
         AlertDialog.showAlert("error", "Loading failed",
             "An error occurred while loading a book component", null);
       });
-
+      renderTasks.add(bookTask);
       new Thread(bookTask).start();
     }
   }
@@ -130,7 +145,6 @@ public class SearchController {
     this.keyword = keyword;
     if (searchInput != null) {
       searchInput.setText(keyword);
-      searchBooks();
     }
   }
 }

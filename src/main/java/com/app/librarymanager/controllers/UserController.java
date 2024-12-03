@@ -19,8 +19,8 @@ import org.json.JSONObject;
 public class UserController {
 
   private static void checkPermission() {
-    JSONObject userClaims = AuthController.getInstance().getUserClaims();
-    if (userClaims == null || !userClaims.optBoolean("admin", false)) {
+    User currentUser = AuthController.getInstance().getCurrentUser();
+    if (currentUser == null || !currentUser.isAdmin()) {
       throw new SecurityException("Access denied! You don't have permission to make the request.");
     }
   }
@@ -171,7 +171,7 @@ public class UserController {
       }
       return users;
     } catch (Exception e) {
-      System.err.println(e.getMessage());
+      System.err.println("aaa" + e.getMessage());
       return null;
     }
   }

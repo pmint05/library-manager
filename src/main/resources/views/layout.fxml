@@ -72,8 +72,8 @@
   </left>
   <top>
     <ToolBar fx:id="navBar" prefHeight="40" styleClass="nav-bar" BorderPane.alignment="CENTER">
-      <ImageView fitHeight="32.0" nodeOrientation="INHERIT" pickOnBounds="true"
-        preserveRatio="true">
+      <ImageView fx:id="navLogo" fitHeight="32.0" nodeOrientation="INHERIT" pickOnBounds="true"
+        preserveRatio="true" styleClass="nav-logo">
         <Image url="@../images/logo-dark.png"/>
       </ImageView>
       <Region HBox.hgrow="ALWAYS" minWidth="50"/>
