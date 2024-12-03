@@ -43,9 +43,9 @@
               <Label fx:id="bookPublishingInfo" styleClass="book-publishing-info" wrapText="true"/>
               <Label fx:id="availableCopies" styleClass="available-copies"/>
               <!--            <Label fx:id="bookIsbn" styleClass="book-isbn"/>-->
-              <HBox spacing="3">
+              <HBox spacing="5">
                 <Text text="Categories:"/>
-                <FlowPane fx:id="bookCategories" styleClass="book-categories"/>
+                <FlowPane fx:id="bookCategories" styleClass="book-categories" hgap="5"/>
               </HBox>
               <Label text="Description:"/>
               <TextArea editable="false" fx:id="bookDescription" styleClass="book-description"

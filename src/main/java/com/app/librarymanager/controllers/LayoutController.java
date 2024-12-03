@@ -28,6 +28,13 @@ public class LayoutController implements AuthStateListener {
 
   private static LayoutController instance;
 
+  public static synchronized LayoutController getInstance() {
+    if (instance == null) {
+      instance = new LayoutController();
+    }
+    return instance;
+  }
+
   private final List<String> ADMIN_ROUTES = List.of("/views/admin/dashboard.fxml",
       "/views/admin/manage-books.fxml", "/views/admin/manage-users.fxml",
       "/views/admin/manage-loans.fxml", "/views/admin/manage-categories.fxml");
@@ -41,14 +48,6 @@ public class LayoutController implements AuthStateListener {
   private Button loansNavBtn;
   @FXML
   private Button favoritesNavBtn;
-
-  public static synchronized LayoutController getInstance() {
-    if (instance == null) {
-      instance = new LayoutController();
-    }
-    return instance;
-  }
-
   @FXML
   private ToolBar adminToolBar;
   @FXML
@@ -59,6 +58,8 @@ public class LayoutController implements AuthStateListener {
   private ImageView avatarImageView;
   @FXML
   private TextField searchField;
+  @FXML
+  private ImageView navLogo;
 
 
   private Popup popup;
@@ -106,6 +107,7 @@ public class LayoutController implements AuthStateListener {
         loadComponent("/views/favorite-books.fxml");
       }
     });
+    navLogo.setOnMouseClicked(event -> loadComponent("/views/home.fxml"));
   }
 
   @FXML
@@ -152,8 +154,14 @@ public class LayoutController implements AuthStateListener {
     if (isAuthenticated) {
       if (user.getAvatar() != null) {
         avatarImageView.setImage(user.getAvatar());
-      } else if (user.getPhotoUrl() != null) {
+      } else if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
         avatarImageView.setImage(new ImageView(user.getPhotoUrl()).getImage());
+      } else {
+        String displayName = user.getDisplayName();
+        String email = user.getEmail();
+        String name = displayName != null && !displayName.isEmpty() ? displayName : email;
+        avatarImageView.setImage(
+            new ImageView(new AvatarUtil().getAvatarUrl(name)).getImage());
       }
       VBox popupContent = new VBox(0);
       popupContent.getStyleClass().add("popup-container");

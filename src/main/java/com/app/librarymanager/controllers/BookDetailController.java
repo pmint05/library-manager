@@ -95,10 +95,10 @@ public class BookDetailController extends ControllerWithLoader {
     borrowEBook.setOnAction(event -> handleBorrowEBook());
     borrowPhysicalBook.setOnAction(event -> handleBorrowPhysicalBook());
     addToFavorite.setOnAction(event -> handleAddToFavorite());
-    detailContainer.setVisible(false);
+//    detailContainer.setVisible(false);
   }
 
-  public void getBookDetail(String id) {
+   void getBookDetail(String id) {
     Task<Map<String, Object>> task = new Task<>() {
       @Override
       protected Map<String, Object> call() {
@@ -132,8 +132,8 @@ public class BookDetailController extends ControllerWithLoader {
 
       Platform.runLater(() -> {
         if (book != null) {
-          detailContainer.setVisible(true);
-          bookTitle.setText(book.getTitle());
+//          detailContainer.setVisible(true);
+          bookTitle.setText(book.isActivated() ? book.getTitle() : "[INACTIVE] " + book.getTitle());
           try {
             bookCover.setImage(new Image("https://books.google.com/books/content?id=" + id
                 + "&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api"));
@@ -165,6 +165,9 @@ public class BookDetailController extends ControllerWithLoader {
           addToFavorite.setGraphic(
               isFavorite ? new FontIcon("antf-heart") : new FontIcon("anto-heart"));
           addToFavorite.getStyleClass().add(isFavorite ? "on" : "off");
+          borrowPhysicalBook.setDisable(copies.getCopies() == 0 || !book.isActivated());
+          borrowEBook.setDisable(!book.isActivated());
+          addToFavorite.setDisable(!book.isActivated());
 
           for (int i = 0; i < 5; i++) {
             FontIcon icon = new FontIcon();
@@ -177,6 +180,11 @@ public class BookDetailController extends ControllerWithLoader {
             starsContainer.getChildren().add(icon);
           }
           starsContainer.getChildren().add(new Label("(" + String.format("%.1f", avgRating) + ")"));
+          if (!book.isActivated()) {
+            detailContainer.setStyle("-fx-opacity: 0.5;");
+            AlertDialog.showAlert("warning", "Book not available",
+                "This book is currently not available for borrowing", null);
+          }
         } else {
           AlertDialog.showAlert("error", "Book not found",
               "An error occurred while fetching book details", null);

@@ -28,10 +28,10 @@ public class BookComponentController {
   private ImageView bookCover;
 
   @FXML
-  private Text bookTitle;
+  private Label bookTitle;
 
   @FXML
-  private Text bookAuthor;
+  private Label bookAuthor;
 
   @FXML
   private void initialize() {

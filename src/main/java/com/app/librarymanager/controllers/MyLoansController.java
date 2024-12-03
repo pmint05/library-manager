@@ -20,6 +20,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -48,6 +51,22 @@ public class MyLoansController extends ControllerWithLoader {
   private TextField searchField;
   @FXML
   private Label searchStatus;
+  @FXML
+  private ComboBox<String> modeFilter;
+  @FXML
+  private ComboBox<String> validityFilter;
+  @FXML
+  private ComboBox<Integer> pageSize;
+  @FXML
+  private Button prevPageButton;
+  @FXML
+  private Button nextPageButton;
+
+  private int pageSizeValue = 10;
+  private int currentPage = 0;
+  private String validity = "All";
+  private String mode = "All";
+  private int totalResults = 0;
 
   private ObservableList<ReturnBookLoan> loans = FXCollections.observableArrayList();
   private PauseTransition pauseTransition;
@@ -55,6 +74,12 @@ public class MyLoansController extends ControllerWithLoader {
 
   @FXML
   private void initialize() {
+    validityFilter.getItems().addAll("All", "Valid", "Invalid");
+    validityFilter.setValue(validity);
+    modeFilter.getItems().addAll("All", "Online", "Offline");
+    modeFilter.setValue(mode);
+    pageSize.getItems().addAll(5, 10, 15, 20);
+    pageSize.setValue(10);
     loansScrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
       double deltaY = event.getDeltaY() * 3;
       loansScrollPane.setVvalue(
@@ -72,7 +97,35 @@ public class MyLoansController extends ControllerWithLoader {
       pauseTransition.playFromStart();
     });
     showCancel(false);
+    pageSize.valueProperty().addListener((observable, oldValue, newValue) -> {
+      pageSizeValue = newValue;
+      currentPage = 0;
+      loadLoans();
+    });
 
+    nextPageButton.setOnAction(event -> {
+      currentPage++;
+      loadLoans();
+    });
+
+    prevPageButton.setOnAction(event -> {
+      if (currentPage > 0) {
+        currentPage--;
+        loadLoans();
+      }
+    });
+
+    modeFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
+      currentPage = 0;
+      mode = newValue;
+      loadLoans();
+    });
+
+    validityFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
+      currentPage = 0;
+      validity = newValue;
+      loadLoans();
+    });
   }
 
   private void loadLoans() {
@@ -80,7 +133,16 @@ public class MyLoansController extends ControllerWithLoader {
       @Override
       protected List<ReturnBookLoan> call() {
         User currentUser = AuthController.getInstance().getCurrentUser();
-        return BookLoanController.getAllLentBookOf(currentUser.getUid(), 0, 10);
+        boolean isValid = "Valid".equals(validity);
+        boolean isNotValid = "Invalid".equals(validity);
+        boolean isOnline = "Online".equals(mode);
+        boolean isOffline = "Offline".equals(mode);
+        totalResults = (int) BookLoanController.countLoanWithFilter(isValid, isNotValid, isOnline,
+            isOffline);
+        nextPageButton.setDisable((currentPage + 1) * pageSizeValue >= totalResults);
+        prevPageButton.setDisable(currentPage == 0);
+        return BookLoanController.getLoanWithFilter(isValid, isNotValid, isOnline, isOffline,
+            currentPage, pageSizeValue);
       }
     };
 
@@ -133,6 +195,7 @@ public class MyLoansController extends ControllerWithLoader {
     title.setWrappingWidth(280);
     Text dates = new Text();
     Label type = new Label();
+    Label valid = new Label();
     Text numCopies = new Text();
     title.setOnMouseClicked(event -> handleBookLoanClick(item.getBookLoan().getBookId(), content));
     title.getStyleClass().add("link");
@@ -154,8 +217,12 @@ public class MyLoansController extends ControllerWithLoader {
     BookLoan loan = item.getBookLoan();
     dates.setText(DateUtil.dateToString(loan.getBorrowDate()) + " - " + DateUtil.dateToString(
         loan.getDueDate()));
-    type.setText(String.valueOf(loan.getType()));
+      type.setText(String.valueOf(loan.getType()));
     type.getStyleClass().addAll("chip", loan.getType().name().toLowerCase());
+    valid.setText(loan.isValid() ? "Valid" : "Expired");
+    valid.getStyleClass().add("chip");
+    valid.getStyleClass().add(loan.isValid() ? "success" : "danger");
+    HBox chips = new HBox(type, valid);
 
     Region spacer = new Region();
     VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -175,10 +242,11 @@ public class MyLoansController extends ControllerWithLoader {
       returnButton.setVisible(false);
       returnButton.setManaged(false);
       reBorrowButton.setVisible(true);
-      reBorrowButton.setOnAction(event -> handleReBorrowBook(item));
+      reBorrowButton.setOnAction(event -> handleBookLoanClick(item.getBookLoan().getBookId(), content));
     }
     if (Mode.ONLINE.equals(loan.getType())) {
-      readButton.setVisible(true);
+      readButton.setVisible(loan.isValid());
+      readButton.setManaged(loan.isValid());
       readButton.setOnAction(event -> handleReadBook(item));
     } else {
       readButton.setVisible(false);
@@ -187,9 +255,10 @@ public class MyLoansController extends ControllerWithLoader {
 
     actionButtons.getChildren().addAll(returnButton, reBorrowButton, readButton);
     actionButtons.setSpacing(5);
-    details.getChildren().addAll(title, dates, numCopies, type, spacer, actionButtons);
+    details.getChildren().addAll(title, dates, numCopies, chips, spacer, actionButtons);
     content.getChildren().addAll(thumbnail, details);
     content.setSpacing(10);
+    chips.setSpacing(5);
 
     content.setUserData(loan);
 
@@ -227,14 +296,7 @@ public class MyLoansController extends ControllerWithLoader {
   }
 
   private void handleReBorrowBook(ReturnBookLoan item) {
-    BookLoan bookLoan = item.getBookLoan();
-    Task<Document> task = new Task<>() {
-      @Override
-      protected Document call() {
-        return BookLoanController.addLoan(bookLoan);
-      }
-    };
-    updateLoanInFlowPane(item);
+
   }
 
   private void handleReadBook(ReturnBookLoan item) {
