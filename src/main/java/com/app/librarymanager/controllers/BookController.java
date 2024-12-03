@@ -144,19 +144,20 @@ public class BookController {
     String searchUrl =
         SEARCH_URL + encodedKeyword + "&key=" + dotenv.get("GBOOKS_API_KEY") + "&maxResults="
             + length + "&startIndex=" + start;
-//    System.out.println(searchUrl);
     return getBookInURL(searchUrl);
   }
 
   public static Book searchByISBN(String iSBN) {
-    String searchUrl = SEARCH_URL + "isbn:" + iSBN + "&key=" + dotenv.get("GBOOKS_API_KEY");
-//    System.out.println(searchUrl);
-    List<Book> bookList = getBookInURL(searchUrl);
-//    System.out.println(bookList.size());
-    if (bookList.size() != 1) {
+    try {
+      String searchUrl = SEARCH_URL + "isbn:" + iSBN + "&key=" + dotenv.get("GBOOKS_API_KEY");
+      List<Book> bookList = getBookInURL(searchUrl);
+      if (bookList.size() != 1) {
+        return null;
+      }
+      return bookList.get(0);
+    } catch (Exception e) {
       return null;
     }
-    return bookList.get(0);
   }
 
   public static boolean isAvailable(Book book) {
@@ -193,11 +194,15 @@ public class BookController {
 
   // find all books which title contains `keyword`
   public static List<Book> findBookByKeyword(String keyword, int start, int length) {
-    List<Document> jsonBook = MongoDB.getInstance()
-        .findAllObject("books", Filters.regex("title", keyword, "i"), start, length);
-    List<Book> result = new ArrayList<>();
-    jsonBook.forEach(curBook -> result.add(getBookFromDocument(curBook)));
-    return result;
+    try {
+      List<Document> jsonBook = MongoDB.getInstance()
+          .findAllObject("books", Filters.regex("title", keyword, "i"), start, length);
+      List<Book> result = new ArrayList<>();
+      jsonBook.forEach(curBook -> result.add(getBookFromDocument(curBook)));
+      return result;
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   public static List<Document> findBookByListID(List<String> bookId) {
@@ -225,9 +230,7 @@ public class BookController {
     if (!isAvailable(book)) {
       return false;
     }
-    MongoDB database = MongoDB.getInstance();
-    database.deleteFromCollection("books", "id", book.getId());
-    return true;
+    return MongoDB.getInstance().deleteFromCollection("books", "id", book.getId());
   }
 
   public static Document editBook(Book book) {
@@ -237,7 +240,7 @@ public class BookController {
         Filters.or(Filters.and(Filters.ne("iSBN", "N/A"), Filters.eq("iSBN", book.getISBN())),
             Filters.eq("id", book.getId())));
 
-    if (relatedBook.size() != 1) {
+    if (relatedBook == null || relatedBook.size() != 1) {
       return null;
     }
 

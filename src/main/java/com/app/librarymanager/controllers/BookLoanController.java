@@ -12,6 +12,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -71,9 +72,9 @@ public class BookLoanController {
   @Data
   public static class ReturnBookLoan {
 
-    BookLoan bookLoan;
-    String titleBook;
-    String thumbnailBook;
+    private BookLoan bookLoan;
+    private String titleBook;
+    private String thumbnailBook;
 
     public ReturnBookLoan(BookLoan bookLoan, String titleBook, String thumbnailBook) {
       this.bookLoan = bookLoan;
@@ -141,6 +142,59 @@ public class BookLoanController {
     }
   }
 
+  public static List<ReturnBookLoan> getLoanWithFilter(boolean isValid, boolean isNotValid,
+      boolean isOnline, boolean isOffline, int start, int length) {
+    List<Bson> validConditions = new ArrayList<>();
+    if (isValid) {
+      validConditions.add(Filters.eq("valid", true));
+    }
+    if (isNotValid) {
+      validConditions.add(Filters.eq("valid", false));
+    }
+    List<Bson> onlineConditions = new ArrayList<>();
+    if (isOnline) {
+      onlineConditions.add(Filters.eq("type", Mode.ONLINE.toString()));
+    }
+    if (isOffline) {
+      onlineConditions.add(Filters.eq("type", Mode.OFFLINE.toString()));
+    }
+    Bson filters = Filters.expr("false");
+    if (!validConditions.isEmpty()) {
+      filters = Filters.or(filters, Filters.or(validConditions.toArray(Bson[]::new)));
+    }
+    if (!onlineConditions.isEmpty()) {
+      filters = Filters.or(filters, Filters.or(onlineConditions.toArray(Bson[]::new)));
+    }
+    return bookLoanFromDocument(
+        MongoDB.getInstance().findAllObject("bookLoan", filters, start, length));
+  }
+
+  public static long countLoanWithFilter(boolean isValid, boolean isNotValid,
+      boolean isOnline, boolean isOffline) {
+    List<Bson> validConditions = new ArrayList<>();
+    if (isValid) {
+      validConditions.add(Filters.eq("valid", true));
+    }
+    if (isNotValid) {
+      validConditions.add(Filters.eq("valid", false));
+    }
+    List<Bson> onlineConditions = new ArrayList<>();
+    if (isOnline) {
+      onlineConditions.add(Filters.eq("type", Mode.ONLINE.toString()));
+    }
+    if (isOffline) {
+      onlineConditions.add(Filters.eq("type", Mode.OFFLINE.toString()));
+    }
+    Bson filters = Filters.expr("false");
+    if (!validConditions.isEmpty()) {
+      filters = Filters.or(filters, Filters.or(validConditions.toArray(Bson[]::new)));
+    }
+    if (!onlineConditions.isEmpty()) {
+      filters = Filters.or(filters, Filters.or(onlineConditions.toArray(Bson[]::new)));
+    }
+    return MongoDB.getInstance().countDocuments("bookLoan", filters);
+  }
+
   public static long numberOfRecords() {
     return MongoDB.getInstance().countDocuments("bookLoan");
   }
@@ -150,17 +204,22 @@ public class BookLoanController {
   }
 
   public static boolean refreshDatabase() {
-    Date curDate = new Date();
-    Bson filterDate = Filters.and(lte("dueDate", curDate), eq("valid", true));
-    Bson filterOffline = Filters.and(filterDate, eq("type", Mode.OFFLINE.name()));
-    MongoDB.getInstance().findAllObject("bookLoan", filterOffline).forEach(
-        e -> BookCopiesController.increaseCopy(
-            new BookCopies(e.getString("bookId"), e.getInteger("numCopies"))));
-    return MongoDB.getInstance().updateAll("bookLoan", filterDate,
-        Updates.combine(Updates.set("valid", false),
-            Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis()))));
+    try {
+      Date curDate = new Date();
+      Bson filterDate = Filters.and(lte("dueDate", curDate), eq("valid", true));
+      Bson filterOffline = Filters.and(filterDate, eq("type", Mode.OFFLINE.name()));
+      MongoDB.getInstance().findAllObject("bookLoan", filterOffline).forEach(
+          e -> BookCopiesController.increaseCopy(
+              new BookCopies(e.getString("bookId"), e.getInteger("numCopies"))));
+      return MongoDB.getInstance().updateAll("bookLoan", filterDate,
+          Updates.combine(Updates.set("valid", false),
+              Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis()))));
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   public static void main(String[] args) {
+//    System.out.println(getLoanWithFilter(true, true, true, true, 0, 1000000).size());
   }
 }

@@ -49,20 +49,28 @@ public class CategoriesController {
   }
 
   public static List<Categories> getCategories(int start, int length) {
-    return MongoDB.getInstance()
-        .findAllObject("categories", Filters.empty(), start, length)
-        .stream()
-        .map(Categories::new)
-        .toList();
+    try {
+      return MongoDB.getInstance()
+          .findAllObject("categories", Filters.empty(), start, length)
+          .stream()
+          .map(Categories::new)
+          .toList();
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   public static List<Book> getBookOfCategory(Categories categories, int start, int length) {
-    return MongoDB.getInstance()
-        .findAllObject("books",
-            Filters.regex("categories", categories.getName().toLowerCase(), "i"))
-        .stream()
-        .map(BookController::getBookFromDocument)
-        .toList();
+    try {
+      return MongoDB.getInstance()
+          .findAllObject("books",
+              Filters.regex("categories", categories.getName().toLowerCase(), "i"))
+          .stream()
+          .map(BookController::getBookFromDocument)
+          .toList();
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   public static long countBookOfCategory(Categories categories) {

@@ -3,6 +3,8 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.controllers.BookLoanController.ReturnBookLoan;
 import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.models.Comment;
+import com.app.librarymanager.models.User;
+import com.app.librarymanager.services.Firebase;
 import com.app.librarymanager.services.MongoDB;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,9 +30,39 @@ public class CommentController {
         .updateData("comment", "_id", comment.get_id(), MongoDB.objectToMap(comment));
   }
 
-  public static List<Comment> getAllCommentOfBook(String bookId) {
-    return MongoDB.getInstance().findAllObject("comment", "bookId", bookId).stream()
-        .map(Comment::new).toList();
+  @Data
+  public static class ReturnUserComment {
+
+    private String userDisplayName;
+    private String userEmail;
+    private String userPhotoUrl;
+    private String content;
+
+    public ReturnUserComment(String userDisplayName, String userEmail, String userPhotoUrl,
+        String content) {
+      this.userDisplayName = userDisplayName;
+      this.userEmail = userEmail;
+      this.userPhotoUrl = userPhotoUrl;
+      this.content = content;
+    }
+  }
+
+  public static List<ReturnUserComment> getAllCommentOfBook(String bookId) {
+    try {
+      List<Document> relatedComments = MongoDB.getInstance()
+          .findAllObject("comment", "bookId", bookId);
+      Map<String, User> idToUser = UserController.listUsers(
+              relatedComments.stream().map(doc -> doc.getString("userId")).toList()).stream()
+          .collect(Collectors.toMap(User::getUid, doc -> doc));
+      return relatedComments.stream().map(doc -> {
+        User currentUser = idToUser.get(doc.getString("userId"));
+        return new ReturnUserComment(currentUser.getDisplayName(), currentUser.getEmail(),
+            currentUser.getPhotoUrl(), doc.getString("content"));
+      }).toList();
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      return null;
+    }
   }
 
   public static List<Comment> getAllCommentOfUser(String userId) {
@@ -41,9 +73,9 @@ public class CommentController {
   @Data
   public static class ReturnComment {
 
-    String bookTitle;
-    String bookThumbnail;
-    int numComment;
+    private String bookTitle;
+    private String bookThumbnail;
+    private int numComment;
 
     public ReturnComment(String bookTitle, String bookThumbnail, int numComment) {
       this.bookTitle = bookTitle;
@@ -74,6 +106,5 @@ public class CommentController {
   }
 
   public static void main(String[] args) {
-    System.out.println(getMostCommentedBooks(0, 100000));
   }
 }
