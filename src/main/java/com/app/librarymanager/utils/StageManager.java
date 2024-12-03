@@ -22,6 +22,8 @@ public class StageManager {
     stage.setScene(scene);
     stage.setTitle(title);
     stage.setResizable(resizable);
+    stage.setMinWidth(800);
+    stage.setMinHeight(600);
     stage.centerOnScreen();
     stage.show();
   }

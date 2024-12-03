@@ -39,7 +39,6 @@ public class HomeController implements AuthStateListener {
   private TextField searchField;
   @FXML
   private VBox searchResults;
-  private Timer debounceTimer;
   private PauseTransition pauseTransition;
 
 
@@ -107,20 +106,6 @@ public class HomeController implements AuthStateListener {
     for (Book book : books) {
       searchResults.getChildren().add(new Label(book.getTitle()));
     }
-  }
-
-
-  private void debounceSearch() {
-    if (debounceTimer != null) {
-      debounceTimer.cancel();
-    }
-    debounceTimer = new Timer();
-    debounceTimer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        Platform.runLater(() -> searchBooks());
-      }
-    }, 100);
   }
 
   @Override
