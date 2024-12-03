@@ -205,6 +205,14 @@ public class BookController {
     }
   }
 
+  public static List<Book> listDocsToListBook(List<Document> docs) {
+    try {
+      return docs.stream().map(BookController::getBookFromDocument).toList();
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
   public static List<Document> findBookByListID(List<String> bookId) {
     return MongoDB.getInstance().findAllObject("books", Filters.in("id", bookId));
   }
