@@ -5,17 +5,24 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.librarymanager.controllers.MyLoansController">
+<StackPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="com.app.librarymanager.controllers.MyLoansController">
   <VBox spacing="10">
     <padding>
-      <Insets bottom="20" left="20" right="20" top="20" />
+      <Insets bottom="20" left="20" right="20" top="20"/>
     </padding>
-    <Text styleClass="content-title" text="My Book Loans" />
-    <FlowPane fx:id="loansFlowPane" styleClass="flow-pane" vgap="10" hgap="10" />
+    <Text styleClass="content-title" text="My Book Loans"/>
+    <TextField fx:id="searchField" styleClass="input" promptText="Search Loans..."/>
+    <Label fx:id="searchStatus" styleClass="search-status"/>
+    <ScrollPane fx:id="loansScrollPane" hbarPolicy="NEVER" styleClass="scroll-pane"
+      maxWidth="Infinity">
+      <FlowPane fx:id="loansFlowPane" styleClass="flow-pane" vgap="10" hgap="10"/>
+    </ScrollPane>
   </VBox>
-  <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false" StackPane.alignment="CENTER">
-    <Text fx:id="loadingText" text="Loading..." />
-    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100" />
-    <Button fx:id="cancelButton" styleClass="btn, btn-text" text="Cancel" />
+  <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false"
+    StackPane.alignment="CENTER">
+    <Text fx:id="loadingText" text="Loading..."/>
+    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
+    <Button fx:id="cancelButton" styleClass="btn, btn-text" text="Cancel"/>
   </VBox>
 </StackPane>

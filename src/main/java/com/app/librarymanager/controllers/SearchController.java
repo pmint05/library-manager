@@ -56,7 +56,7 @@ public class SearchController {
         searchStatus.setText("Enter a keyword to search");
       }
     });
-    Platform.runLater(() -> searchInput.requestFocus());
+//    Platform.runLater(() -> searchInput.requestFocus());
 
     searchResultsScrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
       double deltaY = event.getDeltaY() * 3; // Adjust multiplier to increase scroll speed
@@ -77,7 +77,7 @@ public class SearchController {
     searchTask = new Task<List<Book>>() {
       @Override
       protected List<Book> call() {
-        return BookController.findBookByKeyword(searchQuery, 0, 100);
+        return BookController.findBookByKeyword(searchQuery, 0, 10);
       }
     };
     searchTask.setOnSucceeded(workerStateEvent -> {
@@ -130,7 +130,6 @@ public class SearchController {
     this.keyword = keyword;
     if (searchInput != null) {
       searchInput.setText(keyword);
-      searchBooks();
     }
   }
 }

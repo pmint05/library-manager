@@ -29,7 +29,7 @@
     </HBox>
     <HBox alignment="CENTER" maxWidth="Infinity">
       <ScrollPane vbarPolicy="NEVER" maxWidth="Infinity">
-        <VBox alignment="CENTER" maxWidth="Infinity">
+        <VBox alignment="CENTER" maxWidth="Infinity" fx:id="detailContainer">
           <HBox spacing="10" alignment="CENTER" maxWidth="Infinity">
             <ImageView fx:id="bookCover" fitHeight="500" preserveRatio="true"/>
             <VBox spacing="5" styleClass="book-content">
@@ -69,7 +69,7 @@
               </HBox>
             </VBox>
           </HBox>
-          <VBox spacing="10" alignment="CENTER" maxWidth="Infinity">
+          <VBox spacing="10" maxWidth="Infinity">
             <Label text="Comments"/>
             <VBox fx:id="reviewsContainer" alignment="CENTER" maxWidth="Infinity"/>
           </VBox>

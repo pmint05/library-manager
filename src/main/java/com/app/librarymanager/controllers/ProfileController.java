@@ -237,7 +237,6 @@ public class ProfileController extends ControllerWithLoader {
         initialBirthday = birthday;
         saveChangesButton.setDisable(true);
         AlertDialog.showAlert("success", "Success", resp.getString("message"), null);
-        AuthController.getInstance().getNewUserClaims();
       } else {
         AlertDialog.showAlert("error", "Error", resp.getString("message"), null);
       }

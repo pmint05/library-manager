@@ -1,5 +1,6 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DataValidation;
 import com.app.librarymanager.utils.DatePickerUtil;
@@ -85,6 +86,8 @@ public class BookModalController extends ControllerWithLoader {
   @FXML
   private TextField discountPriceField;
   @FXML
+  private TextField numberOfCopies;
+  @FXML
   private CheckBox isActiveCheckBox;
   @FXML
   private ImageView thumbnailPreview;
@@ -115,6 +118,7 @@ public class BookModalController extends ControllerWithLoader {
     initNumberField(pageCountField);
     initNumberField(priceField);
     initNumberField(discountPriceField);
+    initNumberField(numberOfCopies);
     Bounds boundsInScreen = searchGoogleBooksField.localToScreen(
         searchGoogleBooksField.getBoundsInLocal());
     if (boundsInScreen != null) {
@@ -176,6 +180,7 @@ public class BookModalController extends ControllerWithLoader {
       task.setOnSucceeded(e -> {
         Platform.runLater(() -> {
           showLoading(false);
+          loadBookCopies(book.getId());
         });
       });
 
@@ -183,6 +188,31 @@ public class BookModalController extends ControllerWithLoader {
     } else {
       isEditMode = false;
     }
+  }
+
+  private void loadBookCopies(String bookId) {
+    Task<Document> task = new Task<Document>() {
+      @Override
+      protected Document call() throws Exception {
+        return BookCopiesController.findCopy(new BookCopies(bookId));
+      }
+    };
+
+//    task.setOnRunning(e -> showLoading(true));
+    task.setOnSucceeded(e -> {
+      Document copies = task.getValue();
+      if (copies != null) {
+        BookCopies bookCopies = new BookCopies(copies);
+        numberOfCopies.setText(String.valueOf(bookCopies.getCopies()));
+      } else {
+        numberOfCopies.setText("0");
+      }
+    });
+    task.setOnFailed(e -> {
+      AlertDialog.showAlert("error", "Error", e.getSource().getException().getMessage(), null);
+    });
+
+    new Thread(task).start();
   }
 
   @FXML
@@ -199,8 +229,7 @@ public class BookModalController extends ControllerWithLoader {
       if (!parsePrice.isEmpty()) {
         throw new Exception(parsePrice);
       }
-      String parseDiscountPrice = DataValidation.checkDouble("Discount Price",
-          discountPriceField.getText());
+      String parseDiscountPrice = DataValidation.checkDouble("Discount Price", discountPriceField.getText());
       if (!parseDiscountPrice.isEmpty()) {
         throw new Exception(parseDiscountPrice);
       }
@@ -208,8 +237,6 @@ public class BookModalController extends ControllerWithLoader {
       if (book == null) {
         book = new Book();
       } else {
-        System.out.println(book.toString());
-        System.out.println(_idField.getText());
         if (!_idField.getText().isEmpty()) {
           book.set_id(new ObjectId(_idField.getText()));
         }
@@ -220,19 +247,30 @@ public class BookModalController extends ControllerWithLoader {
       book.setPublisher(publisherField.getText());
       book.setDescription(descriptionField.getText());
       book.setPageCount(Integer.parseInt(pageCountField.getText()));
-
-      book.setCategories(new ArrayList<>(
-          Arrays.stream(categoriesField.getText().split(",")).map(String::trim).toList()));
-      book.setAuthors(new ArrayList<>(new ArrayList<>(
-          Arrays.stream(authorsField.getText().split(",")).map(String::trim).toList())));
+      book.setCategories(new ArrayList<>(Arrays.stream(categoriesField.getText().split(",")).map(String::trim).toList()));
+      book.setAuthors(new ArrayList<>(Arrays.stream(authorsField.getText().split(",")).map(String::trim).toList()));
       book.setThumbnail(thumbnailField.getText());
       book.setLanguage(languageField.getText());
       book.setPrice(Double.parseDouble(priceField.getText()));
       book.setCurrencyCode(currencyCodeField.getText());
       book.setPdfLink(pdfLinkField.getText());
-      book.setPublishedDate(DateUtil.format(publishedDateField.getValue(), DateFormat.YYYY_MM_DD));
+      book.setPublishedDate(DateUtil.format(publishedDateField.getValue(), DateUtil.DateFormat.YYYY_MM_DD));
       book.setDiscountPrice(Double.parseDouble(discountPriceField.getText()));
       book.setActivated(isActiveCheckBox.isSelected());
+
+      int copies = Integer.parseInt(numberOfCopies.getText());
+      if (copies > 0) {
+        BookCopies bookCopies = new BookCopies(book.getId(), copies);
+        Task<Document> updateCopiesTask = new Task<Document>() {
+          @Override
+          protected Document call() throws Exception {
+            BookCopies newCopies = new BookCopies(book.getId(), copies);
+            Document document = BookCopiesController.addCopy(newCopies);
+            return BookCopiesController.editCopy(newCopies);
+          }
+        };
+        new Thread(updateCopiesTask).start();
+      }
     } catch (Exception e) {
       AlertDialog.showAlert("error", "Error", e.getMessage(), null);
       return;
@@ -252,16 +290,12 @@ public class BookModalController extends ControllerWithLoader {
     task.setOnSucceeded(e -> {
       showLoading(false);
       Document resp = task.getValue();
-      System.out.println(resp);
       Stage stage = (Stage) idField.getScene().getWindow();
       if (resp == null) {
-        AlertDialog.showAlert("error", "Error",
-            "Book with id = " + idField.getText() + " or ISBN = " + iSBNField.getText()
-                + " is already existed.", null);
+        AlertDialog.showAlert("error", "Error", "Book with id = " + idField.getText() + " or ISBN = " + iSBNField.getText() + " is already existed.", null);
       } else {
         if (resp.getObjectId("_id") != null) {
-          AlertDialog.showAlert("success", "Success",
-              isEditMode ? "Book updated successfully." : "Book added successfully.", null);
+          AlertDialog.showAlert("success", "Success", isEditMode ? "Book updated successfully." : "Book added successfully.", null);
           stage.close();
           book.set_id(resp.getObjectId("_id"));
           if (saveCallback != null) {

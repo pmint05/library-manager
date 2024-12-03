@@ -64,6 +64,12 @@ Label.bold, Text.bold {
   -fx-font-weight: bold;
 }
 
+Label.link:hover, Text.link:hover {
+  -fx-text-fill: -fx-primary;
+  -fx-fill: -fx-primary;
+  -fx-cursor: hand;
+}
+
 Button {
   -fx-cursor: hand;
 }
@@ -355,6 +361,7 @@ Button {
   -fx-text-fill: -fx-text;
   -fx-border-color: -fx-fg-secondary;
   -fx-border-radius: 5;
+  -fx-max-width: Infinity;
 }
 
 .date-picker .text-field, .date-picker .text-field:disabled, .date-picker .input, .date-picker .input:disabled {
@@ -739,7 +746,7 @@ Button {
   -fx-background-radius: 5;
   -fx-border-width: 1;
   -fx-border-color: -fx-fg-secondary;
-  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.01), 8, 0, 0, 0);
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.02), 8, 0, 0, 0);
   -fx-max-width: 180;
   -fx-pref-width: 180;
   -fx-cursor: hand;
@@ -1563,6 +1570,7 @@ Button {
 
 .book-detail-container .book-content .book-description {
   -fx-border-color: -fx-fg-secondary !important;
+  -fx-cursor: default;
 }
 
 .book-detail-container .book-content .book-price {

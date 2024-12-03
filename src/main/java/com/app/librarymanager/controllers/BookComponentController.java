@@ -66,6 +66,11 @@ public class BookComponentController {
   }
 
   private void handleBookClick() {
+    AuthController.requireLogin();
+    if (!AuthController.getInstance().isAuthenticated()) {
+      return;
+    }
+
     try {
       FXMLLoader loader = new FXMLLoader(
           getClass().getResource("/views/components/book-detail.fxml"));
