@@ -142,8 +142,8 @@ public class BookLoanController {
     }
   }
 
-  public static List<ReturnBookLoan> getLoanWithFilter(boolean isValid, boolean isNotValid,
-      boolean isOnline, boolean isOffline, int start, int length) {
+  private static Bson getFilter(boolean isValid, boolean isNotValid, boolean isOnline,
+      boolean isOffline) {
     List<Bson> validConditions = new ArrayList<>();
     if (isValid) {
       validConditions.add(Filters.eq("valid", true));
@@ -158,41 +158,45 @@ public class BookLoanController {
     if (isOffline) {
       onlineConditions.add(Filters.eq("type", Mode.OFFLINE.toString()));
     }
-    Bson filters = Filters.expr("false");
+    Bson filters = Filters.empty();
     if (!validConditions.isEmpty()) {
-      filters = Filters.or(filters, Filters.or(validConditions.toArray(Bson[]::new)));
+      filters = Filters.and(filters, Filters.or(validConditions.toArray(Bson[]::new)));
+    } else {
+      return Filters.expr(false);
     }
     if (!onlineConditions.isEmpty()) {
-      filters = Filters.or(filters, Filters.or(onlineConditions.toArray(Bson[]::new)));
+      filters = Filters.and(filters, Filters.or(onlineConditions.toArray(Bson[]::new)));
+    } else {
+      return Filters.expr(false);
     }
-    return bookLoanFromDocument(
-        MongoDB.getInstance().findAllObject("bookLoan", filters, start, length));
+    return filters;
   }
 
-  public static long countLoanWithFilter(boolean isValid, boolean isNotValid,
+  public static List<ReturnBookLoan> getLoanWithFilter(boolean isValid, boolean isNotValid,
+      boolean isOnline, boolean isOffline, int start, int length) {
+    return bookLoanFromDocument(MongoDB.getInstance()
+        .findAllObject("bookLoan", getFilter(isValid, isNotValid, isOnline, isOffline), start,
+            length));
+  }
+
+  public static long countLoanWithFilter(boolean isValid, boolean isNotValid, boolean isOnline,
+      boolean isOffline) {
+    return MongoDB.getInstance()
+        .countDocuments("bookLoan", getFilter(isValid, isNotValid, isOnline, isOffline));
+  }
+
+  public static List<ReturnBookLoan> getLoanWithFilterOfUser(String userId, boolean isValid,
+      boolean isNotValid, boolean isOnline, boolean isOffline, int start, int length) {
+    return bookLoanFromDocument(MongoDB.getInstance().findAllObject("bookLoan",
+        Filters.and(Filters.eq("userId", userId),
+            getFilter(isValid, isNotValid, isOnline, isOffline)), start, length));
+  }
+
+  public static long countLoanWithFilterOfUser(String userId, boolean isValid, boolean isNotValid,
       boolean isOnline, boolean isOffline) {
-    List<Bson> validConditions = new ArrayList<>();
-    if (isValid) {
-      validConditions.add(Filters.eq("valid", true));
-    }
-    if (isNotValid) {
-      validConditions.add(Filters.eq("valid", false));
-    }
-    List<Bson> onlineConditions = new ArrayList<>();
-    if (isOnline) {
-      onlineConditions.add(Filters.eq("type", Mode.ONLINE.toString()));
-    }
-    if (isOffline) {
-      onlineConditions.add(Filters.eq("type", Mode.OFFLINE.toString()));
-    }
-    Bson filters = Filters.expr("false");
-    if (!validConditions.isEmpty()) {
-      filters = Filters.or(filters, Filters.or(validConditions.toArray(Bson[]::new)));
-    }
-    if (!onlineConditions.isEmpty()) {
-      filters = Filters.or(filters, Filters.or(onlineConditions.toArray(Bson[]::new)));
-    }
-    return MongoDB.getInstance().countDocuments("bookLoan", filters);
+    return MongoDB.getInstance().countDocuments("bookLoan",
+        Filters.and(Filters.eq("userId", userId),
+            getFilter(isValid, isNotValid, isOnline, isOffline)));
   }
 
   public static long numberOfRecords() {
@@ -220,6 +224,5 @@ public class BookLoanController {
   }
 
   public static void main(String[] args) {
-//    System.out.println(getLoanWithFilter(true, true, true, true, 0, 1000000).size());
   }
 }
