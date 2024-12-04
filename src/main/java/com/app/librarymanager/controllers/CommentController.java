@@ -6,6 +6,7 @@ import com.app.librarymanager.models.Comment;
 import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.Firebase;
 import com.app.librarymanager.services.MongoDB;
+import com.app.librarymanager.utils.StringUtil;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,7 +51,7 @@ public class CommentController {
   public static List<ReturnUserComment> getAllCommentOfBook(String bookId) {
     try {
       List<Document> relatedComments = MongoDB.getInstance()
-          .findAllObject("comment", "bookId", bookId);
+          .findAllObject("comment", "bookId", StringUtil.escapeString(bookId));
       Map<String, User> idToUser = UserController.listUsers(
               relatedComments.stream().map(doc -> doc.getString("userId")).toList()).stream()
           .collect(Collectors.toMap(User::getUid, doc -> doc, (existing, replacement) -> existing));

@@ -3,10 +3,12 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.Categories;
 import com.app.librarymanager.services.MongoDB;
+import com.app.librarymanager.utils.StringUtil;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.bson.Document;
 
 public class CategoriesController {
@@ -64,7 +66,8 @@ public class CategoriesController {
     try {
       return MongoDB.getInstance()
           .findAllObject("books",
-              Filters.regex("categories", categories.getName().toLowerCase(), "i"))
+              Filters.regex("categories",
+                  StringUtil.escapeString(categories.getName().toLowerCase()), "i"))
           .stream()
           .map(BookController::getBookFromDocument)
           .toList();
@@ -79,5 +82,6 @@ public class CategoriesController {
   }
 
   public static void main(String[] args) {
+    addCategoryList(Stream.of("^", "(", ")").map(Categories::new).toList());
   }
 }
