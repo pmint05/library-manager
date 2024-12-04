@@ -26,8 +26,11 @@
   </VBox>
   <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false"
     StackPane.alignment="CENTER">
-    <Text fx:id="loadingText" text="Loading..."/>
-    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
-    <Button fx:id="cancelButton" styleClass="btn, btn-text" text="Cancel"/>
+    <VBox styleClass="loading-inner" alignment="CENTER" maxWidth="200">
+
+      <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
+      <Text text="Loading..." fx:id="loadingText"/>
+      <Button text="Cancel" fx:id="cancelButton" styleClass="btn, btn-text"/>
+    </VBox>
   </VBox>
 </StackPane>

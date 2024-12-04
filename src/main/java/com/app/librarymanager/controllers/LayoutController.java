@@ -43,6 +43,8 @@ public class LayoutController implements AuthStateListener {
   @FXML
   private Button homeNavBtn;
   @FXML
+  private Button allBooksNavBtn;
+  @FXML
   private Button categoriesNavBtn;
   @FXML
   private Button loansNavBtn;
@@ -92,6 +94,7 @@ public class LayoutController implements AuthStateListener {
       loadComponent("/views/home.fxml");
     }
     searchField.setOnAction(event -> handleSearch());
+    allBooksNavBtn.setOnAction(event -> handleSearch());
 
     homeNavBtn.setOnAction(event -> loadComponent("/views/home.fxml"));
     categoriesNavBtn.setOnAction(event -> loadComponent("/views/categories.fxml"));
@@ -203,9 +206,6 @@ public class LayoutController implements AuthStateListener {
 
   private void handleSearch() {
     String keyword = searchField.getText().trim();
-    if (keyword.isEmpty()) {
-      return;
-    }
     try {
       FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/search.fxml"));
       Parent searchComponent = loader.load();

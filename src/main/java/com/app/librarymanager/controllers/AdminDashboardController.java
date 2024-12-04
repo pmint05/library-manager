@@ -54,6 +54,7 @@ public class AdminDashboardController extends ControllerWithLoader {
 
   @FXML
   private void initialize() {
+    showCancel(false);
     adminScrollPane.viewportBoundsProperty()
         .addListener((observable, oldValue, newValue) -> {
           adminFlowPane.setPrefWidth(newValue.getWidth());

@@ -59,6 +59,8 @@ public class ManageBookLoansController extends ControllerWithLoader {
   private TableColumn<BookLoanUser, String> numOfCopiesColumn;
 
   private int currentPage = 0;
+  @FXML
+  private ComboBox<String> pageSizeInput;
   private int pageSize = 10;
   private int totalRecords = 0;
 
@@ -69,6 +71,7 @@ public class ManageBookLoansController extends ControllerWithLoader {
 
   @FXML
   public void initialize() {
+    showCancel(false);
     setLoadingText("Loading book loans...");
 
     _idColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
@@ -123,6 +126,13 @@ public class ManageBookLoansController extends ControllerWithLoader {
       currentPage = index;
       loadBookLoans();
       return new Label();
+    });
+
+    pageSizeInput.getItems().addAll("10", "20", "50", "100");
+    pageSizeInput.setValue("10");
+    pageSizeInput.setOnAction(e -> {
+      pageSize = Integer.parseInt(pageSizeInput.getValue());
+      loadBookLoans();
     });
 
     setRowContextMenu();

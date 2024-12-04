@@ -143,7 +143,6 @@ public class MyLoansController extends ControllerWithLoader {
         nextPageButton.setDisable((currentPage + 1) * pageSizeValue >= totalResults);
         prevPageButton.setDisable(currentPage == 0);
         System.out.println("Total results: " + totalResults);
-        System.out.println(isValid + " " + isNotValid + " " + isOnline + " " + isOffline);
         return BookLoanController.getLoanWithFilterOfUser(currentUser.getUid(), isValid, isNotValid,
             isOnline, isOffline,
             currentPage * pageSizeValue, pageSizeValue);
@@ -333,6 +332,9 @@ public class MyLoansController extends ControllerWithLoader {
     loansFlowPane.getChildren().add(createLoanCell(
         new ReturnBookLoan(bookLoan.getBookLoan(), bookLoan.getTitleBook(),
             bookLoan.getThumbnailBook())));
+    if ("Valid".equals(validity)) {
+      loadLoans();
+    }
   }
 
   private void handleBookLoanClick(String id, Parent container) {
