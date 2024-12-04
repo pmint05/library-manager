@@ -265,6 +265,9 @@ public class AuthController {
         }
         authPrefs.put("idToken", idToken);
         authPrefs.put("refreshToken", refreshToken);
+        this.refreshToken = refreshToken;
+        this.idToken = idToken;
+        this.isAuthenticated = true;
         System.out.println("Token refreshed successfully.");
         return true;
       } catch (Exception ex) {

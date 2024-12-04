@@ -1,19 +1,26 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.controllers.CommentController.ReturnUserComment;
 import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.models.BookUser;
+import com.app.librarymanager.models.Comment;
 import com.app.librarymanager.utils.AlertDialog;
+import com.app.librarymanager.utils.AvatarUtil;
 import com.app.librarymanager.utils.DatePickerUtil;
 import com.app.librarymanager.utils.DateUtil;
 import com.app.librarymanager.utils.StageManager;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -22,6 +29,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextArea;
@@ -32,7 +41,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -86,6 +97,13 @@ public class BookDetailController extends ControllerWithLoader {
   @FXML
   private Button borrowPhysicalBook;
   @FXML
+  private ListView<ReturnUserComment> commentsContainer;
+  @FXML
+  private TextArea newCommentTextArea;
+  @FXML
+  private Button addCommentButton;
+
+  private List<ReturnUserComment> commentList = new ArrayList<>();
 
   private boolean isFavorite = false;
 
@@ -96,9 +114,36 @@ public class BookDetailController extends ControllerWithLoader {
     borrowPhysicalBook.setOnAction(event -> handleBorrowPhysicalBook());
     addToFavorite.setOnAction(event -> handleAddToFavorite());
 //    detailContainer.setVisible(false);
+    addCommentButton.setOnAction(e -> handleAddComment());
+    commentsContainer.setCellFactory(listView -> new ListCell<>() {
+      @Override
+      protected void updateItem(ReturnUserComment comment, boolean empty) {
+        super.updateItem(comment, empty);
+        if (empty || comment == null) {
+          setGraphic(null);
+        } else {
+          Task<VBox> renderTask = new Task<>() {
+            @Override
+            protected VBox call() {
+              return createCommentComponent(comment);
+            }
+          };
+
+          renderTask.setOnSucceeded(event -> setGraphic(renderTask.getValue()));
+          renderTask.setOnFailed(event -> {
+            System.out.println("Failed to render comment for: " + comment.getUserDisplayName());
+            setGraphic(null);
+          });
+
+          new Thread(renderTask).start();
+        }
+      }
+    });
   }
 
-   void getBookDetail(String id) {
+  private Stage loadingStage;
+
+  void getBookDetail(String id) {
     Task<Map<String, Object>> task = new Task<>() {
       @Override
       protected Map<String, Object> call() {
@@ -107,98 +152,144 @@ public class BookDetailController extends ControllerWithLoader {
         boolean isFavorite = FavoriteController.findFavorite(
             new BookUser(AuthController.getInstance().getCurrentUser().getUid(), id)) != null;
         double avgRating = BookRatingController.averageRating(id);
-        if (cp != null) {
-          copies = new BookCopies(cp);
-        } else {
-          copies = new BookCopies(id);
-        }
-        return Map.of("book", b, "copies", copies, "isFavorite", isFavorite, "avgRating",
-            avgRating);
+        commentList = CommentController.getAllCommentOfBook(id);
+
+        copies = (cp != null) ? new BookCopies(cp) : new BookCopies(id);
+
+        return Map.of(
+            "book", b,
+            "copies", copies,
+            "isFavorite", isFavorite,
+            "avgRating", avgRating
+        );
       }
     };
+
     task.setOnRunning(event -> showLoading(true));
+
     task.setOnSucceeded(event -> {
       showLoading(false);
       Map<String, Object> result = task.getValue();
 
-      book = (Book) result.get("book");
-      BookCopies copies = (BookCopies) result.get("copies");
-      isFavorite = (boolean) result.get("isFavorite");
-      double avgRating = (double) result.get("avgRating");
-
-      System.out.println("Book found: " + book.toString());
-      System.out.println("Copies found: " + copies.toString());
-      System.out.println("Is favorite: " + isFavorite);
-
       Platform.runLater(() -> {
-        if (book != null) {
-//          detailContainer.setVisible(true);
-          bookTitle.setText(book.isActivated() ? book.getTitle() : "[INACTIVE] " + book.getTitle());
-          try {
-            bookCover.setImage(new Image("https://books.google.com/books/content?id=" + id
-                + "&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api"));
-          } catch (Exception e) {
-            bookCover.setImage(new Image(
-                "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api"));
-          }
-          bookAuthor.setText("by " + book.getAuthors().toString().replaceAll("[\\[\\]]", ""));
-          bookPublishingInfo.setText(
-              "Published by " + book.getPublisher() + " on " + DateUtil.ymdToDmy(
-                  book.getPublishedDate()));
-          bookDescription.setText(book.getDescription());
-          for (String category : book.getCategories()) {
-            Label label = new Label(category);
-            label.getStyleClass().addAll("chip", "info");
-            bookCategories.getChildren().add(label);
-          }
-          bookLanguage.setText(book.getLanguage());
-          availableCopies.setText("Available copies: " + copies.getCopies());
-          bookPrice.setText(parsePrice(book.getPrice()));
-          currencyCode.setText(book.getCurrencyCode());
-
-          if (book.getDiscountPrice() > 0) {
-            bookDiscountPrice.setText(parsePrice(book.getDiscountPrice()));
-            bookPrice.getStyleClass().add("small-strike");
-          } else {
-            bookDiscountPrice.setVisible(false);
-          }
-          addToFavorite.setGraphic(
-              isFavorite ? new FontIcon("antf-heart") : new FontIcon("anto-heart"));
-          addToFavorite.getStyleClass().add(isFavorite ? "on" : "off");
-          borrowPhysicalBook.setDisable(copies.getCopies() == 0 || !book.isActivated());
-          borrowEBook.setDisable(!book.isActivated());
-          addToFavorite.setDisable(!book.isActivated());
-
-          for (int i = 0; i < 5; i++) {
-            FontIcon icon = new FontIcon();
-            if (avgRating - i >= 0.5) {
-              icon.setIconLiteral("antf-star");
-            } else {
-              icon.setIconLiteral("anto-star");
-            }
-            icon.getStyleClass().add("star");
-            starsContainer.getChildren().add(icon);
-          }
-          starsContainer.getChildren().add(new Label("(" + String.format("%.1f", avgRating) + ")"));
-          if (!book.isActivated()) {
-            detailContainer.setStyle("-fx-opacity: 0.5;");
-            AlertDialog.showAlert("warning", "Book not available",
-                "This book is currently not available for borrowing", null);
-          }
-        } else {
-          AlertDialog.showAlert("error", "Book not found",
-              "An error occurred while fetching book details", null);
-        }
+        book = (Book) result.get("book");
+        isFavorite = (boolean) result.get("isFavorite");
+        double avgRating = (double) result.get("avgRating");
+        updateBookDetailsUI(book, avgRating);
       });
+
+      new Thread(() -> loadCommentsInBatches(commentList)).start();
     });
+
     task.setOnFailed(event -> {
       showLoading(false);
       task.getException().printStackTrace();
-      AlertDialog.showAlert("error", "Book not found",
-          "An error occurred while fetching book details", null);
+      AlertDialog.showAlert("error", "Book not found", "Failed to load book details", null);
     });
+
     new Thread(task).start();
   }
+
+  private void updateBookDetailsUI(Book book, double avgRating) {
+    if (book == null) {
+      AlertDialog.showAlert("error", "Book not found", "No details available for this book.", null);
+      return;
+    }
+
+    bookTitle.setText(book.isActivated() ? book.getTitle() : "[INACTIVE] " + book.getTitle());
+    bookAuthor.setText("by " + String.join(", ", book.getAuthors()));
+    bookPublishingInfo.setText("Published by " + book.getPublisher() + " on " +
+        DateUtil.ymdToDmy(book.getPublishedDate()));
+    bookDescription.setText(book.getDescription());
+    bookLanguage.setText(book.getLanguage());
+    availableCopies.setText("Available copies: " + copies.getCopies());
+    bookPrice.setText(parsePrice(book.getPrice()));
+    currencyCode.setText(book.getCurrencyCode());
+
+    if (book.getDiscountPrice() > 0) {
+      bookDiscountPrice.setText(parsePrice(book.getDiscountPrice()));
+      bookPrice.getStyleClass().add("small-strike");
+    } else {
+      bookDiscountPrice.setVisible(false);
+    }
+
+    addToFavorite.setGraphic(isFavorite ? new FontIcon("antf-heart") : new FontIcon("anto-heart"));
+    addToFavorite.getStyleClass().add(isFavorite ? "on" : "off");
+    if (!book.isActivated()) {
+      detailContainer.setStyle("-fx-opacity: 0.5;");
+      borrowPhysicalBook.setDisable(copies.getCopies() == 0);
+      borrowEBook.setDisable(true);
+      addToFavorite.setDisable(true);
+      newCommentTextArea.setDisable(true);
+      addCommentButton.setDisable(true);
+      AlertDialog.showAlert("warning", "Book is inactive",
+          "This book is currently inactive and cannot be borrowed", null);
+    }
+
+    for (int i = 0; i < 5; i++) {
+      FontIcon star = new FontIcon("antf-star");
+      star.getStyleClass().add("star");
+      if (avgRating - i >= 0.51) {
+        starsContainer.getChildren().add(star);
+      } else {
+        star.setIconLiteral("anto-star");
+        starsContainer.getChildren().add(star);
+      }
+    }
+    starsContainer.getChildren().add(new Label("(" + avgRating + ")"));
+    Task<Image> imageTask = new Task<>() {
+      @Override
+      protected Image call() {
+        try {
+          return new Image("https://books.google.com/books/content?id=" + book.getId() +
+              "&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api");
+        } catch (Exception e) {
+          return new Image(
+              "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api");
+        }
+      }
+    };
+    imageTask.setOnSucceeded(event -> bookCover.setImage(imageTask.getValue()));
+    new Thread(imageTask).start();
+  }
+
+  private void loadCommentsInBatches(List<ReturnUserComment> comments) {
+    ObservableList<ReturnUserComment> observableComments = FXCollections.observableArrayList();
+    commentsContainer.setItems(observableComments);
+
+    if (comments == null || comments.isEmpty()) {
+      commentsContainer.getItems().add(new ReturnUserComment("", "", "", "No comments yet"));
+      commentsContainer.setPrefHeight(80);
+      commentsContainer.setCellFactory(listView -> new ListCell<>() {
+        @Override
+        protected void updateItem(ReturnUserComment comment, boolean empty) {
+          super.updateItem(comment, empty);
+          if (empty || comment == null) {
+            setGraphic(null);
+          } else {
+            Label noCommentLabel = new Label("No comments yet");
+            noCommentLabel.getStyleClass().add("no-comment");
+            setGraphic(noCommentLabel);
+          }
+        }
+      });
+      return;
+    }
+
+    commentsContainer.getItems().clear();
+
+    for (int i = 0; i < comments.size(); i++) {
+      int index = i;
+      Platform.runLater(() -> observableComments.add(comments.get(index)));
+
+      try {
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
 
   private String parsePrice(double price) {
     return String.format("%,.0f", price);
@@ -386,6 +477,90 @@ public class BookDetailController extends ControllerWithLoader {
     } else {
       AlertDialog.showAlert("error", "Failed to add to favorite",
           "An error occurred while adding the book to favorite", null);
+    }
+  }
+
+  private VBox createCommentComponent(ReturnUserComment comment) {
+    String user = comment.getUserDisplayName().isEmpty()
+        ? comment.getUserEmail()
+        : comment.getUserDisplayName();
+    String photoUrl = comment.getUserPhotoUrl();
+    String content = comment.getContent();
+
+    VBox commentBox = new VBox(10);
+    commentBox.getStyleClass().add("comment-box");
+    ImageView userAvatar = new ImageView();
+    userAvatar.setFitHeight(30);
+    userAvatar.setFitWidth(30);
+    userAvatar.setSmooth(true);
+    userAvatar.setPickOnBounds(true);
+    userAvatar.setPreserveRatio(true);
+    userAvatar.getStyleClass().add("comment-avatar");
+
+    Circle clip = new Circle(15);
+    clip.setCenterX(15);
+    clip.setCenterY(15);
+    userAvatar.setClip(clip);
+    if (photoUrl != null && !photoUrl.isEmpty()) {
+      userAvatar.setImage(new Image(photoUrl));
+    } else {
+      userAvatar.setImage(new Image(new AvatarUtil().setRounded(true).getAvatarUrl(user)));
+    }
+
+    Label userLabel = new Label(user);
+    userLabel.getStyleClass().add("comment-user");
+    Label contentLabel = new Label(content);
+    contentLabel.getStyleClass().add("comment-content");
+    HBox commentHeader = new HBox(10, userAvatar, userLabel);
+    commentHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+    commentBox.getChildren().addAll(
+        commentHeader,
+        contentLabel
+    );
+    return commentBox;
+  }
+
+  private void handleAddComment() {
+    String content = newCommentTextArea.getText();
+    if (content.isEmpty()) {
+      AlertDialog.showAlert("error", "Empty Comment", "Comment cannot be empty", null);
+      return;
+    }
+    Comment newComment = new Comment(
+        AuthController.getInstance().getCurrentUser().getUid(),
+        book.getId(),
+        content
+    );
+    try {
+
+      Document result = CommentController.addComment(newComment);
+      if (result != null) {
+        AlertDialog.showAlert("success", "Comment Added", "Your comment has been added", null);
+        newCommentTextArea.clear();
+
+        if (commentList.isEmpty()) {
+          commentsContainer.getItems().clear();
+        }
+
+        ReturnUserComment userComment = new ReturnUserComment(
+            AuthController.getInstance().getCurrentUser().getDisplayName(),
+            AuthController.getInstance().getCurrentUser().getEmail(),
+            AuthController.getInstance().getCurrentUser().getPhotoUrl(),
+            content
+        );
+
+        commentsContainer.getItems().add(userComment);
+
+        commentsContainer.scrollTo(commentsContainer.getItems().size() - 1);
+        commentsContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
+      } else {
+        AlertDialog.showAlert("error", "Failed to Add Comment",
+            "An error occurred while adding your comment", null);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      AlertDialog.showAlert("error", "Failed to Add Comment",
+          "An error occurred while adding your comment", null);
     }
   }
 

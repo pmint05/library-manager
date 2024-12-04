@@ -53,7 +53,7 @@ public class CommentController {
           .findAllObject("comment", "bookId", bookId);
       Map<String, User> idToUser = UserController.listUsers(
               relatedComments.stream().map(doc -> doc.getString("userId")).toList()).stream()
-          .collect(Collectors.toMap(User::getUid, doc -> doc));
+          .collect(Collectors.toMap(User::getUid, doc -> doc, (existing, replacement) -> existing));
       return relatedComments.stream().map(doc -> {
         User currentUser = idToUser.get(doc.getString("userId"));
         return new ReturnUserComment(currentUser.getDisplayName(), currentUser.getEmail(),

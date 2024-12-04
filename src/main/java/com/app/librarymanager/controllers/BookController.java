@@ -205,6 +205,10 @@ public class BookController {
     }
   }
 
+  public static long countBookByKeyword(String keyword) {
+    return MongoDB.getInstance().countDocuments("books", Filters.regex("title", keyword, "i"));
+  }
+
   public static List<Book> listDocsToListBook(List<Document> docs) {
     try {
       return docs.stream().map(BookController::getBookFromDocument).toList();
