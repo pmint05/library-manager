@@ -8,12 +8,18 @@ import com.app.librarymanager.models.BookUser;
 import com.app.librarymanager.models.User;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DateUtil;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
@@ -26,6 +32,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
@@ -39,37 +46,36 @@ public class MyFavoriteBooksController extends ControllerWithLoader {
   private ScrollPane favoriteScrollPane;
   @FXML
   private TextField searchField;
-  private List<Book> favoriteBooks = FXCollections.observableArrayList();
+  @FXML
+  private Label searchStatus;
+
+  private ObservableList<Book> favoriteBooks = FXCollections.observableArrayList();
 
   private PauseTransition pauseTransition;
   private Task<List<Book>> searchTask;
+  private List<Task<HBox>> renderTasks = new ArrayList<>();
 
   @FXML
   private void initialize() {
-    favoriteScrollPane.viewportBoundsProperty()
-        .addListener((observable, oldValue, newValue) -> {
-          favoriteBooksFlowPane.setPrefWidth(newValue.getWidth());
-        });
-    searchField.setOnKeyPressed(event -> handleSearch());
-    loadFavoriteBooks();
-    pauseTransition = new PauseTransition(Duration.millis(200));
-    pauseTransition.setOnFinished(event -> handleSearch());
-    searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-      pauseTransition.playFromStart();
-      if (newValue.trim().isEmpty()) {
-        favoriteBooksFlowPane.getChildren().clear();
-      }
-    });
-
-    Platform.runLater(() -> searchField.requestFocus());
-
+    showCancel(false);
     favoriteScrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
-      double deltaY = event.getDeltaY() * 3; // Adjust multiplier to increase scroll speed
+      double deltaY = event.getDeltaY() * 3;
       favoriteScrollPane.setVvalue(
           favoriteScrollPane.getVvalue() - deltaY / favoriteScrollPane.getContent()
               .getBoundsInLocal().getHeight());
       event.consume();
     });
+    favoriteScrollPane.viewportBoundsProperty()
+        .addListener((observable, oldValue, newValue) -> {
+          favoriteBooksFlowPane.setPrefWidth(newValue.getWidth());
+        });
+    loadFavoriteBooks();
+    pauseTransition = new PauseTransition(Duration.millis(200));
+    pauseTransition.setOnFinished(event -> handleSearch());
+    searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+      pauseTransition.playFromStart();
+    });
+    Platform.runLater(() -> searchField.requestFocus());
   }
 
   private void loadFavoriteBooks() {
@@ -85,6 +91,7 @@ public class MyFavoriteBooksController extends ControllerWithLoader {
     task.setOnRunning(event -> showLoading(true));
     task.setOnSucceeded(event -> {
       showLoading(false);
+      searchStatus.setText(task.getValue().size() + " results found");
       favoriteBooks.clear();
       favoriteBooks.addAll(task.getValue());
       favoriteBooksFlowPane.getChildren().clear();
@@ -136,7 +143,8 @@ public class MyFavoriteBooksController extends ControllerWithLoader {
     thumbnail.setFitHeight(200);
     thumbnail.setPreserveRatio(true);
     title.setText(book.getTitle());
-    title.getStyleClass().add("bold");
+    title.getStyleClass().addAll("bold", "link");
+    title.setOnMouseClicked(event -> handleFavoriteBookClick(book.getId(), content));
 
     actionButtons.getChildren().addAll(heartButton);
     actionButtons.setSpacing(5);
@@ -157,9 +165,13 @@ public class MyFavoriteBooksController extends ControllerWithLoader {
         return FavoriteController.removeFromFavorite(new BookUser(user.getUid(), book.getId()));
       }
     };
-    task.setOnRunning(event -> showLoading(true));
+    task.setOnRunning(event -> {
+      showLoading(true);
+      searchField.setDisable(true);
+    });
     task.setOnSucceeded(event -> {
       showLoading(false);
+      searchField.setDisable(false);
       if (task.getValue()) {
         favoriteBooks.remove(book);
         favoriteBooksFlowPane.getChildren().removeIf(node -> node.getUserData().equals(book));
@@ -176,36 +188,59 @@ public class MyFavoriteBooksController extends ControllerWithLoader {
   }
 
   private void handleSearch() {
+    searchStatus.setText("Searching...");
     String query = searchField.getText().trim();
     if (query.isEmpty()) {
       favoriteBooksFlowPane.getChildren().clear();
-      favoriteBooks.forEach(book -> {
-        Task<HBox> bookTask = new Task<HBox>() {
-          @Override
-          protected HBox call() {
-            return createBookCell(book);
-          }
-        };
-        bookTask.setOnSucceeded(e -> favoriteBooksFlowPane.getChildren().add(bookTask.getValue()));
-        new Thread(bookTask).start();
-      });
-    } else {
-      favoriteBooksFlowPane.getChildren().clear();
-      favoriteBooks.stream()
-          .filter(book -> book.getTitle().toLowerCase().contains(query.toLowerCase()) || book
-              .getAuthors().toString().toLowerCase().contains(query.toLowerCase())
-              || book.getPublisher().toLowerCase().contains(query.toLowerCase()))
-          .forEach(book -> {
-            Task<HBox> bookTask = new Task<HBox>() {
-              @Override
-              protected HBox call() {
-                return createBookCell(book);
-              }
-            };
-            bookTask.setOnSucceeded(
-                e -> favoriteBooksFlowPane.getChildren().add(bookTask.getValue()));
-            new Thread(bookTask).start();
-          });
+      loadFavoriteBooks();
+      return;
+    }
+
+    FilteredList<Book> filteredBooks = favoriteBooks.filtered(book -> {
+      return book.getTitle().toLowerCase().contains(query.toLowerCase());
+    });
+
+    searchStatus.setText(filteredBooks.size() + " results found");
+
+    favoriteBooksFlowPane.getChildren().clear();
+
+    renderTasks.forEach(Task::cancel);
+
+    renderTasks.clear();
+
+    filteredBooks.forEach(book -> {
+      Task<HBox> bookTask = new Task<HBox>() {
+        @Override
+        protected HBox call() {
+          return createBookCell(book);
+        }
+      };
+      bookTask.setOnSucceeded(e -> favoriteBooksFlowPane.getChildren().add(bookTask.getValue()));
+      renderTasks.add(bookTask);
+      new Thread(bookTask).start();
+    });
+  }
+
+  private void handleFavoriteBookClick(String id, Parent container) {
+    try {
+      FXMLLoader loader = new FXMLLoader(
+          getClass().getResource("/views/components/book-detail.fxml"));
+      Parent root = loader.load();
+      BookDetailController controller = loader.getController();
+      controller.getBookDetail(id);
+
+      StackPane overlay = new StackPane(root);
+      overlay.getStyleClass().add("overlay");
+      StackPane stackPane = (StackPane) container.getScene().lookup("#contentPane");
+      if (stackPane != null) {
+        stackPane.getChildren().add(overlay);
+        Button closeButton = (Button) root.lookup("#closeBtn");
+        closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
+      } else {
+        System.err.println("StackPane with id 'contentPane' not found.");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 }

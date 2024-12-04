@@ -28,8 +28,8 @@
       </Button>
     </HBox>
     <HBox alignment="CENTER" maxWidth="Infinity">
-      <ScrollPane vbarPolicy="NEVER" maxWidth="Infinity">
-        <VBox alignment="CENTER" maxWidth="Infinity">
+      <ScrollPane hbarPolicy="NEVER" maxWidth="Infinity">
+        <VBox alignment="CENTER" maxWidth="Infinity" fx:id="detailContainer">
           <HBox spacing="10" alignment="CENTER" maxWidth="Infinity">
             <ImageView fx:id="bookCover" fitHeight="500" preserveRatio="true"/>
             <VBox spacing="5" styleClass="book-content">
@@ -43,9 +43,9 @@
               <Label fx:id="bookPublishingInfo" styleClass="book-publishing-info" wrapText="true"/>
               <Label fx:id="availableCopies" styleClass="available-copies"/>
               <!--            <Label fx:id="bookIsbn" styleClass="book-isbn"/>-->
-              <HBox spacing="3">
+              <HBox spacing="5">
                 <Text text="Categories:"/>
-                <FlowPane fx:id="bookCategories" styleClass="book-categories"/>
+                <FlowPane fx:id="bookCategories" styleClass="book-categories" hgap="5"/>
               </HBox>
               <Label text="Description:"/>
               <TextArea editable="false" fx:id="bookDescription" styleClass="book-description"
@@ -69,9 +69,15 @@
               </HBox>
             </VBox>
           </HBox>
-          <VBox spacing="10" alignment="CENTER" maxWidth="Infinity">
+          <VBox spacing="10" maxWidth="Infinity">
             <Label text="Comments"/>
-            <VBox fx:id="reviewsContainer" alignment="CENTER" maxWidth="Infinity"/>
+            <ListView fx:id="commentsContainer" maxWidth="Infinity" styleClass="comment-container"/>
+            <HBox spacing="10">
+              <TextArea fx:id="newCommentTextArea" promptText="Type your sharing here..."
+                wrapText="true"
+                HBox.hgrow="ALWAYS" prefHeight="100" maxHeight="100"/>
+              <Button fx:id="addCommentButton" text="Add Comment" styleClass="btn, btn-primary"/>
+            </HBox>
           </VBox>
         </VBox>
       </ScrollPane>

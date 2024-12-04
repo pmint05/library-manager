@@ -2,6 +2,9 @@ package com.app.librarymanager.utils;
 
 import java.util.HashMap;
 import java.util.Map;
+import javafx.scene.Node;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 
 public class AvatarUtil {
 
@@ -61,4 +64,5 @@ public class AvatarUtil {
     settings.forEach((key, value) -> url.append("&").append(key).append("=").append(value));
     return url.toString();
   }
+
 }
