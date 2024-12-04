@@ -215,9 +215,9 @@ public class BookDetailController extends ControllerWithLoader {
 
     addToFavorite.setGraphic(isFavorite ? new FontIcon("antf-heart") : new FontIcon("anto-heart"));
     addToFavorite.getStyleClass().add(isFavorite ? "on" : "off");
+    borrowPhysicalBook.setDisable(copies.getCopies() == 0 || !book.isActivated());
     if (!book.isActivated()) {
       detailContainer.setStyle("-fx-opacity: 0.5;");
-      borrowPhysicalBook.setDisable(copies.getCopies() == 0);
       borrowEBook.setDisable(true);
       addToFavorite.setDisable(true);
       newCommentTextArea.setDisable(true);
@@ -433,6 +433,11 @@ public class BookDetailController extends ControllerWithLoader {
         return;
       }
       int numCopies = Integer.parseInt(copiesTextField.getText());
+      if (numCopies <= 0) {
+        AlertDialog.showAlert("error", "Invalid Number of Copies",
+            "The number of copies must be a positive number", null);
+        return;
+      }
       System.out.println("Borrowing Physical Book: " + borrowDate + " - " + returnDate + " - "
           + numCopies);
       if (numCopies > maxCopies) {

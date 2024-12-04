@@ -6,14 +6,18 @@ import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.StringUtil;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bson.Document;
 
 public class CategoriesController {
 
   public static Document findCategory(Categories categories) {
+//    System.out.println(categories.getName());
     return MongoDB.getInstance()
         .findAnObject("categories", Filters.eq("name", categories.getName()));
   }
@@ -31,13 +35,24 @@ public class CategoriesController {
   public static boolean addCategoryList(List<Categories> categories) {
     // Just update bulk in this function, so I decided to hard-code
     try {
-      System.err.println("Trying to add " + categories);
+//      System.err.println("Trying to add " + categories);
       MongoCollection<Document> categoriesCollection = MongoDB.getInstance().getDatabase()
           .getCollection("categories");
-      categoriesCollection.insertMany(categories.stream().map(Categories::toDocument).toList());
+      Set<String> existedCategories = MongoDB.getInstance().findAllObject("categories",
+              Filters.in("name", categories.stream().map(Categories::getName).toList())).stream()
+          .map(doc -> doc.getString("name")).collect(Collectors.toSet());
+      List<Categories> uniqueCategories = categories.stream()
+          .filter(cat -> !existedCategories.contains(cat.getName())).toList();
+      if (!uniqueCategories.isEmpty()) {
+        uniqueCategories.forEach(cat -> cat.setLastUpdated(new Date()));
+        categoriesCollection.insertMany(
+            uniqueCategories.stream().map(Categories::toDocument).distinct()
+                .collect(Collectors.toList()));
+      }
       return true;
     } catch (Exception e) {
-      System.out.println("Fail when trying to add categories: " + categories);
+      System.out.println(
+          "Fail when trying to add categories: " + categories + " since " + e.getMessage());
       return false;
     }
   }
@@ -52,11 +67,8 @@ public class CategoriesController {
 
   public static List<Categories> getCategories(int start, int length) {
     try {
-      return MongoDB.getInstance()
-          .findAllObject("categories", Filters.empty(), start, length)
-          .stream()
-          .map(Categories::new)
-          .toList();
+      return MongoDB.getInstance().findAllObject("categories", Filters.empty(), start, length)
+          .stream().map(Categories::new).toList();
     } catch (Exception e) {
       return null;
     }
@@ -64,13 +76,9 @@ public class CategoriesController {
 
   public static List<Book> getBookOfCategory(Categories categories, int start, int length) {
     try {
-      return MongoDB.getInstance()
-          .findAllObject("books",
-              Filters.regex("categories",
-                  StringUtil.escapeString(categories.getName().toLowerCase()), "i"))
-          .stream()
-          .map(BookController::getBookFromDocument)
-          .toList();
+      return MongoDB.getInstance().findAllObject("books",
+          Filters.regex("categories", StringUtil.escapeString(categories.getName().toLowerCase()),
+              "i")).stream().map(BookController::getBookFromDocument).toList();
     } catch (Exception e) {
       return null;
     }
@@ -78,10 +86,13 @@ public class CategoriesController {
 
   public static long countBookOfCategory(Categories categories) {
     return MongoDB.getInstance().countDocuments("books",
-        Filters.regex("categories", categories.getName().toLowerCase(), "i"));
+        Filters.regex("categories", StringUtil.escapeString(categories.getName().toLowerCase()),
+            "i"));
   }
 
   public static void main(String[] args) {
-    addCategoryList(Stream.of("^", "(", ")").map(Categories::new).toList());
+//    addCategoryList(List.of(new Categories("huhu TT"), new Categories("hello ửold")));
+//    System.out.println(findCategory(new Categories("computers")));
+//    addCategoryList(Stream.of("^", "(", ")").map(Categories::new).toList());
   }
 }
