@@ -54,9 +54,9 @@ public class BookRatingController {
   @Data
   public static class ReturnRating {
 
-    BookRating bookRating;
-    String titleBook;
-    String thumbnailBook;
+    private BookRating bookRating;
+    private String titleBook;
+    private String thumbnailBook;
 
     public ReturnRating(BookRating bookRating, String titleBook, String thumbnailBook) {
       this.bookRating = bookRating;

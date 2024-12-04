@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Stream;
 import org.bson.types.ObjectId;
@@ -36,10 +37,28 @@ public class DateUtil {
 
   public static LocalDate parse(String date) {
     try {
-      String[] parts = date.split("[/\\-]");
-      int day = parts.length > 0 && !parts[0].isEmpty() ? Integer.parseInt(parts[0]) : 1;
-      int month = parts.length > 1 && !parts[1].isEmpty() ? Integer.parseInt(parts[1]) : 1;
-      int year = parts.length > 2 ? Integer.parseInt(parts[2]) : LocalDate.now().getYear();
+      String[] parts = date.trim().split("[/-]");
+      int year, month = 1, day = 1;
+      if (parts.length == 3) {
+        if (parts[2].length() > 2) {
+          year = Integer.parseInt(parts[2]);
+          day = Integer.parseInt(parts[0]);
+        } else {
+          year = Integer.parseInt(parts[0]);
+          day = Integer.parseInt(parts[2]);
+        }
+        month = Integer.parseInt(parts[1]);
+      } else if (parts.length == 2) {
+        if (parts[1].length() > 2) {
+          year = Integer.parseInt(parts[1]);
+          month = Integer.parseInt(parts[0]);
+        } else {
+          year = Integer.parseInt(parts[0]);
+          month = Integer.parseInt(parts[1]);
+        }
+      } else {
+        year = Integer.parseInt(parts[0]);
+      }
       return LocalDate.of(year, month, day);
     } catch (Exception e) {
       return null;
@@ -88,6 +107,30 @@ public class DateUtil {
     } catch (Exception e) {
       return false;
     }
+  }
+
+  public static Date addDays(Date borrowDate, int i) {
+    return localDateToDate(dateToLocalDate(borrowDate).plusDays(i));
+  }
+
+  public static Date addMonths(Date borrowDate, int i) {
+    return localDateToDate(dateToLocalDate(borrowDate).plusMonths(i));
+  }
+
+  public static Date addYears(Date borrowDate, int i) {
+    return localDateToDate(dateToLocalDate(borrowDate).plusYears(i));
+  }
+
+  public static Date minusDays(Date borrowDate, int i) {
+    return localDateToDate(dateToLocalDate(borrowDate).minusDays(i));
+  }
+
+  public static Date minusMonths(Date borrowDate, int i) {
+    return localDateToDate(dateToLocalDate(borrowDate).minusMonths(i));
+  }
+
+  public static Date minusYears(Date borrowDate, int i) {
+    return localDateToDate(dateToLocalDate(borrowDate).minusYears(i));
   }
 
   public static boolean isBefore(String date1, String date2) {

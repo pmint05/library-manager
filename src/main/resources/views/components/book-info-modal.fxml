@@ -115,10 +115,15 @@
             <TextField fx:id="discountPriceField" promptText="Discount Price" styleClass="input"
               GridPane.columnIndex="3" GridPane.rowIndex="3"/>
 
-            <Label text="Active" GridPane.columnIndex="2" GridPane.halignment="LEFT"
+            <Label text="Copies Quantity" GridPane.columnIndex="2" GridPane.halignment="LEFT"
               GridPane.rowIndex="7" GridPane.valignment="TOP"/>
-            <CheckBox fx:id="isActiveCheckBox" GridPane.columnIndex="3" GridPane.halignment="LEFT"
-              GridPane.rowIndex="7" GridPane.valignment="TOP"/>
+            <TextField promptText="Number of copies" styleClass="input" GridPane.columnIndex="3"
+              GridPane.halignment="LEFT" GridPane.rowIndex="7" GridPane.valignment="TOP"
+              fx:id="numberOfCopies"/>
+            <Label text="Active" GridPane.columnIndex="0" GridPane.halignment="LEFT"
+              GridPane.rowIndex="8" GridPane.valignment="TOP"/>
+            <CheckBox fx:id="isActiveCheckBox" GridPane.columnIndex="1" GridPane.halignment="LEFT"
+              GridPane.rowIndex="8" GridPane.valignment="TOP"/>
             <columnConstraints>
               <ColumnConstraints/>
               <ColumnConstraints/>
@@ -134,6 +139,7 @@
               <RowConstraints/>
               <RowConstraints/>
               <RowConstraints/>
+              <RowConstraints minHeight="10.0" prefHeight="30.0"/>
             </rowConstraints>
           </GridPane>
         </VBox>

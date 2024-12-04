@@ -4,12 +4,14 @@ import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.FirebaseAuthentication;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.interfaces.AuthStateListener;
+import com.app.librarymanager.utils.StageManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.prefs.Preferences;
 import javafx.stage.Stage;
 import lombok.Data;
@@ -18,10 +20,8 @@ import org.json.JSONObject;
 @Data
 public class AuthController {
 
-  private static Stage loginStage;
-  private static Stage registerStage;
   private static AuthController instance;
-  private List<AuthStateListener> authStateListeners = new ArrayList<>();
+  private List<AuthStateListener> authStateListeners = new CopyOnWriteArrayList<>();
 
   private String idToken;
   private String refreshToken;
@@ -208,17 +208,19 @@ public class AuthController {
     }
   }
 
-  public void addAuthStateListener(AuthStateListener listener) {
+  public synchronized void addAuthStateListener(AuthStateListener listener) {
     authStateListeners.add(listener);
   }
 
-  public void removeAuthStateListener(AuthStateListener listener) {
+  public synchronized void removeAuthStateListener(AuthStateListener listener) {
     authStateListeners.remove(listener);
   }
 
   private void notifyAuthStateListeners() {
     for (AuthStateListener listener : authStateListeners) {
-      listener.onAuthStateChanged(isAuthenticated);
+      if (listener != null) {
+        listener.onAuthStateChanged(isAuthenticated);
+      }
     }
   }
 
@@ -281,6 +283,7 @@ public class AuthController {
       if (this.userClaims != null) {
         return new JSONObject(this.userClaims);
       }
+      System.out.println("ID Token: " + this.idToken);
       JSONObject userData = FirebaseAuthentication.getUserData(this.idToken);
       System.out.println("User data: " + userData);
       JSONObject claims = new JSONObject();
@@ -344,11 +347,21 @@ public class AuthController {
 
   public void getNewUserClaims() {
     this.userClaims = null;
-    getUserClaims();
+    JSONObject claims = getUserClaims();
+    setCurrentUser(claims);
     notifyAuthStateListeners();
   }
 
   public void setCurrentUser(User updatedUser) {
     this.currentUser = updatedUser;
+  }
+
+  public static void requireLogin() {
+    if (!AuthController.getInstance().validateIdToken()) {
+      AlertDialog.showAlert("error", "Unauthorized", "Please login first to access this page",
+          event -> {
+            StageManager.showLoginWindow();
+          });
+    }
   }
 }

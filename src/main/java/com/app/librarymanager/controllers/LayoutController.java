@@ -2,6 +2,7 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.interfaces.AuthStateListener;
 import com.app.librarymanager.models.User;
+import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.AvatarUtil;
 import com.app.librarymanager.utils.StageManager;
 import java.util.HashMap;
@@ -27,18 +28,18 @@ public class LayoutController implements AuthStateListener {
 
   private static LayoutController instance;
 
-  private final List<String> ADMIN_ROUTES = List.of(
-      "/views/admin/dashboard.fxml",
-      "/views/admin/manage-books.fxml",
-      "/views/admin/manage-users.fxml",
-      "/views/admin/manage-loans.fxml",
-      "/views/admin/manage-categories.fxml"
-  );
+  public static synchronized LayoutController getInstance() {
+    if (instance == null) {
+      instance = new LayoutController();
+    }
+    return instance;
+  }
 
-  private final List<String> USER_ROUTES = List.of(
-      "/views/home.fxml",
-      "/views/profile.fxml"
-  );
+  private final List<String> ADMIN_ROUTES = List.of("/views/admin/dashboard.fxml",
+      "/views/admin/manage-books.fxml", "/views/admin/manage-users.fxml",
+      "/views/admin/manage-loans.fxml", "/views/admin/manage-categories.fxml");
+
+  private final List<String> USER_ROUTES = List.of("/views/home.fxml", "/views/profile.fxml");
   @FXML
   private Button homeNavBtn;
   @FXML
@@ -47,14 +48,6 @@ public class LayoutController implements AuthStateListener {
   private Button loansNavBtn;
   @FXML
   private Button favoritesNavBtn;
-
-  public static synchronized LayoutController getInstance() {
-    if (instance == null) {
-      instance = new LayoutController();
-    }
-    return instance;
-  }
-
   @FXML
   private ToolBar adminToolBar;
   @FXML
@@ -65,6 +58,8 @@ public class LayoutController implements AuthStateListener {
   private ImageView avatarImageView;
   @FXML
   private TextField searchField;
+  @FXML
+  private ImageView navLogo;
 
 
   private Popup popup;
@@ -100,8 +95,19 @@ public class LayoutController implements AuthStateListener {
 
     homeNavBtn.setOnAction(event -> loadComponent("/views/home.fxml"));
     categoriesNavBtn.setOnAction(event -> loadComponent("/views/categories.fxml"));
-    loansNavBtn.setOnAction(event -> loadComponent("/views/loans.fxml"));
-    favoritesNavBtn.setOnAction(event -> loadComponent("/views/favorite-books.fxml"));
+    loansNavBtn.setOnAction(event -> {
+      AuthController.requireLogin();
+      if (AuthController.getInstance().isAuthenticated()) {
+        loadComponent("/views/loans.fxml");
+      }
+    });
+    favoritesNavBtn.setOnAction(event -> {
+      AuthController.requireLogin();
+      if (AuthController.getInstance().isAuthenticated()) {
+        loadComponent("/views/favorite-books.fxml");
+      }
+    });
+    navLogo.setOnMouseClicked(event -> loadComponent("/views/home.fxml"));
   }
 
   @FXML
@@ -111,8 +117,7 @@ public class LayoutController implements AuthStateListener {
     } else {
       Bounds boundsInScreen = avatarImageView.localToScreen(avatarImageView.getBoundsInLocal());
       popup.setOnShown(event -> {
-        double popupX =
-            boundsInScreen.getMinX() + (boundsInScreen.getWidth()) - (popup.getWidth());
+        double popupX = boundsInScreen.getMinX() + (boundsInScreen.getWidth()) - (popup.getWidth());
         double popupY = boundsInScreen.getMaxY();
         popup.setX(popupX);
         popup.setY(popupY);
@@ -149,8 +154,14 @@ public class LayoutController implements AuthStateListener {
     if (isAuthenticated) {
       if (user.getAvatar() != null) {
         avatarImageView.setImage(user.getAvatar());
-      } else if (user.getPhotoUrl() != null) {
+      } else if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
         avatarImageView.setImage(new ImageView(user.getPhotoUrl()).getImage());
+      } else {
+        String displayName = user.getDisplayName();
+        String email = user.getEmail();
+        String name = displayName != null && !displayName.isEmpty() ? displayName : email;
+        avatarImageView.setImage(
+            new ImageView(new AvatarUtil().getAvatarUrl(name)).getImage());
       }
       VBox popupContent = new VBox(0);
       popupContent.getStyleClass().add("popup-container");
@@ -263,13 +274,12 @@ public class LayoutController implements AuthStateListener {
     loadComponent("/views/home.fxml");
     if (isSearchComponentLoaded) {
       navBar.getItems().add(2, searchField);
+      searchField.clear();
       isSearchComponentLoaded = false;
     }
     if (AuthController.getInstance().getCurrentUser().isAdmin()) {
-      adminToolBar.getItems().stream()
-          .filter(node -> node instanceof Button)
-          .map(node -> (Button) node)
-          .filter(button -> button.getStyleClass().contains("active"))
+      adminToolBar.getItems().stream().filter(node -> node instanceof Button)
+          .map(node -> (Button) node).filter(button -> button.getStyleClass().contains("active"))
           .forEach(button -> button.getStyleClass().remove("active"));
     }
     AuthController.getInstance().logout();
@@ -289,10 +299,8 @@ public class LayoutController implements AuthStateListener {
     if (!(e.getSource() instanceof Button clickedButton)) {
       return;
     }
-    adminToolBar.getItems().stream()
-        .filter(node -> node instanceof Button)
-        .map(node -> (Button) node)
-        .filter(button -> button.getStyleClass().contains("active"))
+    adminToolBar.getItems().stream().filter(node -> node instanceof Button)
+        .map(node -> (Button) node).filter(button -> button.getStyleClass().contains("active"))
         .forEach(button -> button.getStyleClass().remove("active"));
 
     clickedButton.getStyleClass().add("active");
@@ -314,6 +322,7 @@ public class LayoutController implements AuthStateListener {
         contentPane.getChildren().add(component);
         if (isSearchComponentLoaded) {
           navBar.getItems().add(2, searchField);
+          searchField.clear();
           isSearchComponentLoaded = false;
         }
       });
@@ -325,13 +334,4 @@ public class LayoutController implements AuthStateListener {
 
     new Thread(loadTask).start();
   }
-
-  public double getContentPaneWidth() {
-    return contentPane.getWidth();
-  }
-
-  public double getContentPaneHeight() {
-    return contentPane.getHeight();
-  }
-
 }
