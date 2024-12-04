@@ -62,6 +62,15 @@ public class BookUser {
     this.lastUpdated = document.getDate("lastUpdated");
   }
 
+  public Document toDocument() {
+    Document document = new Document();
+    document.append("_id", _id);
+    document.append("bookId", bookId);
+    document.append("userId", userId);
+    document.append("lastUpdated", lastUpdated);
+    return document;
+  }
+
 //  public BookUser(JSONObject jsonObject) {
 //    this._id = new ObjectId(jsonObject.optJSONObject("_id").optString("$oid"));
 //    this.bookId = jsonObject.optString("bookId");

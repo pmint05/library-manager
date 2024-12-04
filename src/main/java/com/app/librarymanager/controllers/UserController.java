@@ -122,6 +122,9 @@ public class UserController {
     if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
       userUpdate.setPhotoUrl(user.getPhotoUrl());
     }
+    if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+      userUpdate.setPassword(user.getPassword());
+    }
     userUpdate.setDisabled(user.isDisabled());
     return userUpdate;
   }

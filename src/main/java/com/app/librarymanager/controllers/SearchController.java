@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -38,7 +40,11 @@ public class SearchController {
   private Text searchStatus;
   private Task<List<Book>> searchTask;
   private List<Task<VBox>> renderTasks = new ArrayList<>();
+  private ObservableList<Book> books = FXCollections.observableArrayList();
 
+  private int currentPage = 0;
+  private int totalBooks = 0;
+  private final int PAGE_SIZE = 10;
 
   @FXML
   private void initialize() {
@@ -51,7 +57,9 @@ public class SearchController {
 
     searchInput.textProperty().addListener((observable, oldValue, newValue) -> {
       keyword = newValue.trim();
+      currentPage = 0;
       searchResultsPane.getChildren().clear();
+      books.clear();
       pauseTransition.playFromStart();
       if (keyword.isEmpty()) {
         searchStatus.setText("Enter a keyword to search");
@@ -64,6 +72,13 @@ public class SearchController {
           searchResultsScrollPane.getVvalue() - deltaY / searchResultsScrollPane.getContent()
               .getBoundsInLocal().getHeight());
       event.consume();
+    });
+
+    searchResultsScrollPane.vvalueProperty().addListener((observable, oldValue, newValue) -> {
+      double threshold = 0.9;
+      if (newValue.doubleValue() >= threshold && books.size() < totalBooks) {
+        loadMoreBooks();
+      }
     });
   }
 
@@ -86,15 +101,19 @@ public class SearchController {
     searchTask = new Task<List<Book>>() {
       @Override
       protected List<Book> call() {
-        return BookController.findBookByKeyword(searchQuery, 0, 10);
+        totalBooks = (int) BookController.countBookByKeyword(searchQuery);
+        return BookController.findBookByKeyword(searchQuery, currentPage * PAGE_SIZE, PAGE_SIZE);
       }
     };
 
     searchTask.setOnSucceeded(workerStateEvent -> {
-      List<Book> books = searchTask.getValue();
+      books = FXCollections.observableArrayList(searchTask.getValue());
       if (searchQuery.equals(searchInput.getText().trim())) {
-        searchStatus.setText(books.size() + " results found");
-        updateSearchResults(books);
+        searchStatus.setText(totalBooks + " results found");
+        updateSearchResults();
+      }
+      if (searchResultsScrollPane.getVvalue() == 0 && books.size() < totalBooks) {
+        loadMoreBooks();
       }
     });
 
@@ -107,15 +126,56 @@ public class SearchController {
     new Thread(searchTask).start();
   }
 
-
-  private void updateSearchResults(List<Book> books) {
-    searchResultsPane.getChildren().clear();
-    if (books.isEmpty()) {
+  private void loadMoreBooks() {
+    if (searchTask != null && searchTask.isRunning()) {
       return;
     }
 
-    for (Book book : books) {
-      Task<VBox> bookTask = new Task<VBox>() {
+    Label loadingLabel = new Label("Loading more...");
+    Platform.runLater(
+        () -> searchResultsPane.getChildren().add(loadingLabel));
+
+    searchTask = new Task<List<Book>>() {
+      @Override
+      protected List<Book> call() {
+        return BookController.findBookByKeyword(keyword, currentPage * PAGE_SIZE, PAGE_SIZE);
+      }
+    };
+
+    searchTask.setOnSucceeded(workerStateEvent -> {
+      List<Book> newBooks = searchTask.getValue();
+      Platform.runLater(
+          () -> searchResultsPane.getChildren().remove(loadingLabel));
+
+      if (newBooks != null && !newBooks.isEmpty()) {
+        books.addAll(newBooks);
+        updateSearchResults();
+        currentPage++;
+      }
+    });
+
+    searchTask.setOnFailed(e -> {
+      Platform.runLater(
+          () -> searchResultsPane.getChildren().remove(loadingLabel)); // Remove loading indicator
+      e.getSource().getException().printStackTrace();
+      AlertDialog.showAlert("error", "Loading failed", "An error occurred while loading more books",
+          null);
+    });
+
+    new Thread(searchTask).start();
+  }
+
+
+  private void updateSearchResults() {
+    if (books.isEmpty()) {
+      searchStatus.setText("No results found");
+      return;
+    }
+
+    List<Book> newBooks = books.subList(currentPage * PAGE_SIZE,
+        Math.min(books.size(), (currentPage + 1) * PAGE_SIZE));
+    for (Book book : newBooks) {
+      Task<VBox> bookTask = new Task<>() {
         @Override
         protected VBox call() throws Exception {
           FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/components/book.fxml"));
@@ -136,10 +196,12 @@ public class SearchController {
         AlertDialog.showAlert("error", "Loading failed",
             "An error occurred while loading a book component", null);
       });
+
       renderTasks.add(bookTask);
       new Thread(bookTask).start();
     }
   }
+
 
   public void setKeyword(String keyword) {
     this.keyword = keyword;

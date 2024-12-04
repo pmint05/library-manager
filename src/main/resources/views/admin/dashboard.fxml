@@ -65,12 +65,25 @@
             </HBox>
           </FlowPane>
         </VBox>
-
-        <VBox>
-          <Text styleClass="content-subtitle" text="Top Lent Books"/>
-          <ListView fx:id="topLentBooksList" minHeight="300" prefHeight="500" maxHeight="700"
-            maxWidth="Infinity"/>
-        </VBox>
+        <GridPane hgap="10" vgap="10">
+          <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES"/>
+            <ColumnConstraints hgrow="SOMETIMES"/>
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES"/>
+          </rowConstraints>
+          <VBox GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <Text styleClass="content-subtitle" text="Top Lent Books"/>
+            <ListView fx:id="topLentBooksList" maxHeight="700" maxWidth="Infinity" minHeight="300"
+              prefHeight="500"/>
+          </VBox>
+          <VBox GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <Text styleClass="content-subtitle" text="Recent Loans"/>
+            <ListView fx:id="recentLoans" maxHeight="700" maxWidth="Infinity"
+              minHeight="300" prefHeight="500"/>
+          </VBox>
+        </GridPane>
       </VBox>
     </ScrollPane>
   </VBox>

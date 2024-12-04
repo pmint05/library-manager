@@ -133,16 +133,20 @@ public class MyLoansController extends ControllerWithLoader {
       @Override
       protected List<ReturnBookLoan> call() {
         User currentUser = AuthController.getInstance().getCurrentUser();
-        boolean isValid = "Valid".equals(validity);
-        boolean isNotValid = "Invalid".equals(validity);
-        boolean isOnline = "Online".equals(mode);
-        boolean isOffline = "Offline".equals(mode);
-        totalResults = (int) BookLoanController.countLoanWithFilter(isValid, isNotValid, isOnline,
+        boolean isValid = "Valid".equals(validity) || "All".equals(validity);
+        boolean isNotValid = "Invalid".equals(validity) || "All".equals(validity);
+        boolean isOnline = "Online".equals(mode) || "All".equals(mode);
+        boolean isOffline = "Offline".equals(mode) || "All".equals(mode);
+        totalResults = (int) BookLoanController.countLoanWithFilterOfUser(currentUser.getUid(),
+            isValid, isNotValid, isOnline,
             isOffline);
         nextPageButton.setDisable((currentPage + 1) * pageSizeValue >= totalResults);
         prevPageButton.setDisable(currentPage == 0);
-        return BookLoanController.getLoanWithFilter(isValid, isNotValid, isOnline, isOffline,
-            currentPage, pageSizeValue);
+        System.out.println("Total results: " + totalResults);
+        System.out.println(isValid + " " + isNotValid + " " + isOnline + " " + isOffline);
+        return BookLoanController.getLoanWithFilterOfUser(currentUser.getUid(), isValid, isNotValid,
+            isOnline, isOffline,
+            currentPage * pageSizeValue, pageSizeValue);
       }
     };
 
@@ -217,7 +221,7 @@ public class MyLoansController extends ControllerWithLoader {
     BookLoan loan = item.getBookLoan();
     dates.setText(DateUtil.dateToString(loan.getBorrowDate()) + " - " + DateUtil.dateToString(
         loan.getDueDate()));
-      type.setText(String.valueOf(loan.getType()));
+    type.setText(String.valueOf(loan.getType()));
     type.getStyleClass().addAll("chip", loan.getType().name().toLowerCase());
     valid.setText(loan.isValid() ? "Valid" : "Expired");
     valid.getStyleClass().add("chip");
@@ -242,7 +246,8 @@ public class MyLoansController extends ControllerWithLoader {
       returnButton.setVisible(false);
       returnButton.setManaged(false);
       reBorrowButton.setVisible(true);
-      reBorrowButton.setOnAction(event -> handleBookLoanClick(item.getBookLoan().getBookId(), content));
+      reBorrowButton.setOnAction(
+          event -> handleBookLoanClick(item.getBookLoan().getBookId(), content));
     }
     if (Mode.ONLINE.equals(loan.getType())) {
       readButton.setVisible(loan.isValid());
@@ -303,6 +308,11 @@ public class MyLoansController extends ControllerWithLoader {
     String bookId = item.getBookLoan().getBookId();
     Book b = BookController.findBookByID(bookId);
     try {
+      if (!b.isActivated()) {
+        AlertDialog.showAlert("error", "Error", "Book is inactive and not available for reading",
+            null);
+        return;
+      }
       if (b.getPdfLink() == null || b.getPdfLink().isEmpty() || b.getPdfLink().equals("N/A")) {
         AlertDialog.showAlert("error", "Error", "No pdf link found", null);
         return;

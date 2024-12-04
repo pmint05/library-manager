@@ -5,6 +5,7 @@ import java.util.Objects;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
@@ -25,6 +26,9 @@ public class StageManager {
     stage.setMinWidth(800);
     stage.setMinHeight(600);
     stage.centerOnScreen();
+    stage.getIcons().add(new Image(
+        Objects.requireNonNull(StageManager.class.getResource("/images/logo-icon.png"))
+            .toExternalForm()));
     stage.show();
   }
 

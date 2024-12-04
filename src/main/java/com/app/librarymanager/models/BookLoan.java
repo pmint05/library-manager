@@ -114,6 +114,27 @@ public class BookLoan extends BookUser {
     this.numCopies = numCopies;
   }
 
+  public BookLoan(ObjectId id, String userId, String bookId, Date borrowDate, Date dueDate,
+      boolean valid, Mode type, int numCopies) {
+    super(id, userId, bookId);
+    this.setLastUpdated(new Date());
+    this.borrowDate = borrowDate;
+    this.dueDate = dueDate;
+    this.valid = valid;
+    this.type = type;
+    this.numCopies = numCopies;
+  }
+
+  public Document toDocument() {
+    Document document = super.toDocument();
+    document.put("borrowDate", borrowDate);
+    document.put("dueDate", dueDate);
+    document.put("valid", valid);
+    document.put("type", type.toString());
+    document.put("numCopies", numCopies);
+    return document;
+  }
+
   public BookLoan(Document document) {
     super(document);
     this.borrowDate = document.getDate("borrowDate");

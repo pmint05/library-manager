@@ -4,6 +4,7 @@ import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.Categories;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.Fetcher;
+import com.app.librarymanager.utils.StringUtil;
 import com.mongodb.client.model.Filters;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.util.List;
@@ -39,6 +40,8 @@ public class BookController {
       return new ArrayList<>();
     }
   }
+
+  
 
   private static int numBookInUrl(String searchUrl) {
     JSONObject jsonObject = Fetcher.get(searchUrl);
@@ -196,13 +199,19 @@ public class BookController {
   public static List<Book> findBookByKeyword(String keyword, int start, int length) {
     try {
       List<Document> jsonBook = MongoDB.getInstance()
-          .findAllObject("books", Filters.regex("title", keyword, "i"), start, length);
+          .findAllObject("books", Filters.regex("title", StringUtil.escapeString(keyword), "i"), start,
+              length);
       List<Book> result = new ArrayList<>();
       jsonBook.forEach(curBook -> result.add(getBookFromDocument(curBook)));
       return result;
     } catch (Exception e) {
       return null;
     }
+  }
+
+  public static long countBookByKeyword(String keyword) {
+    return MongoDB.getInstance()
+        .countDocuments("books", Filters.regex("title", StringUtil.escapeString(keyword), "i"));
   }
 
   public static List<Book> listDocsToListBook(List<Document> docs) {
@@ -264,5 +273,9 @@ public class BookController {
   }
 
   public static void main(String[] args) {
+//    System.out.println("\\");
+//    System.out.println(findBookByKeyword("^", 0, 1000000));
+//    System.out.println(findBookByKeyword("\\", 0, 1000000));
+//    System.out.println(findBookByKeyword("//", 0, 1000000));
   }
 }

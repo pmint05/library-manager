@@ -1,5 +1,6 @@
 package com.app.librarymanager.utils;
 
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,7 +33,8 @@ public class DateUtil {
   }
 
   public static String dateToString(Date date) {
-    return format(dateToLocalDate(date));
+    SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy");
+    return formatter.format(date);
   }
 
   public static LocalDate parse(String date) {

@@ -1,5 +1,6 @@
 package com.app.librarymanager;
 
+import com.app.librarymanager.controllers.BookLoanController;
 import com.app.librarymanager.controllers.HomeController;
 import com.app.librarymanager.controllers.UserController;
 import com.app.librarymanager.models.User;
@@ -18,6 +19,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class MainApplication extends Application {
+
   private static Stage currentStage;
 
   @Override
@@ -25,6 +27,7 @@ public class MainApplication extends Application {
     try {
       Firebase firebase = Firebase.getInstance();
       MongoDB mongoDB = MongoDB.getInstance();
+      BookLoanController.refreshDatabase();
 
       StageManager.setPrimaryStage(stage);
       StageManager.showHomeWindow();
