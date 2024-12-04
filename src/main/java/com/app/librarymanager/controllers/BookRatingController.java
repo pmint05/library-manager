@@ -2,6 +2,7 @@ package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.models.BookRating;
 import com.app.librarymanager.services.MongoDB;
+import com.app.librarymanager.utils.StringUtil;
 import com.mongodb.client.model.Filters;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,8 @@ public class BookRatingController {
   }
 
   public static double averageRating(String bookId) {
-    return MongoDB.getInstance().findAllObject("bookRating", "bookId", bookId).stream()
+    return MongoDB.getInstance()
+        .findAllObject("bookRating", "bookId", StringUtil.escapeString(bookId)).stream()
         .mapToDouble(doc -> doc.getDouble("rate")).average().orElse(0.0);
   }
 

@@ -1,7 +1,9 @@
 package com.app.librarymanager.models;
 
 import com.app.librarymanager.utils.StringUtil;
+import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Map;
 import lombok.Data;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -38,6 +40,7 @@ public class Categories {
   }
 
   public Document toDocument() {
-    return new Document("name", name);
+    return new Document(
+        Map.of("name", name, "lastUpdated", new Timestamp(System.currentTimeMillis())));
   }
 }

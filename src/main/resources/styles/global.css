@@ -845,7 +845,7 @@ Button {
   -fx-padding: 0;
 }
 
-.book-detail-container .book-content .star {
+.star {
   -fx-fill: -fx-warning;
 }
 
@@ -885,18 +885,56 @@ Button {
   -fx-background-insets: 0px, 2px;
 }
 
-.list-view .list-cell:selected {
-  -fx-text-fill: -fx-text;
-  -fx-fill: -fx-text;
-  -fx-background-color: -fx-bg-light;
+.list-view.comment-container {
+  -fx-background-color: transparent;
 }
 
-.list-view .list-cell:selected Text {
-  -fx-text-fill: -fx-text;
-  -fx-fill: -fx-text;
+.list-view .list-cell:selected {
+  -fx-text-fill: inherit;
+  -fx-fill: inherit;
+}
+
+.list-view .list-cell:selected Text, .list-view .list-cell:selected Label {
+  -fx-text-fill: inherit;
+  -fx-fill: inherit;
 }
 
 .list-view .list-cell:empty {
   -fx-background-color: transparent;
   -fx-background-insets: 0;
+}
+
+.list-view .comment-box .comment-content {
+  -fx-text-fill: -fx-text;
+  -fx-background-color: -fx-bg-light;
+  -fx-padding: 5;
+  -fx-border-radius: 5;
+  -fx-background-radius: 5;
+}
+
+.pagination > .pagination-control > .control-box {
+  -fx-spacing: 0;
+}
+
+.pagination > .pagination-control > .control-box > .number-button,
+.pagination > .pagination-control > .control-box > .bullet-button,
+.pagination > .pagination-control > .control-box > .left-arrow-button,
+.pagination > .pagination-control > .control-box > .right-arrow-button {
+  -fx-background-insets: 0, 1;
+  -fx-background-color: lightgray, -fx-bg;
+}
+
+.pagination > .pagination-control > .control-box > .number-button:hover,
+.pagination > .pagination-control > .control-box > .bullet-button:hover,
+.pagination > .pagination-control > .control-box > .left-arrow-button:hover,
+.pagination > .pagination-control > .control-box > .right-arrow-button:hover {
+  -fx-background-insets: 0;
+  -fx-background-color: lightgray;
+}
+
+.pagination > .pagination-control > .control-box > .number-button:selected,
+.pagination > .pagination-control > .control-box > .bullet-button:selected {
+  -fx-background-insets: 0;
+  -fx-background-color: -fx-primary;
+  -fx-text-fill: -fx-bg;
 }

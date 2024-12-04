@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import lombok.Data;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -61,6 +63,11 @@ public class BookLoanController {
 
   public static Document addLoan(BookLoan bookLoan) {
     return bookLoan.getType() == Mode.OFFLINE ? addOfflineLoan(bookLoan) : addOnlineLoan(bookLoan);
+  }
+
+  public static Document editLoan(BookLoan bookLoan) {
+    return MongoDB.getInstance()
+        .updateData("bookLoan", "_id", bookLoan.get_id(), bookLoanToMap(bookLoan));
   }
 
   public static Document returnBook(BookLoan bookLoan) {
@@ -104,15 +111,44 @@ public class BookLoanController {
   @Data
   public static class BookLoanUser {
 
-    User user;
-    Book book;
-    BookLoan bookLoan;
+    private final ObjectProperty<User> user;
+    private final ObjectProperty<BookLoan> bookLoan;
+    private final ObjectProperty<Book> book;
+//
+//    User user;
+//    Book book;
+//    BookLoan bookLoan;
 
     public BookLoanUser(User user, Book book, BookLoan bookLoan) {
-      this.user = user;
-      this.book = book;
-      this.bookLoan = bookLoan;
+      this.user = new SimpleObjectProperty<>(user);
+      this.bookLoan = new SimpleObjectProperty<>(bookLoan);
+      this.book = new SimpleObjectProperty<>(book);
     }
+
+    public User getUser() {
+      return user.get();
+    }
+
+    public ObjectProperty<User> userProperty() {
+      return user;
+    }
+
+    public BookLoan getBookLoan() {
+      return bookLoan.get();
+    }
+
+    public ObjectProperty<BookLoan> bookLoanProperty() {
+      return bookLoan;
+    }
+
+    public Book getBook() {
+      return book.get();
+    }
+
+    public ObjectProperty<Book> bookProperty() {
+      return book;
+    }
+
   }
 
   public static List<BookLoanUser> getAllLentBook(int start, int length) {
