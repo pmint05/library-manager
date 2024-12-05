@@ -70,6 +70,10 @@ public class BookLoanController {
         .updateData("bookLoan", "_id", bookLoan.get_id(), bookLoanToMap(bookLoan));
   }
 
+  public static boolean removeAllLoan(String bookId) {
+    return MongoDB.getInstance().deleteAll("bookLoan", Filters.eq("bookId", bookId));
+  }
+
   public static Document returnBook(BookLoan bookLoan) {
     if (bookLoan.getType() == Mode.OFFLINE) {
       BookCopiesController.increaseCopy(

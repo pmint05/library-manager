@@ -237,9 +237,9 @@ public class BookModalController extends ControllerWithLoader {
         throw new Exception(parseDiscountPrice);
       }
 
-      if (Double.parseDouble(discountPriceField.getText()) >= Double.parseDouble(
+      if (Double.parseDouble(discountPriceField.getText()) > Double.parseDouble(
           priceField.getText())) {
-        throw new Exception("Discount Price must be less than Price.");
+        throw new Exception("Discount Price must be less or equal than Price.");
       }
 
       if (book == null) {

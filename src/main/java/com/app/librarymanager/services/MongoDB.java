@@ -238,13 +238,21 @@ public class MongoDB {
       if (findAnObject(collectionName, criteriaName, valueCriteria) == null) {
         return false;
       }
-      MongoCollection<Document> collection = database.getCollection(collectionName);
-      Bson query = eq(criteriaName, valueCriteria);
-      collection.deleteOne(query);
+      database.getCollection(collectionName).deleteOne(eq(criteriaName, valueCriteria));
       return true;
     } catch (Exception e) {
       System.err.println("Error when trying to delete " + criteriaName + " " + valueCriteria + ": "
           + e.getMessage());
+      return false;
+    }
+  }
+
+  public boolean deleteAll(String collectionName, Bson filter) {
+    try {
+      database.getCollection(collectionName).deleteMany(filter);
+      return true;
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
       return false;
     }
   }
