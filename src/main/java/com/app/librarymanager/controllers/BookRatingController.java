@@ -59,11 +59,14 @@ public class BookRatingController {
     private BookRating bookRating;
     private String titleBook;
     private String thumbnailBook;
+    private String bookId;
 
-    public ReturnRating(BookRating bookRating, String titleBook, String thumbnailBook) {
+    public ReturnRating(BookRating bookRating, String titleBook, String thumbnailBook,
+        String bookId) {
       this.bookRating = bookRating;
       this.titleBook = titleBook;
       this.thumbnailBook = thumbnailBook;
+      this.bookId = bookId;
     }
   }
 
@@ -75,7 +78,7 @@ public class BookRatingController {
       return documents.stream().map(doc -> {
         Document bookDoc = bookDocs.get(doc.getString("bookId"));
         return new ReturnRating(new BookRating(doc), bookDoc.getString("title"),
-            bookDoc.getString("thumbnail"));
+            bookDoc.getString("thumbnail"), bookDoc.getString("id"));
       }).toList();
     } catch (Exception e) {
       return null;
@@ -95,7 +98,7 @@ public class BookRatingController {
       return documents.stream().map(doc -> {
         Document bookDoc = bookDocs.get(doc.getString("_id"));
         return new ReturnRating(new BookRating(doc.getString("_id"), "", doc.getDouble("average")),
-            bookDoc.getString("title"), bookDoc.getString("thumbnail"));
+            bookDoc.getString("title"), bookDoc.getString("thumbnail"), bookDoc.getString("id"));
       }).toList();
     } catch (Exception e) {
       System.out.println(e.getMessage());

@@ -58,8 +58,16 @@ public class UserService {
       return new JSONObject().put("success", true)
           .put("message", "User profile updated successfully.");
     } catch (Exception e) {
-      return new JSONObject().put("success", false)
-          .put("message", e.getMessage() != null ? e.getMessage() : "An error occurred.");
+      try {
+        String responseBody = e.getMessage().substring(e.getMessage().indexOf("{"));
+        JSONObject responseJson = new JSONObject(responseBody);
+        String errorMessage = responseJson.getJSONObject("error").getString("message");
+        return new JSONObject().put("success", false)
+            .put("message", errorMessage);
+      } catch (Exception parseException) {
+        return new JSONObject().put("success", false)
+            .put("message", e.getMessage());
+      }
     }
   }
 

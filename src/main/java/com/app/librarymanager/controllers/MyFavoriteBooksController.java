@@ -175,6 +175,7 @@ public class MyFavoriteBooksController extends ControllerWithLoader {
       if (task.getValue()) {
         favoriteBooks.remove(book);
         favoriteBooksFlowPane.getChildren().removeIf(node -> node.getUserData().equals(book));
+        searchStatus.setText(favoriteBooks.size() + " results found");
       } else {
         AlertDialog.showAlert("error", "Error", "Failed to remove book from favorite", null);
       }

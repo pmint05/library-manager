@@ -29,7 +29,7 @@
   <HBox spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
     <ImageView fitHeight="500" pickOnBounds="true" preserveRatio="true">
-      <Image url="@../../images/login.jpg"/>
+      <Image url="@../../images/auth.jpg"/>
     </ImageView>
 
     <VBox alignment="CENTER" prefHeight="500.0" prefWidth="464.0" spacing="10">

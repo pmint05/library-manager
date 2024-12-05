@@ -113,6 +113,7 @@ public class SearchController {
         updateSearchResults();
       }
       if (searchResultsScrollPane.getVvalue() == 0 && books.size() < totalBooks) {
+        currentPage++;
         loadMoreBooks();
       }
     });
@@ -156,7 +157,7 @@ public class SearchController {
 
     searchTask.setOnFailed(e -> {
       Platform.runLater(
-          () -> searchResultsPane.getChildren().remove(loadingLabel)); // Remove loading indicator
+          () -> searchResultsPane.getChildren().remove(loadingLabel)); // Remove Loadingdicator
       e.getSource().getException().printStackTrace();
       AlertDialog.showAlert("error", "Loading failed", "An error occurred while loading more books",
           null);
@@ -205,8 +206,10 @@ public class SearchController {
 
   public void setKeyword(String keyword) {
     this.keyword = keyword;
-    if (searchInput != null) {
+    if (keyword != null && !keyword.isEmpty()) {
       searchInput.setText(keyword);
+    } else {
+      pauseTransition.playFromStart();
     }
   }
 }

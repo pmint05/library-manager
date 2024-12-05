@@ -27,7 +27,7 @@
     AnchorPane.topAnchor="0.0">
     <ImageView fitHeight="500" pickOnBounds="true" preserveRatio="true">
       <image>
-        <Image url="@../../images/login.jpg"/>
+        <Image url="@../../images/auth.jpg"/>
       </image>
     </ImageView>
 
@@ -102,8 +102,10 @@
   </HBox>
   <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false"
     StackPane.alignment="CENTER">
-    <Text text="Logging in..." fx:id="loadingText"/>
-    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
-    <Button text="Cancel" fx:id="cancelButton" styleClass="btn, btn-text"/>
+    <VBox styleClass="loading-inner" alignment="CENTER" maxWidth="200">
+      <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
+      <Text text="Logging in..." fx:id="loadingText"/>
+      <Button text="Cancel" fx:id="cancelButton" styleClass="btn, btn-text"/>
+    </VBox>
   </VBox>
 </StackPane>
