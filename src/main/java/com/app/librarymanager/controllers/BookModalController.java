@@ -270,7 +270,7 @@ public class BookModalController extends ControllerWithLoader {
       book.setActivated(isActiveCheckBox.isSelected());
 
       int copies = Integer.parseInt(numberOfCopies.getText());
-      if (copies > 0) {
+      if (copies >= 0) {
         BookCopies bookCopies = new BookCopies(book.getId(), copies);
         Task<Document> updateCopiesTask = new Task<Document>() {
           @Override
@@ -281,6 +281,8 @@ public class BookModalController extends ControllerWithLoader {
           }
         };
         new Thread(updateCopiesTask).start();
+      } else {
+        AlertDialog.showAlert("error", "Error", "Book copies must greater than 0", null);
       }
     } catch (Exception e) {
       AlertDialog.showAlert("error", "Error", e.getMessage(), null);

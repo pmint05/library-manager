@@ -16,7 +16,7 @@
             <Label text="Your Favorite"/>
             <Region HBox.hgrow="ALWAYS"/>
           </HBox>
-          <ScrollPane fx:id="favoriteScrollPane" hbarPolicy="ALWAYS" vbarPolicy="NEVER"
+          <ScrollPane fx:id="favoriteScrollPane" vbarPolicy="NEVER"
             fitToWidth="true"/>
         </VBox>
         <VBox spacing="10">
@@ -24,7 +24,7 @@
             <Label text="Top Rated"/>
             <Region HBox.hgrow="ALWAYS"/>
           </HBox>
-          <ScrollPane fx:id="topRatedScrollPane" hbarPolicy="ALWAYS" vbarPolicy="NEVER"
+          <ScrollPane fx:id="topRatedScrollPane" vbarPolicy="NEVER"
             fitToWidth="true"/>
         </VBox>
         <VBox spacing="10">
@@ -32,7 +32,7 @@
             <Label text="Top Loans"/>
             <Region HBox.hgrow="ALWAYS"/>
           </HBox>
-          <ScrollPane fx:id="topLoansScrollPane" hbarPolicy="ALWAYS" vbarPolicy="NEVER"
+          <ScrollPane fx:id="topLoansScrollPane" vbarPolicy="NEVER"
             fitToWidth="true"/>
         </VBox>
       </VBox>
