@@ -127,7 +127,4 @@ public class UploadFileUtil {
     );
   }
 
-//  public static void main(String[] args) {
-//    uploadFile("C:\\Users\\RHINZO\\OneDrive - pmint05\\Desktop\\Screenshot 2024-09-02 003649.png");
-//  }
 }
