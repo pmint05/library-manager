@@ -1,5 +1,6 @@
 package com.app.librarymanager.controllers;
 
+import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DateUtil;
 import com.app.librarymanager.utils.DateUtil.DateFormat;
@@ -341,6 +342,7 @@ public class ManageBooksController extends ControllerWithLoader {
             Task<Boolean> task = new Task<Boolean>() {
               @Override
               protected Boolean call() throws Exception {
+                BookCopiesController.removeCopy(new BookCopies(book.getId()));
                 return BookController.deleteBook(book);
               }
             };
