@@ -37,75 +37,60 @@ Một ứng dụng mô phỏng quản lý thư viện, được xây dựng bằ
 
 <div style="text-align: center;">
     <img src="/res/homepage_guest.png" alt="homepage_guest" style="width: 80%; height: auto;">
-    <p>Màn hình chính</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/all_books.png" alt="all_books" style="width: 80%; height: auto;">
-    <p>Xem toàn bộ sách trong thư viện</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/all_categories.png" alt="all_categories" style="width: 80%; height: auto;">
-    <p>Tìm sách theo thể loại</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/book_add.png" alt="book_add" style="width: 80%; height: auto;">
-    <p>Thêm sách</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/book_loan.png" alt="book_loan" style="width: 80%; height: auto;">
-    <p>Các lượt mượn sách của người dùng</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/book_loan_manage.png" alt="book_loan_manage" style="width: 80%; height: auto;">
-    <p>Quản lý tất cả các lượt mượn</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/book_manage.png" alt="book_manage" style="width: 80%; height: auto;">
-    <p>Quản lý các sách</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/book_view.png" alt="book_view" style="width: 80%; height: auto;">
-    <p>Xem thông tin về sách</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/categories_manage.png" alt="categories_manage" style="width: 80%; height: auto;">
-    <p>Quản lý các loại sách</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/comments.png" alt="comments" style="width: 80%; height: auto;">
-    <p>Bình luận về sách</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/favorite.png" alt="favorite" style="width: 80%; height: auto;">
-    <p>Xem các sách yêu thích</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/login.png" alt="login" style="width: 80%; height: auto;">
-    <p>Đăng nhập</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/register.png" alt="register" style="width: 80%; height: auto;">
-    <p>Đăng ký</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/user_manage.png" alt="user_manage" style="width: 80%; height: auto;">
-    <p>Quản lý người dùng</p>
 </div>
 
 <div style="text-align: center;">
     <img src="/res/user_add.png" alt="user_add" style="width: 50%; height: auto;">
-    <p>Thêm tài khoản</p>
 </div>
