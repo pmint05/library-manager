@@ -105,13 +105,8 @@ public class BookRatingController {
             bookDoc.getString("title"), bookDoc.getString("thumbnail"), bookDoc.getString("id"));
       }).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
-  }
-
-
-  public static void main(String[] args) {
-//    System.out.println(getTopRatingBook(0, 1000000).get(0).getBookRating().getBookId());
   }
 }

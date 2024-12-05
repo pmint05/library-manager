@@ -143,7 +143,7 @@ public class ManageBookLoansController extends ControllerWithLoader {
       @Override
       protected List<BookLoanUser> call() {
         totalRecords = (int) BookLoanController.numberOfRecords();
-        return BookLoanController.getAllLentBook(currentPage, pageSize);
+        return BookLoanController.getAllLentBook(currentPage * pageSize, pageSize);
       }
     };
 
@@ -152,18 +152,18 @@ public class ManageBookLoansController extends ControllerWithLoader {
       showLoading(false);
       bookLoansList = FXCollections.observableArrayList(task.getValue());
       bookLoansTable.setItems(bookLoansList);
-      System.out.println("Book loans loaded successfully. Total: " + totalRecords);
+      //  System.out.println("Book loans loaded successfully. Total: " + totalRecords);
 
       pagination.setPageCount((int) Math.ceil((double) totalRecords / pageSize));
       pagination.setCurrentPageIndex(currentPage);
     });
     task.setOnFailed(e -> {
-      System.out.println("Error while fetching book loans: " + task.getException().getMessage());
+      //  System.out.println("Error while fetching book loans: " + task.getException().getMessage());
       showLoading(false);
     });
 
     new Thread(task).start();
-  }
+}
 
 //  @FXML
 //  private void onCreateLoan() {

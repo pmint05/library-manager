@@ -58,8 +58,4 @@ public class BookCopiesController {
         .forEach(document -> copies.add(new BookCopies(document)));
     return copies;
   }
-
-  public static void main(String[] args) {
-    addCopy(new BookCopies("bookId", 0));
-  }
 }

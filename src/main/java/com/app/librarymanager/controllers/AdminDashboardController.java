@@ -77,7 +77,7 @@ public class AdminDashboardController extends ControllerWithLoader {
 
           renderTask.setOnSucceeded(event -> setGraphic(renderTask.getValue()));
           renderTask.setOnFailed(event -> {
-            System.out.println("Failed to render item for: " + bookLoan.getTitleBook());
+            //  System.out.println("Failed to render item for: " + bookLoan.getTitleBook());
             setGraphic(null);
           });
 
@@ -101,7 +101,7 @@ public class AdminDashboardController extends ControllerWithLoader {
 
           renderTask.setOnSucceeded(event -> setGraphic(renderTask.getValue()));
           renderTask.setOnFailed(event -> {
-            System.out.println("Failed to render item for: " + bookLoan.getTitleBook());
+            //  System.out.println("Failed to render item for: " + bookLoan.getTitleBook());
             setGraphic(null);
           });
 
@@ -151,7 +151,10 @@ public class AdminDashboardController extends ControllerWithLoader {
 
   private HBox createTopLentBookComponent(ReturnBookLoan returnBookLoan) {
     HBox bookComponent = new HBox(10);
-    ImageView bookImage = new ImageView(returnBookLoan.getThumbnailBook());
+    ImageView bookImage = new ImageView(
+        !returnBookLoan.getThumbnailBook().isEmpty() && returnBookLoan
+            .getThumbnailBook().startsWith("http") ? returnBookLoan.getThumbnailBook()
+            : "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api");
     bookImage.setFitWidth(100);
     bookImage.setPreserveRatio(true);
     Text bookTitle = new Text(returnBookLoan.getTitleBook());
@@ -170,7 +173,10 @@ public class AdminDashboardController extends ControllerWithLoader {
 
   private HBox createRecentLoanComponent(ReturnBookLoan returnBookLoan) {
     HBox bookComponent = new HBox(10);
-    ImageView bookImage = new ImageView(returnBookLoan.getThumbnailBook());
+    ImageView bookImage = new ImageView(
+        !returnBookLoan.getThumbnailBook().isEmpty() && returnBookLoan.getThumbnailBook()
+            .startsWith("http") ? returnBookLoan.getThumbnailBook()
+            : "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api");
     bookImage.setFitWidth(100);
     bookImage.setPreserveRatio(true);
     Text bookTitle = new Text(returnBookLoan.getTitleBook());
@@ -207,7 +213,7 @@ public class AdminDashboardController extends ControllerWithLoader {
         Button closeButton = (Button) root.lookup("#closeBtn");
         closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
       } else {
-        System.err.println("StackPane with id 'contentPane' not found.");
+        //  System.err.println("StackPane with id 'contentPane' not found.");
       }
     } catch (Exception e) {
       AlertDialog.showAlert("error", "Error", "Failed to show book", null);

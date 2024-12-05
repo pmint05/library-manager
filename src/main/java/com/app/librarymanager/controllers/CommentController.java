@@ -66,7 +66,7 @@ public class CommentController {
             currentUser.getPhotoUrl(), doc.getString("content"));
       }).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
   }
@@ -106,11 +106,8 @@ public class CommentController {
             doc.getInteger("count"));
       }).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
-  }
-
-  public static void main(String[] args) {
   }
 }

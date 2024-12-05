@@ -257,7 +257,7 @@ Button {
 }
 
 .combo-box .list-cell {
-  -fx-background-color: -fx-bg-light;
+  /*-fx-background-color: -fx-bg-light;*/
   -fx-text-fill: -fx-text;
   -fx-padding: 5;
   -fx-cursor: hand;
@@ -265,7 +265,7 @@ Button {
 
 .combo-box .list-cell:hover {
   -fx-background-color: -fx-primary-20;
-  -fx-text-fill: -fx-primary;
+  -fx-text-fill: -fx-primary !important;
 }
 
 .check-box {

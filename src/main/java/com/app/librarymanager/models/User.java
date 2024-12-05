@@ -127,13 +127,13 @@ public class User {
       if (image.getException() == null) {
         avatar = image;
       } else {
-        System.err.println("Failed to load image from photoUrl: " + photoUrl);
+        //  System.err.println("Failed to load image from photoUrl: " + photoUrl);
       }
     });
     loadImageTask.setOnFailed(event -> {
-      System.err.println(
-          "Exception while loading image from photoUrl: " + loadImageTask.getException()
-              .getMessage());
+//      System.err.println(
+//          "Exception while loading image from photoUrl: " + loadImageTask.getException()
+//              .getMessage());
     });
     return loadImageTask;
   }

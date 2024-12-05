@@ -114,13 +114,13 @@ public class ManageCategoriesController extends ControllerWithLoader {
     task.setOnSucceeded(e -> {
       Platform.runLater(() -> {
         totalCategories = task.getValue();
-        System.out.println("Total categories: " + totalCategories);
+        //  System.out.println("Total categories: " + totalCategories);
         updatePaginationInfo();
       });
     });
     task.setOnFailed(e -> {
       Platform.runLater(() -> {
-        System.out.println("Error while fetching categories: " + task.getException().getMessage());
+        //  System.out.println("Error while fetching categories: " + task.getException().getMessage());
       });
     });
 
@@ -149,7 +149,7 @@ public class ManageCategoriesController extends ControllerWithLoader {
     task.setOnFailed(e -> {
       Platform.runLater(() -> {
         showLoading(false);
-        System.out.println("Error while fetching categories: " + task.getException().getMessage());
+        //  System.out.println("Error while fetching categories: " + task.getException().getMessage());
       });
     });
 
@@ -203,7 +203,7 @@ public class ManageCategoriesController extends ControllerWithLoader {
     });
     task.setOnFailed(ev -> {
       showLoading(false);
-      System.out.println("Error while adding category: " + task.getException().getMessage());
+      //  System.out.println("Error while adding category: " + task.getException().getMessage());
     });
 
     new Thread(task).start();
@@ -246,8 +246,8 @@ public class ManageCategoriesController extends ControllerWithLoader {
             });
             task.setOnFailed(ev -> {
               showLoading(false);
-              System.out.println(
-                  "Error while deleting category: " + task.getException().getMessage());
+//              System.out.println(
+//                  "Error while deleting category: " + task.getException().getMessage());
             });
             new Thread(task).start();
           }

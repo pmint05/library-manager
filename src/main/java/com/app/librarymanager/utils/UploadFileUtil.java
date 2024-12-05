@@ -36,8 +36,8 @@ public class UploadFileUtil {
           .build();
 
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      System.out.println("Response Code: " + response.statusCode());
-      System.out.println("Response Body: " + response.body());
+      //  System.out.println("Response Code: " + response.statusCode());
+      //  System.out.println("Response Body: " + response.body());
 
       return new JSONObject(response.body());
 
@@ -75,14 +75,15 @@ public class UploadFileUtil {
           .build();
 
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      System.out.println("Response Code: " + response.statusCode());
-      System.out.println("Response Body: " + response.body());
+      //  System.out.println("Response Code: " + response.statusCode());
+      //  System.out.println("Response Body: " + response.body());
 
       return new JSONObject(response.body());
 
     } catch (Exception e) {
       e.printStackTrace();
-      return new JSONObject().put("success", false).put("message", e.getMessage());
+      return new JSONObject().put("success", false)
+          .put("message", "Error in uploading image: " + e.getMessage());
     }
   }
 

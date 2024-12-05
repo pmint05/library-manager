@@ -186,12 +186,12 @@ public class ManageUsersController extends ControllerWithLoader {
     task.setOnSucceeded(e -> {
       usersList.setAll(task.getValue());
       usersTable.setItems(usersList);
-      System.out.println("Users loaded successfully. Total: " + usersList.size());
+      //  System.out.println("Users loaded successfully. Total: " + usersList.size());
       showLoading(false);
       totalUsersText.setText("Total Users: " + usersList.size());
     });
     task.setOnFailed(e -> {
-      System.out.println("Error while fetching users: " + task.getException().getMessage());
+      //  System.out.println("Error while fetching users: " + task.getException().getMessage());
       showLoading(false);
     });
 
@@ -260,13 +260,13 @@ public class ManageUsersController extends ControllerWithLoader {
 
       editMenuItem.setOnAction(event -> {
         User user = row.getItem();
-        System.out.println("Edit user: " + user.getUid());
+        //  System.out.println("Edit user: " + user.getUid());
         openUserModal(user);
       });
 
       deleteMenuItem.setOnAction(event -> {
         User user = row.getItem();
-        System.out.println("Delete user: " + user.getUid());
+        //  System.out.println("Delete user: " + user.getUid());
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete User");
         alert.setHeaderText("Are you sure you want to delete user " + user.getEmail() + "?");
@@ -282,7 +282,7 @@ public class ManageUsersController extends ControllerWithLoader {
             task.setOnRunning(ev -> showLoading(true));
             task.setOnSucceeded(e -> {
               JSONObject delRes = task.getValue();
-              System.out.println("User deleted: " + delRes);
+              //  System.out.println("User deleted: " + delRes);
               showLoading(false);
 //              loadUsers();
               removeUserFromTable(user);
@@ -291,7 +291,7 @@ public class ManageUsersController extends ControllerWithLoader {
             });
             task.setOnFailed(ev -> {
               showLoading(false);
-              System.out.println("Error while deleting user: " + task.getException().getMessage());
+              //  System.out.println("Error while deleting user: " + task.getException().getMessage());
             });
             new Thread(task).start();
           }
@@ -327,6 +327,7 @@ public class ManageUsersController extends ControllerWithLoader {
 
   private void removeUserFromTable(User user) {
     usersList.remove(user);
+    usersTable.getItems().remove(user);
     usersTable.refresh();
   }
 
@@ -341,6 +342,7 @@ public class ManageUsersController extends ControllerWithLoader {
       controller.setSaveCallback(updatedUser -> {
         if (user == null) {
           usersList.add(updatedUser);
+          usersTable.setItems(usersList);
           usersTable.refresh();
         } else {
           updateUserInTable(updatedUser);

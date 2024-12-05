@@ -170,7 +170,7 @@ public class BookLoanController {
           doc -> new BookLoanUser(relatedUser.get(doc.getString("userId")),
               relatedBook.get(doc.getString("bookId")), new BookLoan(doc))).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
   }
@@ -208,7 +208,7 @@ public class BookLoanController {
             bookDoc.getString("title"), bookDoc.getString("thumbnail"));
       }).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
   }
@@ -292,20 +292,5 @@ public class BookLoanController {
     } catch (Exception e) {
       return false;
     }
-  }
-
-  public static void main(String[] args) {
-//    Firebase firebase = Firebase.getInstance();
-//    MongoDB mongoDB = MongoDB.getInstance();
-////    System.out.println(getAllLentBook(0, 1000000).size());
-//    for (BookLoanUser b : getAllLentBook(0, 1000000)) {
-//      System.out.println("=======");
-//      System.out.println("Book:");
-//      System.out.println(b.getBook());
-//      System.out.println("User");
-//      System.out.println(b.getUser());
-//      System.out.println("Loan:");
-//      System.out.println(b.getBookLoan() + " " + b.getBookLoan().getLastUpdated());
-//    }
   }
 }

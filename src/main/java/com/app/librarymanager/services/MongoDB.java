@@ -58,7 +58,7 @@ public class MongoDB {
       mongoClient = MongoClients.create(settings);
       database = mongoClient.getDatabase(databaseName);
     } catch (Exception e) {
-      System.err.println("Error when connecting MongoDB: " + e.getMessage());
+      //  System.err.println("Error when connecting MongoDB: " + e.getMessage());
     }
   }
 
@@ -107,10 +107,10 @@ public class MongoDB {
       Document toInsert = new Document(data).append("_id", new ObjectId())
           .append("lastUpdated", new Timestamp(System.currentTimeMillis()));
       InsertOneResult result = collection.insertOne(toInsert);
-      System.out.println("Success! Inserted document id: " + result.getInsertedId());
+      //  System.out.println("Success! Inserted document id: " + result.getInsertedId());
       return toInsert;
     } catch (Exception e) {
-      System.err.println("Error when trying to add " + collectionName + e.getMessage());
+      //  System.err.println("Error when trying to add " + collectionName + e.getMessage());
       return null;
     }
   }
@@ -131,7 +131,7 @@ public class MongoDB {
       collection.find(filter).forEach(result::add);
       return result;
     } catch (Exception e) {
-      System.err.println("Error when trying to find at " + collectionName);
+      //  System.err.println("Error when trying to find at " + collectionName);
       return null;
     }
   }
@@ -144,8 +144,8 @@ public class MongoDB {
       collection.find(filter).skip(start).limit(length).forEach(result::add);
       return result;
     } catch (Exception e) {
-      System.out.println(
-          "Fail when trying to crawl " + collectionName + " start " + start + " length " + length);
+//      System.out.println(
+//          "Fail when trying to crawl " + collectionName + " start " + start + " length " + length);
       return null;
     }
   }
@@ -158,8 +158,8 @@ public class MongoDB {
       collection.find(filter).sort(order).skip(start).limit(length).forEach(result::add);
       return result;
     } catch (Exception e) {
-      System.out.println(
-          "Fail when trying to crawl " + collectionName + " start " + start + " length " + length);
+//      System.out.println(
+//          "Fail when trying to crawl " + collectionName + " start " + start + " length " + length);
       return null;
     }
   }
@@ -171,7 +171,7 @@ public class MongoDB {
       collection.aggregate(pipeline).forEach(documents::add);
       return documents;
     } catch (Exception e) {
-      System.err.println(e.getMessage());
+      //  System.err.println(e.getMessage());
       return null;
     }
   }
@@ -185,7 +185,7 @@ public class MongoDB {
     try {
       return database.getCollection(collectionName).find(filter).first();
     } catch (Exception e) {
-      System.err.println("Fail when finding: " + e.getMessage());
+      //  System.err.println("Fail when finding: " + e.getMessage());
       return null;
     }
   }
@@ -204,19 +204,19 @@ public class MongoDB {
       Map<String, Object> newObject) {
     newObject.remove("_id");
     newObject.remove("lastUpdated");
-    System.out.println(newObject);
+    //  System.out.println(newObject);
     List<Bson> updateList = new ArrayList<>(
         newObject.entrySet().stream().map(entry -> Updates.set(entry.getKey(), entry.getValue()))
             .toList());
     updateList.add(Updates.set("lastUpdated", new Timestamp(System.currentTimeMillis())));
     Bson updates = Updates.combine(updateList);
     MongoCollection<Document> collection = database.getCollection(collectionName);
-    System.err.println(idCriteria + " " + valueCriteria);
+    //  System.err.println(idCriteria + " " + valueCriteria);
     try {
       return collection.findOneAndUpdate(eq(idCriteria, valueCriteria), updates,
           new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
     } catch (Exception e) {
-      System.err.println("Fail when trying to update at " + collectionName + " " + e.getMessage());
+      //  System.err.println("Fail when trying to update at " + collectionName + " " + e.getMessage());
       return null;
     }
   }
@@ -227,7 +227,7 @@ public class MongoDB {
       UpdateResult result = collection.updateMany(filter, update);
       return result.wasAcknowledged();
     } catch (Exception e) {
-      System.out.println("Fail when trying to update all " + collectionName + " " + e.getMessage());
+      //  System.out.println("Fail when trying to update all " + collectionName + " " + e.getMessage());
       return false;
     }
   }
@@ -241,8 +241,8 @@ public class MongoDB {
       database.getCollection(collectionName).deleteOne(eq(criteriaName, valueCriteria));
       return true;
     } catch (Exception e) {
-      System.err.println("Error when trying to delete " + criteriaName + " " + valueCriteria + ": "
-          + e.getMessage());
+      //  System.err.println("Error when trying to delete " + criteriaName + " " + valueCriteria + ": "
+//          + e.getMessage());
       return false;
     }
   }
