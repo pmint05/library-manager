@@ -131,7 +131,7 @@ public class BookDetailController extends ControllerWithLoader {
 
           renderTask.setOnSucceeded(event -> setGraphic(renderTask.getValue()));
           renderTask.setOnFailed(event -> {
-            System.out.println("Failed to render comment for: " + comment.getUserDisplayName());
+            //  System.out.println("Failed to render comment for: " + comment.getUserDisplayName());
             setGraphic(null);
           });
 
