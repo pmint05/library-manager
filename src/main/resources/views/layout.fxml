@@ -81,6 +81,8 @@
         maxWidth="300"/>
       <Region HBox.hgrow="ALWAYS" prefWidth="10" maxWidth="30"/>
       <Button fx:id="homeNavBtn" mnemonicParsing="false" styleClass="btn, btn-nav" text="Home"/>
+      <Button fx:id="allBooksNavBtn" mnemonicParsing="false" styleClass="btn, btn-nav"
+        text="All Books"/>
       <Button fx:id="categoriesNavBtn" mnemonicParsing="false" styleClass="btn, btn-nav"
         text="Categories"/>
       <Button fx:id="loansNavBtn" mnemonicParsing="false" styleClass="btn, btn-nav"

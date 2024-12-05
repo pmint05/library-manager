@@ -3,11 +3,14 @@ package com.app.librarymanager.controllers;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DateUtil;
 import com.app.librarymanager.utils.DateUtil.DateFormat;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
@@ -102,6 +105,7 @@ public class ManageBooksController extends ControllerWithLoader {
 
   @FXML
   public void initialize() {
+    showCancel(false);
     setLoadingText("Loading books...");
 
     _idColumn.setCellValueFactory(new PropertyValueFactory<>("_id"));
@@ -176,6 +180,8 @@ public class ManageBooksController extends ControllerWithLoader {
     setDateCellFactory(publishedDateColumn);
     setArrayCellFactory(authorsColumn);
     setArrayCellFactory(categoriesColumn);
+    setPriceCellFactory(priceColumn);
+    setPriceCellFactory(discountPriceColumn);
 
     activeFilter.getItems().addAll("All", "True", "False");
 
@@ -373,6 +379,20 @@ public class ManageBooksController extends ControllerWithLoader {
           setText(null);
         } else {
           setText(DateUtil.ymdToDmy(item));
+        }
+      }
+    });
+  }
+
+  private void setPriceCellFactory(TableColumn<Book, Double> column) {
+    column.setCellFactory(col -> new TableCell<Book, Double>() {
+      @Override
+      protected void updateItem(Double item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || item == null) {
+          setText(null);
+        } else {
+          setText(String.format("%.2f", item));
         }
       }
     });

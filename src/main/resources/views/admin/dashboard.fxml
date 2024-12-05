@@ -5,6 +5,7 @@
 <?import javafx.scene.text.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 
+<?import javafx.geometry.Insets?>
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="com.app.librarymanager.controllers.AdminDashboardController">
 
@@ -91,7 +92,11 @@
   <VBox fx:id="loadingOverlay" alignment="CENTER" styleClass="loading-wrapper" visible="false"
     AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
     AnchorPane.topAnchor="0.0">
-    <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
-    <Text fx:id="loadingText" text="Loading..."/>
+    <VBox styleClass="loading-inner" alignment="CENTER" maxWidth="200">
+
+      <ProgressIndicator fx:id="loadingSpinner" maxHeight="100" maxWidth="100"/>
+      <Text text="Loading..." fx:id="loadingText"/>
+      <Button text="Cancel" fx:id="cancelButton" styleClass="btn, btn-text"/>
+    </VBox>
   </VBox>
 </AnchorPane>

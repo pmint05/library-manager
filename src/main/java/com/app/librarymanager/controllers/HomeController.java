@@ -38,6 +38,8 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
   private ScrollPane topRatedScrollPane;
   @FXML
   private ScrollPane topLoansScrollPane;
+  @FXML
+  private VBox favoriteBooksContainer;
 
   public static synchronized HomeController getInstance() {
     if (instance == null) {
@@ -65,29 +67,20 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
   private void updateUI(boolean isAuthenticated, User user) {
     if (isAuthenticated) {
       welcomeLabel.setText("Welcome, " + user.getEmail());
+      favoriteBooksContainer.setVisible(true);
+      favoriteBooksContainer.setManaged(true);
+      loadFavoriteBooks();
     } else {
       welcomeLabel.setText("Welcome, Guest");
+      favoriteBooksContainer.setVisible(false);
+      favoriteBooksContainer.setManaged(false);
     }
   }
 
   private void loadData() {
-//    showLoading(true);
-
-    Task<List<Book>> favoriteTask = createTask(() -> FavoriteController.getFavoriteBookOfUser(
-        AuthController.getInstance().getCurrentUser().getUid()));
-    favoriteTask.setOnSucceeded(
-        event -> {
-          displayBooksToScrollPane(favoriteScrollPane, favoriteTask.getValue());
-        });
-
-    favoriteTask.setOnFailed(event -> {
-      favoriteTask.getException().printStackTrace();
-      AlertDialog.showAlert("error", "Loading failed",
-          "An error occurred while loading the favorite books", null);
-    });
-
-    new Thread(favoriteTask).start();
-
+    if (AuthController.getInstance().isAuthenticated()) {
+      loadFavoriteBooks();
+    }
     Task<List<ReturnRating>> topRatedTask = createTask(
         () -> BookRatingController.getTopRatingBook(0, 10));
 
@@ -121,6 +114,23 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
 //    }
   }
 
+  private void loadFavoriteBooks() {
+    Task<List<Book>> favoriteTask = createTask(() -> FavoriteController.getFavoriteBookOfUser(
+        AuthController.getInstance().getCurrentUser().getUid()));
+    favoriteTask.setOnSucceeded(
+        event -> {
+          displayBooksToScrollPane(favoriteScrollPane, favoriteTask.getValue());
+        });
+
+    favoriteTask.setOnFailed(event -> {
+      favoriteTask.getException().printStackTrace();
+      AlertDialog.showAlert("error", "Loading failed",
+          "An error occurred while loading the favorite books", null);
+    });
+
+    new Thread(favoriteTask).start();
+  }
+
   private <T> Task<T> createTask(Callable<T> callable) {
     return new Task<>() {
       @Override
@@ -134,6 +144,12 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
     HBox hBox = new HBox(10);
     hBox.getStyleClass().add("book-container");
     scrollPane.setContent(hBox);
+
+    if (books == null || books.isEmpty()) {
+      favoriteBooksContainer.setVisible(false);
+      favoriteBooksContainer.setManaged(false);
+      return;
+    }
 
     try {
       for (Book book : books) {
@@ -195,6 +211,7 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
           protected VBox call() {
             try {
               VBox bookItem = new VBox(10);
+              bookItem.setOnMouseClicked(event -> handleBookClick(rating.getBookId(), bookItem));
               bookItem.getStyleClass().add("book-item");
               ImageView thumbnail = new ImageView(rating.getThumbnailBook());
               thumbnail.setFitWidth(200);
@@ -269,7 +286,13 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
           protected VBox call() {
             try {
               VBox bookItem = new VBox(10);
+              bookItem.setOnMouseClicked(
+                  event -> handleBookClick(loan.getBookLoan().getBookId(), bookItem));
               bookItem.getStyleClass().add("book-item");
+              if (loan.getThumbnailBook() == null || loan.getThumbnailBook().isEmpty()) {
+                loan.setThumbnailBook(
+                    "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api");
+              }
               ImageView thumbnail = new ImageView(loan.getThumbnailBook());
               thumbnail.setFitWidth(200);
               thumbnail.setFitHeight(300);
@@ -313,6 +336,30 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
         new Thread(task).start();
       }
     } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void handleBookClick(String bookId, Parent container) {
+    try {
+      FXMLLoader loader = new FXMLLoader(
+          getClass().getResource("/views/components/book-detail.fxml"));
+      Parent root = loader.load();
+      BookDetailController controller = loader.getController();
+      controller.getBookDetail(bookId);
+
+      StackPane overlay = new StackPane(root);
+      overlay.getStyleClass().add("overlay");
+      StackPane stackPane = (StackPane) container.getScene().lookup("#contentPane");
+      if (stackPane != null) {
+        stackPane.getChildren().add(overlay);
+        Button closeButton = (Button) root.lookup("#closeBtn");
+        closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
+      } else {
+        System.err.println("StackPane with id 'contentPane' not found.");
+      }
+    } catch (Exception e) {
+      AlertDialog.showAlert("error", "Error", "Failed to show book", null);
       e.printStackTrace();
     }
   }

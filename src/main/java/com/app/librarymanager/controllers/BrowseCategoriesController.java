@@ -37,6 +37,7 @@ public class BrowseCategoriesController extends ControllerWithLoader {
 
   @FXML
   private void initialize() {
+    showCancel(false);
     setLoadingText("Loading categories...");
     categoriesScrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
       double deltaY = event.getDeltaY() * 3;

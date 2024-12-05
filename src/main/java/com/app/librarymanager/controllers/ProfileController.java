@@ -92,6 +92,7 @@ public class ProfileController extends ControllerWithLoader {
 
   @FXML
   public void initialize() {
+    showCancel(false);
     Task<Void> task = new Task<Void>() {
       @Override
       protected Void call() {
@@ -190,11 +191,12 @@ public class ProfileController extends ControllerWithLoader {
 
   private void checkForChanges() {
     boolean hasChanges =
-        !displayNameField.getText().equals(initialDisplayName) || !phoneNumberField.getText()
-            .equals(initialPhoneNumber) || (
-            birthdayField.getEditor().getText() != null && !birthdayField.getEditor().getText()
-                .equals(initialBirthday) || (birthdayField.getEditor().getText() == null
-                && !initialBirthday.isEmpty()));
+        !displayNameField.getText().equals(initialDisplayName) ||
+            !phoneNumberField.getText().equals(initialPhoneNumber) ||
+            (birthdayField.getValue() != null && !DateUtil.format(birthdayField.getValue())
+                .equals(initialBirthday)) ||
+            (birthdayField.getValue() == null && initialBirthday != null
+                && !initialBirthday.isEmpty());
     saveChangesButton.setDisable(!hasChanges);
   }
 

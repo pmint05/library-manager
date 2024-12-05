@@ -39,6 +39,7 @@ public class ControllerWithLoader {
       return;
     }
     cancelButton.setVisible(show);
+    cancelButton.setManaged(show);
   }
 
   protected void showLoading(boolean show) {
