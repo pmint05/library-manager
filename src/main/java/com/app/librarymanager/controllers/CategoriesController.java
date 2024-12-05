@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bson.Document;
+import org.checkerframework.checker.units.qual.C;
 
 public class CategoriesController {
 
@@ -91,8 +92,6 @@ public class CategoriesController {
   }
 
   public static void main(String[] args) {
-//    addCategoryList(List.of(new Categories("huhu TT"), new Categories("hello ửold")));
-//    System.out.println(findCategory(new Categories("computers")));
-//    addCategoryList(Stream.of("^", "(", ")").map(Categories::new).toList());
+    addCategoryList(List.of(new Categories("computers"), new Categories("education"), new Categories("mathematics"), new Categories("law")));
   }
 }

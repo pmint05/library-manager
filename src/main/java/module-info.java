@@ -25,12 +25,13 @@ module com.app.librarymanager {
   requires google.api.client;
   requires com.google.api.client.auth;
   requires com.google.api.client.json.jackson2;
-  requires java.desktop;
   requires com.google.api.client.extensions.jetty.auth;
   requires java.prefs;
   requires com.google.api.client.json.gson;
   requires jdk.httpserver;
   requires org.apache.commons.lang3;
+  requires org.checkerframework.checker.qual;
+  requires java.desktop;
 
   opens com.app.librarymanager to javafx.fxml, com.google.gson;
   exports com.app.librarymanager;
