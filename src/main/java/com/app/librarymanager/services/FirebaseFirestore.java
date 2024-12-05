@@ -56,7 +56,7 @@ public class FirebaseFirestore {
     DocumentReference docRef = db.collection(collection).document(document);
     ApiFuture<WriteResult> result = docRef.set(data);
     try {
-      System.out.println("Update time : " + result.get().getUpdateTime());
+      //  System.out.println("Update time : " + result.get().getUpdateTime());
       return result.get().getUpdateTime();
     } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
@@ -69,10 +69,10 @@ public class FirebaseFirestore {
     try {
       DocumentSnapshot documentSnapshot = future.get();
       if (documentSnapshot.exists()) {
-        System.out.println("Document data: " + documentSnapshot.getData());
+        //  System.out.println("Document data: " + documentSnapshot.getData());
         return new JSONObject(documentSnapshot.getData());
       } else {
-        System.out.println("No such document!");
+        //  System.out.println("No such document!");
         return null;
       }
     } catch (InterruptedException | ExecutionException e) {
@@ -113,7 +113,7 @@ public class FirebaseFirestore {
     DocumentReference docRef = db.collection(collection).document(document);
     ApiFuture<WriteResult> result = docRef.update(data);
     try {
-      System.out.println("Update time : " + result.get().getUpdateTime());
+      //  System.out.println("Update time : " + result.get().getUpdateTime());
       return result.get().getUpdateTime();
     } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
@@ -164,7 +164,7 @@ public class FirebaseFirestore {
       DocumentReference docRef = db.collection(collection).document(document);
       ApiFuture<WriteResult> arrayUnion = docRef.update(nameArray,
           FieldValue.arrayUnion(newElement));
-      System.out.println("Update time : " + arrayUnion.get());
+      //  System.out.println("Update time : " + arrayUnion.get());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -188,7 +188,7 @@ public class FirebaseFirestore {
       DocumentReference docRef = db.collection(collection).document(document);
       ApiFuture<WriteResult> arrayRemove = docRef.update(nameArray,
           FieldValue.arrayRemove(newElement));
-      System.out.println("Update time : " + arrayRemove.get());
+      //  System.out.println("Update time : " + arrayRemove.get());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

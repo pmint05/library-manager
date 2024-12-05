@@ -53,8 +53,8 @@ public class AuthController {
   }
 
   public void loadSession() {
-    System.out.println("Loading session...");
-    System.out.println("ID Token: " + authPrefs.get("idToken", null));
+    //  System.out.println("Loading session...");
+    //  System.out.println("ID Token: " + authPrefs.get("idToken", null));
     this.idToken = authPrefs.get("idToken", null);
     this.refreshToken = authPrefs.get("refreshToken", null);
     this.userClaims = authPrefs.get("userClaims", null);
@@ -80,7 +80,7 @@ public class AuthController {
         JSONObject error = resp.getJSONObject("error");
         String code = error.getString("code");
         if (error.has("message")) {
-          System.err.println("Error logging in with Google: " + error.getString("message"));
+          //  System.err.println("Error logging in with Google: " + error.getString("message"));
         }
         res.put("success", false);
         res.put("code", code);
@@ -97,7 +97,8 @@ public class AuthController {
       res.put("data", user);
       return res;
     } catch (Exception e) {
-      System.err.println("Error logging in with Google: " + e.getMessage());
+      FirebaseAuthentication.stopReceiver();
+      //  System.err.println("Error logging in with Google: " + e.getMessage());
       return new JSONObject(Map.of("success", false, "code", ""));
     }
   }
@@ -108,7 +109,7 @@ public class AuthController {
   }
 
   public void onLoginFailure(String errorMessage) {
-    System.out.println(errorMessage);
+    //  System.out.println(errorMessage);
     this.isAuthenticated = false;
     switch (errorMessage) {
       case "EMAIL_NOT_FOUND":
@@ -141,7 +142,7 @@ public class AuthController {
 
   public void onRegisterSuccess(JSONObject user) {
     onAuthSuccess(user);
-    System.out.println("User registered: " + user.getString("email"));
+    //  System.out.println("User registered: " + user.getString("email"));
     notifyAuthStateListeners();
   }
 
@@ -183,7 +184,8 @@ public class AuthController {
     this.refreshToken = null;
     this.isAuthenticated = false;
     this.userClaims = null;
-    System.out.println("User logged out.");
+    //  System.out.println("User logged out.");
+    FirebaseAuthentication.stopReceiver();
     notifyAuthStateListeners();
   }
 
@@ -236,21 +238,21 @@ public class AuthController {
       FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(this.idToken);
       return true;
     } catch (Exception e) {
-      System.err.println("Invalid or expired ID token: " + e.getMessage());
+      //  System.err.println("Invalid or expired ID token: " + e.getMessage());
       if (this.refreshToken == null) {
         return false;
       }
-      System.out.println("Trying to refresh token...");
+      //  System.out.println("Trying to refresh token...");
       try {
         JSONObject response = FirebaseAuthentication.refreshAccessToken(this.refreshToken);
         if (response.has("error")) {
           JSONObject error = response.getJSONObject("error");
           if (error.has("message")) {
-            System.err.println("Error refreshing token: " + error.getString("message"));
+            //  System.err.println("Error refreshing token: " + error.getString("message"));
             return false;
           }
         }
-        System.out.println(response.toString());
+        //  System.out.println(response.toString());
         String idToken;
         String refreshToken = "";
         if (response.has("id_token")) {
@@ -268,10 +270,10 @@ public class AuthController {
         this.refreshToken = refreshToken;
         this.idToken = idToken;
         this.isAuthenticated = true;
-        System.out.println("Token refreshed successfully.");
+        //  System.out.println("Token refreshed successfully.");
         return true;
       } catch (Exception ex) {
-        System.err.println("Error refreshing token: " + ex.getMessage());
+        //  System.err.println("Error refreshing token: " + ex.getMessage());
         return false;
       }
     }
@@ -286,14 +288,14 @@ public class AuthController {
       if (this.userClaims != null) {
         return new JSONObject(this.userClaims);
       }
-      System.out.println("ID Token: " + this.idToken);
+      //  System.out.println("ID Token: " + this.idToken);
       JSONObject userData = FirebaseAuthentication.getUserData(this.idToken);
-      System.out.println("User data: " + userData);
+      //  System.out.println("User data: " + userData);
       JSONObject claims = new JSONObject();
       if (userData.has("error")) {
         JSONObject error = userData.getJSONObject("error");
         if (error.has("message")) {
-          System.err.println("Error getting user data: " + error.getString("message"));
+          //  System.err.println("Error getting user data: " + error.getString("message"));
           return new JSONObject();
         }
       }
@@ -342,7 +344,7 @@ public class AuthController {
       authPrefs.put("userClaims", this.userClaims);
       return claims;
     } catch (Exception e) {
-      System.err.println("Error in getting user claims: " + e.getMessage());
+      //  System.err.println("Error in getting user claims: " + e.getMessage());
       this.userClaims = null;
       return new JSONObject();
     }

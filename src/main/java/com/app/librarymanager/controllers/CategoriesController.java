@@ -51,8 +51,8 @@ public class CategoriesController {
       }
       return true;
     } catch (Exception e) {
-      System.out.println(
-          "Fail when trying to add categories: " + categories + " since " + e.getMessage());
+//      System.out.println(
+//          "Fail when trying to add categories: " + categories + " since " + e.getMessage());
       return false;
     }
   }
@@ -88,11 +88,5 @@ public class CategoriesController {
     return MongoDB.getInstance().countDocuments("books",
         Filters.regex("categories", StringUtil.escapeString(categories.getName().toLowerCase()),
             "i"));
-  }
-
-  public static void main(String[] args) {
-//    addCategoryList(List.of(new Categories("huhu TT"), new Categories("hello ửold")));
-//    System.out.println(findCategory(new Categories("computers")));
-//    addCategoryList(Stream.of("^", "(", ")").map(Categories::new).toList());
   }
 }

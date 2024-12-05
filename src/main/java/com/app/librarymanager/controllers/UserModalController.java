@@ -80,6 +80,7 @@ public class UserModalController extends ControllerWithLoader {
 
   @FXML
   private void initialize() {
+    showCancel(false);
     birthdayField.getEditor().setOnMouseClicked(event -> {
       birthdayField.show();
     });
@@ -159,15 +160,15 @@ public class UserModalController extends ControllerWithLoader {
       if (image.getException() == null) {
         profileImageView.setImage(image);
       } else {
-        System.err.println("Failed to load image from photoUrl: " + photoUrl);
+        //  System.err.println("Failed to load image from photoUrl: " + photoUrl);
         setDefaultAvatar();
       }
     });
     loadImageTask.setOnFailed(event -> {
       avatarContainer.setVisible(true);
-      System.err.println(
-          "Exception while loading image from photoUrl: " + loadImageTask.getException()
-              .getMessage());
+//      System.err.println(
+//          "Exception while loading image from photoUrl: " + loadImageTask.getException()
+//              .getMessage());
       setDefaultAvatar();
     });
 
@@ -210,7 +211,7 @@ public class UserModalController extends ControllerWithLoader {
     task.setOnSucceeded(e -> {
       showLoading(false);
       JSONObject resp = task.getValue();
-      System.out.println(resp);
+      //  System.out.println(resp);
       Stage stage = (Stage) emailField.getScene().getWindow();
       if (resp.getBoolean("success")) {
         AlertDialog.showAlert("success", "Success", resp.getString("message"), null);

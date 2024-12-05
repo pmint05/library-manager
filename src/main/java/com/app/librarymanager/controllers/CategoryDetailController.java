@@ -88,7 +88,7 @@ public class CategoryDetailController extends ControllerWithLoader {
     }
     isLoading = true;
 
-    System.out.println("Loading books of category " + category + " page " + page);
+    //  System.out.println("Loading books of category " + category + " page " + page);
 
     Task<List<Book>> task = new Task<>() {
       @Override
@@ -181,7 +181,7 @@ public class CategoryDetailController extends ControllerWithLoader {
 
   @FXML
   private void close() {
-    System.out.println("Closing category detail");
+    //  System.out.println("Closing category detail");
     // remove this view from the stack
   }
 }

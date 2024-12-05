@@ -290,11 +290,11 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
               bookItem.setOnMouseClicked(
                   event -> handleBookClick(loan.getBookLoan().getBookId(), bookItem));
               bookItem.getStyleClass().add("book-item");
-              if (loan.getThumbnailBook() == null || loan.getThumbnailBook().isEmpty()) {
-                loan.setThumbnailBook(
-                    "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api");
-              }
-              ImageView thumbnail = new ImageView(loan.getThumbnailBook());
+              ImageView thumbnail = new ImageView(
+                  loan.getThumbnailBook() == null || loan.getThumbnailBook().isEmpty()
+                      || !loan.getThumbnailBook().startsWith("http")
+                      ? "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+                      : loan.getThumbnailBook());
               thumbnail.setFitWidth(200);
               thumbnail.setFitHeight(300);
               thumbnail.setPreserveRatio(true);
@@ -363,7 +363,7 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
         Button closeButton = (Button) root.lookup("#closeBtn");
         closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
       } else {
-        System.err.println("StackPane with id 'contentPane' not found.");
+        //  System.err.println("StackPane with id 'contentPane' not found.");
       }
     } catch (Exception e) {
       AlertDialog.showAlert("error", "Error", "Failed to show book", null);
