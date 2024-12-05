@@ -34,7 +34,7 @@ public class ForgotPasswordController {
     };
     sendEmailTask.setOnSucceeded(e -> {
       showLoading(false);
-      System.out.println(sendEmailTask.getValue());
+      //  System.out.println(sendEmailTask.getValue());
       JSONObject response = sendEmailTask.getValue();
       if (response == null) {
         AlertDialog.showAlert("error", "Error",

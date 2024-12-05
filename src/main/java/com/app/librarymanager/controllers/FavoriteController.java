@@ -46,7 +46,4 @@ public class FavoriteController {
   public static long countFavoriteBookOf(String userId) {
     return MongoDB.getInstance().countDocuments("favorite", Filters.eq("userId", userId));
   }
-
-  public static void main(String[] args) {
-  }
 }

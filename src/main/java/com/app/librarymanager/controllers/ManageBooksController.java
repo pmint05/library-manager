@@ -224,11 +224,11 @@ public class ManageBooksController extends ControllerWithLoader {
     task.setOnSucceeded(e -> {
       booksList.setAll(task.getValue());
       booksTable.setItems(booksList);
-      System.out.println("Books loaded successfully. Total: " + booksList.size());
+      //  System.out.println("Books loaded successfully. Total: " + booksList.size());
       showLoading(false);
     });
     task.setOnFailed(e -> {
-      System.out.println("Error while fetching books: " + task.getException().getMessage());
+      //  System.out.println("Error while fetching books: " + task.getException().getMessage());
       AlertDialog.showAlert("error", "Error",
           task.getException().getMessage(), null);
       showLoading(false);
@@ -247,11 +247,11 @@ public class ManageBooksController extends ControllerWithLoader {
 
     countTask.setOnSucceeded(e -> {
       totalBooks = countTask.getValue();
-      System.out.println("Total books: " + totalBooks);
+      //  System.out.println("Total books: " + totalBooks);
       updatePaginationInfo();
     });
     countTask.setOnFailed(e -> {
-      System.out.println("Error while counting books: " + countTask.getException().getMessage());
+      //  System.out.println("Error while counting books: " + countTask.getException().getMessage());
       AlertDialog.showAlert("error", "Error",
           countTask.getException().getMessage(), null);
     });
@@ -285,7 +285,7 @@ public class ManageBooksController extends ControllerWithLoader {
 //        showLoading(false);
         AlertDialog.showAlert("error", "Error",
             task.getException().getMessage(), null);
-        System.out.println("Error while searching books: " + task.getException().getMessage());
+        //  System.out.println("Error while searching books: " + task.getException().getMessage());
       });
 
       new Thread(task).start();
@@ -325,13 +325,13 @@ public class ManageBooksController extends ControllerWithLoader {
 
       editMenuItem.setOnAction(event -> {
         Book book = row.getItem();
-        System.out.println("Edit book: " + book.get_id());
+        //  System.out.println("Edit book: " + book.get_id());
         openBookModal(book);
       });
 
       deleteMenuItem.setOnAction(event -> {
         Book book = row.getItem();
-        System.out.println("Delete book: " + book.get_id());
+        //  System.out.println("Delete book: " + book.get_id());
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete Book");
         alert.setHeaderText("Are you sure you want to delete book " + book.getISBN() + "?");
@@ -347,7 +347,7 @@ public class ManageBooksController extends ControllerWithLoader {
             task.setOnRunning(ev -> showLoading(true));
             task.setOnSucceeded(e -> {
               boolean delRes = task.getValue();
-              System.out.println("Book deleted: " + delRes);
+              //  System.out.println("Book deleted: " + delRes);
               showLoading(false);
               removeBookFromTable(book);
               totalBooks--;
@@ -355,7 +355,7 @@ public class ManageBooksController extends ControllerWithLoader {
             });
             task.setOnFailed(ev -> {
               showLoading(false);
-              System.out.println("Error while deleting book: " + task.getException().getMessage());
+              //  System.out.println("Error while deleting book: " + task.getException().getMessage());
             });
             new Thread(task).start();
           }

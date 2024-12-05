@@ -130,7 +130,7 @@ public class BookController {
 
       return bookList;
     } catch (Exception e) {
-      System.err.println(e.getMessage());
+      //  System.err.println(e.getMessage());
       return new ArrayList<>();
     }
 
@@ -270,12 +270,5 @@ public class BookController {
         book.getCategories().stream().map(Categories::new).toList());
     document = database.updateData("books", "id", book.getId(), MongoDB.objectToMap(book));
     return document;
-  }
-
-  public static void main(String[] args) {
-//    System.out.println("\\");
-//    System.out.println(findBookByKeyword("^", 0, 1000000));
-//    System.out.println(findBookByKeyword("\\", 0, 1000000));
-//    System.out.println(findBookByKeyword("//", 0, 1000000));
   }
 }

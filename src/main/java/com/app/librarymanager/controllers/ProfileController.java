@@ -155,12 +155,12 @@ public class ProfileController extends ControllerWithLoader {
       admin = currentUser.isAdmin();
       String photoUrl = currentUser.getPhotoUrl();
       if (!photoUrl.isEmpty()) {
-        System.out.println("Loading photoUrl: " + photoUrl);
+        //  System.out.println("Loading photoUrl: " + photoUrl);
         try {
           setDefaultAvatar();
           profileImageView.setImage(currentUser.getAvatar());
         } catch (Exception e) {
-          System.err.println("Failed to load image from photoUrl: " + e.getMessage());
+          //  System.err.println("Failed to load image from photoUrl: " + e.getMessage());
         }
       } else {
         setDefaultAvatar();

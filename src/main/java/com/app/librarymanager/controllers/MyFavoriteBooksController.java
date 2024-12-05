@@ -134,7 +134,7 @@ public class MyFavoriteBooksController extends ControllerWithLoader {
     heartButton.setGraphic(new FontIcon("antf-heart"));
     heartButton.setOnAction(event -> handleRemoveFromFavorite(book));
     heartButton.getStyleClass().addAll("btn", "btn-icon", "heart", "on");
-    if (!book.getThumbnail().isEmpty()) {
+    if (!book.getThumbnail().isEmpty() && book.getThumbnail().startsWith("http")) {
       thumbnail.setImage(new Image(book.getThumbnail()));
     } else {
       thumbnail.setImage(new Image(
@@ -238,7 +238,7 @@ public class MyFavoriteBooksController extends ControllerWithLoader {
         Button closeButton = (Button) root.lookup("#closeBtn");
         closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
       } else {
-        System.err.println("StackPane with id 'contentPane' not found.");
+        //  System.err.println("StackPane with id 'contentPane' not found.");
       }
     } catch (Exception e) {
       e.printStackTrace();
