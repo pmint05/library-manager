@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -162,11 +163,12 @@ public class BookModalController extends ControllerWithLoader {
           authorsField.setText(book.getAuthors().toString().replace("[", "").replace("]", ""));
           thumbnailField.setText(book.getThumbnail());
           languageField.setText(book.getLanguage());
-          priceField.setText(String.valueOf(book.getPrice()));
+          priceField.setText(new DecimalFormat("#.##").format(book.getPrice()));
+          currencyCodeField.setText(book.getCurrencyCode());
           currencyCodeField.setText(book.getCurrencyCode());
           pdfLinkField.setText(book.getPdfLink());
           publishedDateField.setValue(DateUtil.parse(book.getPublishedDate()));
-          discountPriceField.setText(String.valueOf(book.getDiscountPrice()));
+          discountPriceField.setText(new DecimalFormat("#.##").format(book.getDiscountPrice()));
           isActiveCheckBox.setSelected(book.isActivated());
           thumbnailPreview.setImage(
               book.getThumbnail() != null && !book.getThumbnail().isEmpty() ? new Image(
@@ -229,9 +231,15 @@ public class BookModalController extends ControllerWithLoader {
       if (!parsePrice.isEmpty()) {
         throw new Exception(parsePrice);
       }
-      String parseDiscountPrice = DataValidation.checkDouble("Discount Price", discountPriceField.getText());
+      String parseDiscountPrice = DataValidation.checkDouble("Discount Price",
+          discountPriceField.getText());
       if (!parseDiscountPrice.isEmpty()) {
         throw new Exception(parseDiscountPrice);
+      }
+
+      if (Double.parseDouble(discountPriceField.getText()) >= Double.parseDouble(
+          priceField.getText())) {
+        throw new Exception("Discount Price must be less than Price.");
       }
 
       if (book == null) {
@@ -247,14 +255,17 @@ public class BookModalController extends ControllerWithLoader {
       book.setPublisher(publisherField.getText());
       book.setDescription(descriptionField.getText());
       book.setPageCount(Integer.parseInt(pageCountField.getText()));
-      book.setCategories(new ArrayList<>(Arrays.stream(categoriesField.getText().split(",")).map(String::trim).toList()));
-      book.setAuthors(new ArrayList<>(Arrays.stream(authorsField.getText().split(",")).map(String::trim).toList()));
+      book.setCategories(new ArrayList<>(
+          Arrays.stream(categoriesField.getText().split(",")).map(String::trim).toList()));
+      book.setAuthors(new ArrayList<>(
+          Arrays.stream(authorsField.getText().split(",")).map(String::trim).toList()));
       book.setThumbnail(thumbnailField.getText());
       book.setLanguage(languageField.getText());
       book.setPrice(Double.parseDouble(priceField.getText()));
       book.setCurrencyCode(currencyCodeField.getText());
       book.setPdfLink(pdfLinkField.getText());
-      book.setPublishedDate(DateUtil.format(publishedDateField.getValue(), DateUtil.DateFormat.YYYY_MM_DD));
+      book.setPublishedDate(
+          DateUtil.format(publishedDateField.getValue(), DateUtil.DateFormat.YYYY_MM_DD));
       book.setDiscountPrice(Double.parseDouble(discountPriceField.getText()));
       book.setActivated(isActiveCheckBox.isSelected());
 
@@ -292,10 +303,13 @@ public class BookModalController extends ControllerWithLoader {
       Document resp = task.getValue();
       Stage stage = (Stage) idField.getScene().getWindow();
       if (resp == null) {
-        AlertDialog.showAlert("error", "Error", "Book with id = " + idField.getText() + " or ISBN = " + iSBNField.getText() + " is already existed.", null);
+        AlertDialog.showAlert("error", "Error",
+            "Book with id = " + idField.getText() + " or ISBN = " + iSBNField.getText()
+                + " is already existed.", null);
       } else {
         if (resp.getObjectId("_id") != null) {
-          AlertDialog.showAlert("success", "Success", isEditMode ? "Book updated successfully." : "Book added successfully.", null);
+          AlertDialog.showAlert("success", "Success",
+              isEditMode ? "Book updated successfully." : "Book added successfully.", null);
           stage.close();
           book.set_id(resp.getObjectId("_id"));
           if (saveCallback != null) {

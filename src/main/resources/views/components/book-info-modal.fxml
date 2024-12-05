@@ -148,7 +148,7 @@
 
     <VBox fx:id="loadingOverlay" alignment="CENTER" spacing="10" styleClass="loading-wrapper"
       visible="false" StackPane.alignment="CENTER" VBox.vgrow="ALWAYS">
-      <Text fx:id="loadingText" text="Loading in..."/>
+      <Text fx:id="loadingText" text="Loading..."/>
       <ProgressIndicator fx:id="loadingSpinner"/>
       <Button fx:id="cancelButton" styleClass="btn, btn-text" text="Cancel" visible="false"/>
     </VBox>

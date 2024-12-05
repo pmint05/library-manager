@@ -385,7 +385,7 @@ public class BookDetailController extends ControllerWithLoader {
 
     TextFormatter<Integer> textFormatter = new TextFormatter<>(filter);
     copiesTextField.setTextFormatter(textFormatter);
-    copiesTextField.setPromptText("Smaller or equal to " + maxCopies + "...");
+    copiesTextField.setPromptText("Greater or equal to " + maxCopies + "...");
 
     confirmButton.getStyleClass().addAll("btn", "btn-primary");
     cancelButton.getStyleClass().addAll("btn", "btn-text");
@@ -451,6 +451,11 @@ public class BookDetailController extends ControllerWithLoader {
       if (doc != null) {
         AlertDialog.showAlert("success", "Book Borrowed",
             "You have successfully borrowed the book", null);
+
+        copies.setCopies(copies.getCopies() - numCopies);
+        availableCopies.setText("Available copies: " + copies.getCopies());
+        borrowPhysicalBook.setDisable(copies.getCopies() == 0);
+
       } else {
         AlertDialog.showAlert("error", "Failed to borrow book",
             "An error occurred while borrowing the book", null);
