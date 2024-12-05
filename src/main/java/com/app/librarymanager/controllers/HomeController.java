@@ -8,6 +8,7 @@ import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.models.User;
 import com.app.librarymanager.utils.AlertDialog;
+import com.app.librarymanager.utils.StageManager;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -342,6 +343,12 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
 
   private void handleBookClick(String bookId, Parent container) {
     try {
+      if (!AuthController.getInstance().isAuthenticated()) {
+        AlertDialog.showAlert("error", "Unauthenticated",
+            "You need to login to view the book details",
+            e -> StageManager.showLoginWindow());
+        return;
+      }
       FXMLLoader loader = new FXMLLoader(
           getClass().getResource("/views/components/book-detail.fxml"));
       Parent root = loader.load();
