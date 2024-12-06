@@ -72,6 +72,7 @@
           <VBox spacing="10" maxWidth="Infinity">
             <Label text="Comments"/>
             <ListView fx:id="commentsContainer" maxWidth="Infinity" styleClass="comment-container"/>
+            <Label fx:id="emptyComments" text="No comments yet" visible="false"/>
             <HBox spacing="10">
               <TextArea fx:id="newCommentTextArea" promptText="Type your sharing here..."
                 wrapText="true"

@@ -958,3 +958,11 @@ Button {
   -fx-background-color: -fx-primary;
   -fx-text-fill: -fx-bg;
 }
+
+#emptyComments {
+  -fx-text-fill: -fx-muted;
+  -fx-background-color: -fx-bg-light;
+  -fx-padding: 10;
+  -fx-border-radius: 5;
+  -fx-background-radius: 5;
+}
