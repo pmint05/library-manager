@@ -7,6 +7,8 @@ import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DatePickerUtil;
 import com.app.librarymanager.utils.DateUtil;
 import java.time.LocalDate;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -47,6 +49,7 @@ public class LoanModalController extends ControllerWithLoader {
     DatePickerUtil.setDatePickerFormat(dueDateField);
     DatePickerUtil.disableEditor(borrowDateField);
     DatePickerUtil.disableEditor(dueDateField);
+    initNumberField(copiesField);
     borrowDateField.setDayCellFactory(picker -> new DateCell() {
       @Override
       public void updateItem(LocalDate date, boolean empty) {
@@ -87,6 +90,10 @@ public class LoanModalController extends ControllerWithLoader {
   }
 
   public void onSubmit() {
+    if (Integer.parseInt(copiesField.getText()) <= 0) {
+      AlertDialog.showAlert("error", "Error", "Number of copies must be greater than 0", null);
+      return;
+    }
     setLoadingText("Saving...");
     Task<Document> task = new Task<Document>() {
       @Override
@@ -131,5 +138,17 @@ public class LoanModalController extends ControllerWithLoader {
     });
 
     new Thread(task).start();
+  }
+
+  private void initNumberField(TextField field) {
+    field.textProperty().addListener(new ChangeListener<String>() {
+      @Override
+      public void changed(ObservableValue<? extends String> observable, String oldValue,
+          String newValue) {
+        if (!newValue.matches("\\d*(\\.\\d*)?")) {
+          field.setText(oldValue);
+        }
+      }
+    });
   }
 }
