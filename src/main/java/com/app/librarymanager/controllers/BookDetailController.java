@@ -11,8 +11,10 @@ import com.app.librarymanager.utils.AvatarUtil;
 import com.app.librarymanager.utils.DatePickerUtil;
 import com.app.librarymanager.utils.DateUtil;
 import com.app.librarymanager.utils.StageManager;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.TransformerFactory;
 import org.bson.Document;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -552,12 +556,9 @@ public class BookDetailController extends ControllerWithLoader {
             AuthController.getInstance().getCurrentUser().getPhotoUrl(),
             content
         );
-
         if (!(commentList instanceof ArrayList)) {
           commentList = new ArrayList<>(commentList);
         }
-
-
         commentList.add(userComment);
         commentsContainer.getItems().add(userComment);
 
