@@ -384,7 +384,7 @@ public class BookDetailController extends ControllerWithLoader {
 
     TextFormatter<Integer> textFormatter = new TextFormatter<>(filter);
     copiesTextField.setTextFormatter(textFormatter);
-    copiesTextField.setPromptText("Greater or equal to " + maxCopies + "...");
+    copiesTextField.setPromptText("Less than or equal to " + maxCopies + "...");
 
     confirmButton.getStyleClass().addAll("btn", "btn-primary");
     cancelButton.getStyleClass().addAll("btn", "btn-text");

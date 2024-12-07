@@ -31,6 +31,10 @@ public class CommentController {
     return MongoDB.getInstance().deleteAll("comment", Filters.eq("bookId", bookId));
   }
 
+  public static boolean removeAllCommentOf(String userId) {
+    return MongoDB.getInstance().deleteAll("comment", Filters.eq("userId", userId));
+  }
+
   public static Document editComment(Comment comment) {
     return MongoDB.getInstance()
         .updateData("comment", "_id", comment.get_id(), MongoDB.objectToMap(comment));
