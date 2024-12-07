@@ -142,6 +142,11 @@ public class UserController {
   public static JSONObject deleteUser(User user) {
     try {
       checkPermission();
+      BookLoanController.returnAllBookOf(user.getUid());
+      BookLoanController.removeAllLoanOf(user.getUid());
+      CommentController.removeAllCommentOf(user.getUid());
+      BookRatingController.removeAllRatingOf(user.getUid());
+      FavoriteController.removeAllFavoriteOf(user.getUid());
       FirebaseAuth.getInstance().deleteUser(user.getUid());
       return new JSONObject().put("success", true).put("message", "User deleted successfully.");
     } catch (Exception e) {

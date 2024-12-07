@@ -35,6 +35,10 @@ public class FavoriteController {
     return MongoDB.getInstance().deleteAll("favorite", Filters.eq("bookId", bookId));
   }
 
+  public static boolean removeAllFavoriteOf(String userId) {
+    return MongoDB.getInstance().deleteAll("favorite", Filters.eq("userId", userId));
+  }
+
   public static List<Book> getFavoriteBookOfUser(String userId) {
     try {
       List<Document> documents = MongoDB.getInstance().findAllObject("favorite", "userId", userId);

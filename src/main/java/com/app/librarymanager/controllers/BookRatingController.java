@@ -47,6 +47,10 @@ public class BookRatingController {
     return MongoDB.getInstance().deleteAll("bookRating", Filters.eq("bookId", bookId));
   }
 
+  public static boolean removeAllRatingOf(String userId) {
+    return MongoDB.getInstance().deleteAll("bookRating", Filters.eq("userId", userId));
+  }
+
   public static double averageRating(String bookId) {
     return MongoDB.getInstance()
         .findAllObject("bookRating", "bookId", StringUtil.escapeString(bookId)).stream()
