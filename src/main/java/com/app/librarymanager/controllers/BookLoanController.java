@@ -241,7 +241,7 @@ public class BookLoanController {
             bookDoc.getString("title"), bookDoc.getString("thumbnail"));
       }).toList();
     } catch (Exception e) {
-      //  System.out.println(e.getMessage());
+        System.out.println(e.getMessage());
       return null;
     }
   }
