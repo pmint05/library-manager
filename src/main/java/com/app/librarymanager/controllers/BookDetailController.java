@@ -102,6 +102,9 @@ public class BookDetailController extends ControllerWithLoader {
   private TextArea newCommentTextArea;
   @FXML
   private Button addCommentButton;
+  @FXML
+  private Label emptyComments;
+
 
   private List<ReturnUserComment> commentList = new ArrayList<>();
 
@@ -258,22 +261,18 @@ public class BookDetailController extends ControllerWithLoader {
     commentsContainer.setItems(observableComments);
 
     if (comments == null || comments.isEmpty()) {
-      commentsContainer.getItems().add(new ReturnUserComment("", "", "", "No comments yet"));
-      commentsContainer.setPrefHeight(80);
-      commentsContainer.setCellFactory(listView -> new ListCell<>() {
-        @Override
-        protected void updateItem(ReturnUserComment comment, boolean empty) {
-          super.updateItem(comment, empty);
-          if (empty || comment == null) {
-            setGraphic(null);
-          } else {
-            Label noCommentLabel = new Label("No comments yet");
-            noCommentLabel.getStyleClass().add("no-comment");
-            setGraphic(noCommentLabel);
-          }
-        }
+      Platform.runLater(() -> {
+        emptyComments.setVisible(true);
+        commentsContainer.setVisible(false);
+        commentsContainer.setManaged(false);
       });
       return;
+    } else {
+      Platform.runLater(() -> {
+        emptyComments.setVisible(false);
+        commentsContainer.setVisible(true);
+        commentsContainer.setManaged(true);
+      });
     }
 
     commentsContainer.getItems().clear();
@@ -531,49 +530,54 @@ public class BookDetailController extends ControllerWithLoader {
   }
 
   private void handleAddComment() {
-  String content = newCommentTextArea.getText().trim();
-  if (content.isEmpty()) {
-    AlertDialog.showAlert("error", "Empty Comment", "Comment cannot be empty", null);
-    return;
-  }
-  Comment newComment = new Comment(
-      AuthController.getInstance().getCurrentUser().getUid(),
-      book.getId(),
-      content
-  );
-  try {
-    Document result = CommentController.addComment(newComment);
-    if (result != null) {
-      AlertDialog.showAlert("success", "Comment Added", "Your comment has been added", null);
-      newCommentTextArea.clear();
+    String content = newCommentTextArea.getText().trim();
+    if (content.isEmpty()) {
+      AlertDialog.showAlert("error", "Empty Comment", "Comment cannot be empty", null);
+      return;
+    }
+    Comment newComment = new Comment(
+        AuthController.getInstance().getCurrentUser().getUid(),
+        book.getId(),
+        content
+    );
+    try {
+      Document result = CommentController.addComment(newComment);
+      if (result != null) {
+        AlertDialog.showAlert("success", "Comment Added", "Your comment has been added", null);
+        newCommentTextArea.clear();
 
-      if (commentList == null || commentList.isEmpty()) {
-        commentList = new ArrayList<>();
-        commentsContainer.getItems().clear();
+        ReturnUserComment userComment = new ReturnUserComment(
+            AuthController.getInstance().getCurrentUser().getDisplayName(),
+            AuthController.getInstance().getCurrentUser().getEmail(),
+            AuthController.getInstance().getCurrentUser().getPhotoUrl(),
+            content
+        );
+
+        if (!(commentList instanceof ArrayList)) {
+          commentList = new ArrayList<>(commentList);
+        }
+
+
+        commentList.add(userComment);
+        commentsContainer.getItems().add(userComment);
+
+        commentsContainer.scrollTo(commentsContainer.getItems().size() - 1);
+        commentsContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        if (!commentsContainer.isVisible()) {
+          commentsContainer.setVisible(true);
+          commentsContainer.setManaged(true);
+          emptyComments.setVisible(false);
+        }
+      } else {
+        AlertDialog.showAlert("error", "Failed to Add Comment",
+            "An error occurred while adding your comment", null);
       }
-
-      ReturnUserComment userComment = new ReturnUserComment(
-          AuthController.getInstance().getCurrentUser().getDisplayName(),
-          AuthController.getInstance().getCurrentUser().getEmail(),
-          AuthController.getInstance().getCurrentUser().getPhotoUrl(),
-          content
-      );
-
-      commentList.add(userComment);
-      commentsContainer.getItems().add(userComment);
-
-      commentsContainer.scrollTo(commentsContainer.getItems().size() - 1);
-      commentsContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
-    } else {
+    } catch (Exception e) {
+      e.printStackTrace();
       AlertDialog.showAlert("error", "Failed to Add Comment",
           "An error occurred while adding your comment", null);
     }
-  } catch (Exception e) {
-    e.printStackTrace();
-    AlertDialog.showAlert("error", "Failed to Add Comment",
-        "An error occurred while adding your comment", null);
   }
-}
 
   @FXML
   private void close() {
