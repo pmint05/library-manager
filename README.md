@@ -36,34 +36,8 @@ trình hướng đối tượng.
 
 ## Biểu đồ UML
 
-1. #### MainApp UML
-
 <div style="text-align: center;">
-    <img src="/res/mainapp-uml.jpg" alt="mainapp-uml" style="width: 80%; height: auto;">
-</div>
-
-2. #### Models UML
-
-<div style="text-align: center;">
-    <img src="/res/models-uml.jpg" alt="models-uml" style="width: 80%; height: auto;">
-</div>
-
-3. #### Controllers UML
-
-<div style="text-align: center;">
-    <img src="/res/controllers-uml.jpg" alt="controllers-uml" style="width: 80%; height: auto;">
-</div>
-
-4. #### Services UML
-
-<div style="text-align: center;">
-    <img src="/res/services-uml.jpg" alt="services-uml" style="width: 80%; height: auto;">
-</div>
-
-5. #### Utils UML
-
-<div style="text-align: center;">
-    <img src="/res/utils-uml.jpg" alt="utils-uml" style="width: 80%; height: auto;">
+    <img src="/res/uml.png" alt="utils-uml" style="width: 80%; height: auto;">
 </div>
 
 ## Hình ảnh minh hoạ
