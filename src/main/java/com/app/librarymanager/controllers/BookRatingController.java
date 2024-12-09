@@ -43,6 +43,14 @@ public class BookRatingController {
     return MongoDB.getInstance().deleteFromCollection("bookRating", "_id", idInDatabase);
   }
 
+  public static boolean removeAllRating(String bookId) {
+    return MongoDB.getInstance().deleteAll("bookRating", Filters.eq("bookId", bookId));
+  }
+
+  public static boolean removeAllRatingOf(String userId) {
+    return MongoDB.getInstance().deleteAll("bookRating", Filters.eq("userId", userId));
+  }
+
   public static double averageRating(String bookId) {
     return MongoDB.getInstance()
         .findAllObject("bookRating", "bookId", StringUtil.escapeString(bookId)).stream()
@@ -101,13 +109,8 @@ public class BookRatingController {
             bookDoc.getString("title"), bookDoc.getString("thumbnail"), bookDoc.getString("id"));
       }).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
-  }
-
-
-  public static void main(String[] args) {
-//    System.out.println(getTopRatingBook(0, 1000000).get(0).getBookRating().getBookId());
   }
 }

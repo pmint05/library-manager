@@ -56,7 +56,7 @@ public class FirebaseAuthentication {
     if (response.has("error")) {
       JSONObject error = response.getJSONObject("error");
       if (error.has("message")) {
-        System.out.println("Login Failed: " + error.getString("message"));
+        //  System.out.println("Login Failed: " + error.getString("message"));
         return new JSONObject(Map.of("success", false, "message", error.getString("message")));
       }
     } else {
@@ -71,7 +71,7 @@ public class FirebaseAuthentication {
         "{\n  \"email\": \"%s\",\n  \"password\": \"%s\",\n  \"returnSecureToken\": true,\n  \"displayName\": \"%s\"}",
         user.getEmail(), user.getPassword(), user.getDisplayName());
     JSONObject response = Fetcher.post(url, body);
-    System.out.println(response);
+    //  System.out.println(response);
     if (response == null) {
       AuthController.getInstance().onRegisterFailure("Registration Failed");
       return new JSONObject().put("success", false).put("message", "Registration Failed");
@@ -101,7 +101,7 @@ public class FirebaseAuthentication {
   }
 
   public static JSONObject createAccountWithEmailAndPasswordUsingFirebaseAuth(@NotNull User user) {
-    System.out.println("Creating user: " + user.toString());
+    //  System.out.println("Creating user: " + user.toString());
     CreateRequest request = new CreateRequest()
         .setEmail(user.getEmail())
         .setEmailVerified(false)
@@ -117,11 +117,11 @@ public class FirebaseAuthentication {
       claims.put("birthday", user.getBirthday());
       FirebaseAuth.getInstance().setCustomUserClaims(userRecord.getUid(), claims);
       response.put("claims", claims);
-      System.out.println("User created successfully: " + response.toString());
+      //  System.out.println("User created successfully: " + response.toString());
       return new JSONObject().put("success", true).put("data", response)
           .put("message", "User created successfully.");
     } catch (FirebaseAuthException e) {
-      System.err.println("Error creating user: " + e.getMessage());
+      //  System.err.println("Error creating user: " + e.getMessage());
       return new JSONObject().put("success", false).put("message", e.getMessage());
     }
   }
@@ -180,19 +180,21 @@ public class FirebaseAuthentication {
     AuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport,
         JSON_FACTORY, clientSecrets, SCOPES).setAccessType("offline").build();
 
-    if (receiver == null) {
-      receiver = new LocalServerReceiver.Builder().setPort(8889).build();
+    if (receiver != null) {
+      receiver.stop();
     }
+    receiver = new LocalServerReceiver.Builder().setPort(8889).build();
     String redirectUri = receiver.getRedirectUri();
     String authUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri)
         .setState(String.valueOf(new Random().nextInt(999_999))).set("prompt", "select_account")
         .build();
-    System.out.println("Authorization URL: " + authUrl);
+    //  System.out.println("Authorization URL: " + authUrl);
 
     Desktop.getDesktop().browse(java.net.URI.create(authUrl));
 
     String authCode = receiver.waitForCode();
     if (authCode == null || authCode.isEmpty()) {
+      receiver.stop();
       return new JSONObject(
           Map.of("success", false, "message", "Failed to get authorization code", "code",
               "AUTH_CODE_NOT_FOUND"));
@@ -204,26 +206,12 @@ public class FirebaseAuthentication {
     String oAuthToken = tokenResponse.getIdToken();
     JSONObject resp = signInWithIdp(oAuthToken);
 
-//    System.out.println(resp.toString());
-
     if (resp.has("error")) {
+      receiver.stop();
       JSONObject error = resp.getJSONObject("error");
       return new JSONObject(Map.of("success", false, "message", error.getString("message"), "code",
           error.getString("code")));
     }
-
-//    JSONObject data = getUserData(resp.getString("idToken"));
-//    if (data.has("error")) {
-//      JSONObject error = data.getJSONObject("error");
-//      return new JSONObject(
-//          Map.of(
-//              "success", false,
-//              "message", error.getString("message"),
-//              "code", error.getString("code")
-//          )
-//      );
-//    }
-//    System.out.println(data.toString());
 
     receiver.stop();
     return new JSONObject(Map.of("success", true, "data", resp));

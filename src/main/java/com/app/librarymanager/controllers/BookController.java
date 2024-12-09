@@ -1,6 +1,7 @@
 package com.app.librarymanager.controllers;
 
 import com.app.librarymanager.models.Book;
+import com.app.librarymanager.models.BookCopies;
 import com.app.librarymanager.models.Categories;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.Fetcher;
@@ -41,7 +42,6 @@ public class BookController {
     }
   }
 
-  
 
   private static int numBookInUrl(String searchUrl) {
     JSONObject jsonObject = Fetcher.get(searchUrl);
@@ -130,7 +130,7 @@ public class BookController {
 
       return bookList;
     } catch (Exception e) {
-      System.err.println(e.getMessage());
+      //  System.err.println(e.getMessage());
       return new ArrayList<>();
     }
 
@@ -199,7 +199,8 @@ public class BookController {
   public static List<Book> findBookByKeyword(String keyword, int start, int length) {
     try {
       List<Document> jsonBook = MongoDB.getInstance()
-          .findAllObject("books", Filters.regex("title", StringUtil.escapeString(keyword), "i"), start,
+          .findAllObject("books", Filters.regex("title", StringUtil.escapeString(keyword), "i"),
+              start,
               length);
       List<Book> result = new ArrayList<>();
       jsonBook.forEach(curBook -> result.add(getBookFromDocument(curBook)));
@@ -247,6 +248,11 @@ public class BookController {
     if (!isAvailable(book)) {
       return false;
     }
+    BookLoanController.removeAllLoan(book.getId());
+    BookCopiesController.removeAllCopies(book.getId());
+    CommentController.removeAllComment(book.getId());
+    BookRatingController.removeAllRating(book.getId());
+    FavoriteController.removeAllFavorite(book.getId());
     return MongoDB.getInstance().deleteFromCollection("books", "id", book.getId());
   }
 
@@ -270,12 +276,5 @@ public class BookController {
         book.getCategories().stream().map(Categories::new).toList());
     document = database.updateData("books", "id", book.getId(), MongoDB.objectToMap(book));
     return document;
-  }
-
-  public static void main(String[] args) {
-//    System.out.println("\\");
-//    System.out.println(findBookByKeyword("^", 0, 1000000));
-//    System.out.println(findBookByKeyword("\\", 0, 1000000));
-//    System.out.println(findBookByKeyword("//", 0, 1000000));
   }
 }

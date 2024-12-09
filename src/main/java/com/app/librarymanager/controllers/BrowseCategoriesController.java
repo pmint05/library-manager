@@ -96,7 +96,7 @@ public class BrowseCategoriesController extends ControllerWithLoader {
         Button closeButton = (Button) root.lookup("#closeBtn");
         closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
       } else {
-        System.err.println("StackPane with id 'contentPane' not found.");
+        //  System.err.println("StackPane with id 'contentPane' not found.");
       }
     } catch (Exception e) {
       e.printStackTrace();

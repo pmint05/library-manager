@@ -74,42 +74,37 @@ public class ManageBookLoansController extends ControllerWithLoader {
     showCancel(false);
     setLoadingText("Loading book loans...");
 
-    _idColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
-        cellData.getValue().getBookLoan().get_id().toString()));
-    userIdColumn.setCellValueFactory(
-        cellData -> new SimpleStringProperty(cellData.getValue().getUser().getUid()));
-    userDisplayNameColumn.setCellValueFactory(
-        cellData -> new SimpleStringProperty(cellData.getValue().getUser().getDisplayName()));
-    userAvatarColumn.setCellValueFactory(
-        cellData -> new SimpleStringProperty(cellData.getValue().getUser().getPhotoUrl()));
-    userEmailColumn.setCellValueFactory(
-        cellData -> new SimpleStringProperty(cellData.getValue().getUser().getEmail()));
-    bookIdColumn.setCellValueFactory(
-        cellData -> new SimpleStringProperty(cellData.getValue().getBook().getId()));
-    bookTitleColumn.setCellValueFactory(
-        cellData -> new SimpleStringProperty(cellData.getValue().getBook().getTitle()));
-    bookThumbnailColumn.setCellValueFactory(
-        cellData -> new SimpleStringProperty(cellData.getValue().getBook().getThumbnail()));
-    borrowDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
-        DateUtil.dateToString(cellData.getValue().getBookLoan().getBorrowDate())
-    ));
-    dueDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
-        DateUtil.dateToString(cellData.getValue().getBookLoan().getDueDate())
-    ));
-    validColumn.setCellValueFactory(
-        cellData -> new SimpleBooleanProperty(cellData.getValue().getBookLoan().isValid()));
-    typeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
-        cellData.getValue().getBookLoan().getType().toString()));
-    numOfCopiesColumn.setCellValueFactory(
-        cellData -> new SimpleStringProperty(
-            String.valueOf(cellData.getValue().getBookLoan().getNumCopies())));
-    createdAtColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
-        DateUtil.convertToStringFrom(
-            (cellData.getValue().getBookLoan().get_id().toString()))
-    ));
-    lastUpdatedColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
-        DateUtil.dateToString(cellData.getValue().getBookLoan().getLastUpdated())
-    ));
+   _idColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getBookLoan().get_id().toString()));
+userIdColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getUser() != null ? cellData.getValue().getUser().getUid() : "[REMOVED USER]"));
+userDisplayNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getUser() != null ? cellData.getValue().getUser().getDisplayName() : "[REMOVED USER]"));
+userAvatarColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getUser() != null ? cellData.getValue().getUser().getPhotoUrl() : ""));
+userEmailColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getUser() != null ? cellData.getValue().getUser().getEmail() : "[REMOVED USER]"));
+bookIdColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getBook() != null ? cellData.getValue().getBook().getId() : "[REMOVED BOOK]"));
+bookTitleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getBook() != null ? cellData.getValue().getBook().getTitle() : "[REMOVED BOOK]"));
+bookThumbnailColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getBook() != null ? cellData.getValue().getBook().getThumbnail() : ""));
+borrowDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    DateUtil.dateToString(cellData.getValue().getBookLoan().getBorrowDate())));
+dueDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    DateUtil.dateToString(cellData.getValue().getBookLoan().getDueDate())));
+validColumn.setCellValueFactory(cellData -> new SimpleBooleanProperty(
+    cellData.getValue().getBookLoan().isValid()));
+typeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    cellData.getValue().getBookLoan().getType().toString()));
+numOfCopiesColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    String.valueOf(cellData.getValue().getBookLoan().getNumCopies())));
+createdAtColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    DateUtil.convertToStringFrom(
+        (cellData.getValue().getBookLoan().get_id().toString()))));
+lastUpdatedColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+    DateUtil.dateToString(cellData.getValue().getBookLoan().getLastUpdated())));
 
     setImageCellFactory(bookThumbnailColumn);
 
@@ -143,7 +138,7 @@ public class ManageBookLoansController extends ControllerWithLoader {
       @Override
       protected List<BookLoanUser> call() {
         totalRecords = (int) BookLoanController.numberOfRecords();
-        return BookLoanController.getAllLentBook(currentPage, pageSize);
+        return BookLoanController.getAllLentBook(currentPage * pageSize, pageSize);
       }
     };
 
@@ -152,18 +147,18 @@ public class ManageBookLoansController extends ControllerWithLoader {
       showLoading(false);
       bookLoansList = FXCollections.observableArrayList(task.getValue());
       bookLoansTable.setItems(bookLoansList);
-      System.out.println("Book loans loaded successfully. Total: " + totalRecords);
+      //  System.out.println("Book loans loaded successfully. Total: " + totalRecords);
 
       pagination.setPageCount((int) Math.ceil((double) totalRecords / pageSize));
       pagination.setCurrentPageIndex(currentPage);
     });
     task.setOnFailed(e -> {
-      System.out.println("Error while fetching book loans: " + task.getException().getMessage());
+      //  System.out.println("Error while fetching book loans: " + task.getException().getMessage());
       showLoading(false);
     });
 
     new Thread(task).start();
-  }
+}
 
 //  @FXML
 //  private void onCreateLoan() {
@@ -175,15 +170,14 @@ public class ManageBookLoansController extends ControllerWithLoader {
     String searchText = searchField.getText().toLowerCase();
     ObservableList<BookLoanUser> filteredList = FXCollections.observableArrayList();
     for (BookLoanUser bookLoan : bookLoansList) {
-      if (bookLoan.getUser().getDisplayName().toLowerCase().contains(searchText)
-          || bookLoan.getUser().getEmail().toLowerCase().contains(searchText)
-          || bookLoan.getBook().getTitle().toLowerCase().contains(searchText)
-          || bookLoan.getUser().getUid().toLowerCase().contains(searchText)
-          || bookLoan.getBook()
-          .getAuthors().toString().toLowerCase().contains(searchText) || bookLoan.getBook()
-          .getCategories().toString().toLowerCase().contains(searchText)) {
-        filteredList.add(bookLoan);
-      }
+      if ((bookLoan.getUser() != null && (bookLoan.getUser().getDisplayName().toLowerCase().contains(searchText)
+    || bookLoan.getUser().getEmail().toLowerCase().contains(searchText)
+    || bookLoan.getUser().getUid().toLowerCase().contains(searchText)))
+    || (bookLoan.getBook() != null && (bookLoan.getBook().getTitle().toLowerCase().contains(searchText)
+    || bookLoan.getBook().getAuthors().toString().toLowerCase().contains(searchText)
+    || bookLoan.getBook().getCategories().toString().toLowerCase().contains(searchText)))) {
+  filteredList.add(bookLoan);
+}
     }
     bookLoansTable.setItems(filteredList);
   }

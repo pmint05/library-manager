@@ -8,6 +8,7 @@ import com.app.librarymanager.models.Book;
 import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.models.User;
 import com.app.librarymanager.utils.AlertDialog;
+import com.app.librarymanager.utils.StageManager;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -289,11 +290,11 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
               bookItem.setOnMouseClicked(
                   event -> handleBookClick(loan.getBookLoan().getBookId(), bookItem));
               bookItem.getStyleClass().add("book-item");
-              if (loan.getThumbnailBook() == null || loan.getThumbnailBook().isEmpty()) {
-                loan.setThumbnailBook(
-                    "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api");
-              }
-              ImageView thumbnail = new ImageView(loan.getThumbnailBook());
+              ImageView thumbnail = new ImageView(
+                  loan.getThumbnailBook() == null || loan.getThumbnailBook().isEmpty()
+                      || !loan.getThumbnailBook().startsWith("http")
+                      ? "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+                      : loan.getThumbnailBook());
               thumbnail.setFitWidth(200);
               thumbnail.setFitHeight(300);
               thumbnail.setPreserveRatio(true);
@@ -342,6 +343,12 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
 
   private void handleBookClick(String bookId, Parent container) {
     try {
+      if (!AuthController.getInstance().isAuthenticated()) {
+        AlertDialog.showAlert("error", "Unauthenticated",
+            "You need to login to view the book details",
+            e -> StageManager.showLoginWindow());
+        return;
+      }
       FXMLLoader loader = new FXMLLoader(
           getClass().getResource("/views/components/book-detail.fxml"));
       Parent root = loader.load();
@@ -356,7 +363,7 @@ public class HomeController extends ControllerWithLoader implements AuthStateLis
         Button closeButton = (Button) root.lookup("#closeBtn");
         closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
       } else {
-        System.err.println("StackPane with id 'contentPane' not found.");
+        //  System.err.println("StackPane with id 'contentPane' not found.");
       }
     } catch (Exception e) {
       AlertDialog.showAlert("error", "Error", "Failed to show book", null);

@@ -48,14 +48,14 @@ public class BookCopiesController {
     return MongoDB.getInstance().deleteFromCollection("bookCopies", "bookId", copies.getBookId());
   }
 
+  public static boolean removeAllCopies(String bookId) {
+    return MongoDB.getInstance().deleteAll("bookCopies", Filters.eq("bookId", bookId));
+  }
+
   public static List<BookCopies> getCopies(int start, int length) {
     List<BookCopies> copies = new ArrayList<>();
     MongoDB.getInstance().findAllObject("bookCopies", Filters.empty(), start, length)
         .forEach(document -> copies.add(new BookCopies(document)));
     return copies;
-  }
-
-  public static void main(String[] args) {
-    addCopy(new BookCopies("bookId", 0));
   }
 }

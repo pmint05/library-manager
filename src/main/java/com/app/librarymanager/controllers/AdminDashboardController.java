@@ -6,6 +6,7 @@ import com.app.librarymanager.models.BookLoan;
 import com.app.librarymanager.utils.AlertDialog;
 import com.app.librarymanager.utils.DateUtil;
 import java.util.List;
+import java.util.Objects;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -77,7 +78,7 @@ public class AdminDashboardController extends ControllerWithLoader {
 
           renderTask.setOnSucceeded(event -> setGraphic(renderTask.getValue()));
           renderTask.setOnFailed(event -> {
-            System.out.println("Failed to render item for: " + bookLoan.getTitleBook());
+            //  System.out.println("Failed to render item for: " + bookLoan.getTitleBook());
             setGraphic(null);
           });
 
@@ -101,7 +102,7 @@ public class AdminDashboardController extends ControllerWithLoader {
 
           renderTask.setOnSucceeded(event -> setGraphic(renderTask.getValue()));
           renderTask.setOnFailed(event -> {
-            System.out.println("Failed to render item for: " + bookLoan.getTitleBook());
+            //  System.out.println("Failed to render item for: " + bookLoan.getTitleBook());
             setGraphic(null);
           });
 
@@ -116,11 +117,17 @@ public class AdminDashboardController extends ControllerWithLoader {
       @Override
       protected Void call() {
         totalBooks = (int) BookController.numberOfBooks();
+        System.out.println("Total books: " + totalBooks);
         totalCategories = (int) CategoriesController.countCategories();
+        System.out.println("Total categories: " + totalCategories);
         totalUsers = UserController.countTotalUser();
+        System.out.println("Total users: " + totalUsers);
         activeBooks = (int) BookController.numberOfActiveBooks();
+        System.out.println("Active books: " + activeBooks);
+        System.out.println("Top lent books: " + BookLoanController.getTopLentBook(0, 10).toString());
         topLentBooks = BookLoanController.getTopLentBook(0, 10);
         recentLoansList.addAll(BookLoanController.getRecentLoan(0, 10));
+        System.out.println("Recent loans: " + recentLoansList.toString());
         return null;
       }
     };
@@ -131,8 +138,15 @@ public class AdminDashboardController extends ControllerWithLoader {
       totalCategoriesCount.setText(String.format("%d", totalCategories));
       totalUsersCount.setText(String.format("%d", totalUsers));
       activeBooksCount.setText(String.format("%d", activeBooks));
-      renderTopLentBooks();
-      recentLoans.setItems(recentLoansList);
+
+      if (topLentBooks != null) {
+        renderTopLentBooks();
+      } else {
+        topLentBooksList.setItems(FXCollections.observableArrayList());
+      }
+
+      recentLoans.setItems(
+          Objects.requireNonNullElseGet(recentLoansList, FXCollections::observableArrayList));
     });
     task.setOnFailed(event -> {
       showLoading(false);
@@ -140,6 +154,8 @@ public class AdminDashboardController extends ControllerWithLoader {
       totalCategoriesCount.setText("-");
       totalUsersCount.setText("-");
       activeBooksCount.setText("-");
+      System.err.println("Failed to load dashboard: " + task.getException().getMessage());
+      AlertDialog.showAlert("error", "Error", "Failed to load dashboard", null);
     });
     new Thread(task).start();
   }
@@ -151,7 +167,10 @@ public class AdminDashboardController extends ControllerWithLoader {
 
   private HBox createTopLentBookComponent(ReturnBookLoan returnBookLoan) {
     HBox bookComponent = new HBox(10);
-    ImageView bookImage = new ImageView(returnBookLoan.getThumbnailBook());
+    ImageView bookImage = new ImageView(
+        !returnBookLoan.getThumbnailBook().isEmpty() && returnBookLoan
+            .getThumbnailBook().startsWith("http") ? returnBookLoan.getThumbnailBook()
+            : "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api");
     bookImage.setFitWidth(100);
     bookImage.setPreserveRatio(true);
     Text bookTitle = new Text(returnBookLoan.getTitleBook());
@@ -170,7 +189,10 @@ public class AdminDashboardController extends ControllerWithLoader {
 
   private HBox createRecentLoanComponent(ReturnBookLoan returnBookLoan) {
     HBox bookComponent = new HBox(10);
-    ImageView bookImage = new ImageView(returnBookLoan.getThumbnailBook());
+    ImageView bookImage = new ImageView(
+        !returnBookLoan.getThumbnailBook().isEmpty() && returnBookLoan.getThumbnailBook()
+            .startsWith("http") ? returnBookLoan.getThumbnailBook()
+            : "https://books.google.com/books/content?id=&printsec=frontcover&img=1&zoom=0&edge=curl&source=gbs_api");
     bookImage.setFitWidth(100);
     bookImage.setPreserveRatio(true);
     Text bookTitle = new Text(returnBookLoan.getTitleBook());
@@ -207,7 +229,7 @@ public class AdminDashboardController extends ControllerWithLoader {
         Button closeButton = (Button) root.lookup("#closeBtn");
         closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
       } else {
-        System.err.println("StackPane with id 'contentPane' not found.");
+        //  System.err.println("StackPane with id 'contentPane' not found.");
       }
     } catch (Exception e) {
       AlertDialog.showAlert("error", "Error", "Failed to show book", null);

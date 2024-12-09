@@ -142,7 +142,7 @@ public class MyLoansController extends ControllerWithLoader {
             isOffline);
         nextPageButton.setDisable((currentPage + 1) * pageSizeValue >= totalResults);
         prevPageButton.setDisable(currentPage == 0);
-        System.out.println("Total results: " + totalResults);
+        //  System.out.println("Total results: " + totalResults);
         return BookLoanController.getLoanWithFilterOfUser(currentUser.getUid(), isValid, isNotValid,
             isOnline, isOffline,
             currentPage * pageSizeValue, pageSizeValue);
@@ -353,7 +353,7 @@ public class MyLoansController extends ControllerWithLoader {
         Button closeButton = (Button) root.lookup("#closeBtn");
         closeButton.setOnAction(event -> stackPane.getChildren().remove(overlay));
       } else {
-        System.err.println("StackPane with id 'contentPane' not found.");
+        //  System.err.println("StackPane with id 'contentPane' not found.");
       }
     } catch (Exception e) {
       e.printStackTrace();

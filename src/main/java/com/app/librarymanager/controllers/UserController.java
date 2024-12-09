@@ -72,10 +72,12 @@ public class UserController {
   }
 
   public static JSONObject updateUser(User user) {
+    //  System.out.println(user);
     try {
       checkPermission();
       String newPhotoUrl = "";
-      if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
+      if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty() && !user.getPhotoUrl()
+          .startsWith("http")) {
         JSONObject resp = UploadFileUtil.uploadImage(user.getPhotoUrl(), user.getUid(), 96);
         if (resp.getBoolean("success")) {
           newPhotoUrl = resp.getString("longURL");
@@ -95,12 +97,20 @@ public class UserController {
       return new JSONObject().put("success", true).put("data", new JSONObject(updatedUser))
           .put("message", "User updated successfully.");
     } catch (Exception e) {
+      //  System.err.println(e.getMessage());
       JSONObject errorResponse = new JSONObject();
       try {
         String responseBody = e.getMessage().substring(e.getMessage().indexOf("{"));
-        JSONObject responseJson = new JSONObject(responseBody);
-        String errorMessage = responseJson.getJSONObject("error").getString("message");
-        errorResponse.put("message", errorMessage);
+        //  System.out.println(responseBody);
+        if (responseBody.contains("{")) {
+          responseBody = responseBody.substring(responseBody.indexOf("{"));
+          //  System.out.println(responseBody);
+          JSONObject responseJson = new JSONObject(responseBody);
+          String errorMessage = responseJson.getJSONObject("error").getString("message");
+          errorResponse.put("message", errorMessage);
+        } else {
+          errorResponse.put("message", e.getMessage());
+        }
       } catch (Exception parseException) {
         errorResponse.put("message", e.getMessage());
       }
@@ -132,6 +142,11 @@ public class UserController {
   public static JSONObject deleteUser(User user) {
     try {
       checkPermission();
+      BookLoanController.returnAllBookOf(user.getUid());
+      BookLoanController.removeAllLoanOf(user.getUid());
+      CommentController.removeAllCommentOf(user.getUid());
+      BookRatingController.removeAllRatingOf(user.getUid());
+      FavoriteController.removeAllFavoriteOf(user.getUid());
       FirebaseAuth.getInstance().deleteUser(user.getUid());
       return new JSONObject().put("success", true).put("message", "User deleted successfully.");
     } catch (Exception e) {
@@ -151,7 +166,7 @@ public class UserController {
       }
       return users;
     } catch (Exception e) {
-      System.err.println(e.getMessage());
+      //  System.err.println(e.getMessage());
       return null;
     }
   }
@@ -174,7 +189,7 @@ public class UserController {
       }
       return users;
     } catch (Exception e) {
-      System.err.println("aaa" + e.getMessage());
+      //  System.err.println("aaa" + e.getMessage());
       return null;
     }
   }

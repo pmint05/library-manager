@@ -7,6 +7,7 @@ import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.Firebase;
 import com.app.librarymanager.services.MongoDB;
 import com.app.librarymanager.utils.StringUtil;
+import com.mongodb.client.model.Filters;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,6 +25,14 @@ public class CommentController {
 
   public static boolean removeComment(Comment comment) {
     return MongoDB.getInstance().deleteFromCollection("comment", "_id", comment.get_id());
+  }
+
+  public static boolean removeAllComment(String bookId) {
+    return MongoDB.getInstance().deleteAll("comment", Filters.eq("bookId", bookId));
+  }
+
+  public static boolean removeAllCommentOf(String userId) {
+    return MongoDB.getInstance().deleteAll("comment", Filters.eq("userId", userId));
   }
 
   public static Document editComment(Comment comment) {
@@ -61,7 +70,7 @@ public class CommentController {
             currentUser.getPhotoUrl(), doc.getString("content"));
       }).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
   }
@@ -101,11 +110,8 @@ public class CommentController {
             doc.getInteger("count"));
       }).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
-  }
-
-  public static void main(String[] args) {
   }
 }

@@ -11,8 +11,10 @@ import com.app.librarymanager.models.User;
 import com.app.librarymanager.services.Firebase;
 import com.app.librarymanager.services.MongoDB;
 
+import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -68,6 +70,41 @@ public class BookLoanController {
   public static Document editLoan(BookLoan bookLoan) {
     return MongoDB.getInstance()
         .updateData("bookLoan", "_id", bookLoan.get_id(), bookLoanToMap(bookLoan));
+  }
+
+  public static boolean removeAllLoan(String bookId) {
+    return MongoDB.getInstance().deleteAll("bookLoan", Filters.eq("bookId", bookId));
+  }
+
+  public static boolean removeAllLoanOf(String userId) {
+    return MongoDB.getInstance().deleteAll("bookLoan", Filters.eq("userId", userId));
+  }
+
+  public static boolean returnAllBookOf(String userId) {
+    // Just use once when deleting users, so I hardcoded it too
+    // After this, userId's loan will be deleted, so I don't handle it here
+    try {
+      List<Map<String, Object>> updates = MongoDB.getInstance().findAllObject("bookLoan",
+              Filters.and(Filters.eq("valid", true), Filters.eq("userId", userId))).stream()
+          .map(doc -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("bookId", doc.getString("bookId"));
+            map.put("copies", doc.getInteger("numCopies"));
+            return map;
+          }).toList();
+      List<UpdateOneModel<Document>> bulkOperations = updates.stream().map(update -> {
+        String id = (String) update.get("bookId");
+        int copies = (int) update.get("copies");
+        return new UpdateOneModel<Document>(new Document("bookId", id),
+            Updates.inc("copies", copies));
+      }).toList();
+      MongoDB.getInstance().getDatabase().getCollection("bookCopies")
+          .bulkWrite(bulkOperations, new BulkWriteOptions().ordered(false));
+      return true;
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      return false;
+    }
   }
 
   public static Document returnBook(BookLoan bookLoan) {
@@ -159,14 +196,14 @@ public class BookLoanController {
           bookLoanDocs.stream().map(doc -> doc.getString("userId")).toList()).stream().collect(
           Collectors.toMap(User::getUid, user -> user, (existing, replacement) -> existing));
       Map<String, Book> relatedBook = BookController.listDocsToListBook(
-          BookController.findBookByListID(
-              bookLoanDocs.stream().map(doc -> doc.getString("bookId")).toList())).stream().collect(
-          Collectors.toMap(Book::getId, book -> book));
+              BookController.findBookByListID(
+                  bookLoanDocs.stream().map(doc -> doc.getString("bookId")).toList())).stream()
+          .collect(Collectors.toMap(Book::getId, book -> book));
       return bookLoanDocs.stream().map(
           doc -> new BookLoanUser(relatedUser.get(doc.getString("userId")),
               relatedBook.get(doc.getString("bookId")), new BookLoan(doc))).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      //  System.out.println(e.getMessage());
       return null;
     }
   }
@@ -204,7 +241,7 @@ public class BookLoanController {
             bookDoc.getString("title"), bookDoc.getString("thumbnail"));
       }).toList();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+        System.out.println(e.getMessage());
       return null;
     }
   }
@@ -288,20 +325,5 @@ public class BookLoanController {
     } catch (Exception e) {
       return false;
     }
-  }
-
-  public static void main(String[] args) {
-//    Firebase firebase = Firebase.getInstance();
-//    MongoDB mongoDB = MongoDB.getInstance();
-////    System.out.println(getAllLentBook(0, 1000000).size());
-//    for (BookLoanUser b : getAllLentBook(0, 1000000)) {
-//      System.out.println("=======");
-//      System.out.println("Book:");
-//      System.out.println(b.getBook());
-//      System.out.println("User");
-//      System.out.println(b.getUser());
-//      System.out.println("Loan:");
-//      System.out.println(b.getBookLoan() + " " + b.getBookLoan().getLastUpdated());
-//    }
   }
 }
